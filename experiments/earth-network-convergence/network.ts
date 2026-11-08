@@ -214,30 +214,6 @@ export async function createNetworkScene(
     return entity;
   };
 
-  const addStaticRing = (
-    position: CesiumNamespace.Cartesian3,
-    radius: number,
-    height: number,
-    color: () => CesiumNamespace.Color,
-    alpha: number,
-    width = 2,
-  ): Entity => {
-    return addEntity(
-      viewer.entities.add({
-        position,
-        ellipse: {
-          semiMajorAxis: radius,
-          semiMinorAxis: radius,
-          height,
-          fill: false,
-          outline: true,
-          outlineWidth: width,
-          outlineColor: new Cesium.CallbackProperty(() => color().withAlpha(alpha), false),
-        },
-      }),
-    );
-  };
-
   /**
    * Continuous node ripple. Three staggered rings share one 2.4s lifetime and
    * are offset by 0.8s, so an active node always shows roughly 2-3 rings.
@@ -365,22 +341,6 @@ export async function createNetworkScene(
       }),
     );
 
-    addStaticRing(
-      Cesium.Cartesian3.fromDegrees(node.coord[0], node.coord[1], ground),
-      28_000,
-      8_000,
-      getNodeColor,
-      0.32,
-      1.5,
-    );
-    addStaticRing(
-      Cesium.Cartesian3.fromDegrees(node.coord[0], node.coord[1], ground),
-      48_000,
-      8_000,
-      getNodeColor,
-      0.22,
-      1.2,
-    );
     for (let ringIndex = 0; ringIndex < 3; ringIndex += 1) {
       addNodeRipple(node.coord, ground, 90_000, nodeIndex * 0.17 + ringIndex / 3);
     }
@@ -476,11 +436,6 @@ export async function createNetworkScene(
       },
     }),
   );
-
-  const centerPosition = Cesium.Cartesian3.fromDegrees(CENTER[0], CENTER[1], centerGround);
-  for (const [index, baseRadius] of [120_000, 240_000, 390_000, 560_000].entries()) {
-    addStaticRing(centerPosition, baseRadius, 10_000, getRouteColor, 0.28 - index * 0.05, 2);
-  }
 
   // Layer 1: continuous ambient hub ripples. Three staggered rings are always
   // present; they are independent of arrival events and never reset on a pulse.
