@@ -26,6 +26,22 @@ const PANEL_HTML = `
     <input type="range" min="0" max="2.5" step="0.05" data-control="routeSpeed" aria-label="飞线速度" />
   </label>
   <label class="earth-controls__row">
+    <span>弧线透明度</span>
+    <input type="range" min="0" max="1" step="0.01" data-control="baseArcOpacity" aria-label="基础弧线透明度" />
+  </label>
+  <label class="earth-controls__row">
+    <span>光点亮度</span>
+    <input type="range" min="0.3" max="2" step="0.05" data-control="pointBrightness" aria-label="光点亮度" />
+  </label>
+  <label class="earth-controls__row">
+    <span>拖尾长度</span>
+    <input type="range" min="0.05" max="0.35" step="0.01" data-control="trailLength" aria-label="拖尾长度" />
+  </label>
+  <label class="earth-controls__row">
+    <span>弧线高度</span>
+    <input type="range" min="0.6" max="1.6" step="0.05" data-control="arcHeightScale" aria-label="弧线高度倍率" />
+  </label>
+  <label class="earth-controls__row">
     <span>节点颜色</span>
     <input type="color" data-control="nodeColor" aria-label="节点颜色" />
   </label>
@@ -41,6 +57,7 @@ const PANEL_HTML = `
     <span>显示地理边界</span>
     <input type="checkbox" data-control="showBorders" aria-label="显示地理边界" />
   </label>
+  <button type="button" class="earth-controls__pause" data-action="pause">暂停动画</button>
   <button type="button" class="earth-controls__pulse" data-action="pulse">触发中心脉冲</button>
   <button type="button" class="earth-controls__reset" data-action="reset">重置 Showcase</button>
 `;
@@ -67,29 +84,47 @@ export function createControls(
 
   const routeColorInput = input<HTMLInputElement>('routeColor');
   const routeSpeedInput = input<HTMLInputElement>('routeSpeed');
+  const baseArcOpacityInput = input<HTMLInputElement>('baseArcOpacity');
+  const pointBrightnessInput = input<HTMLInputElement>('pointBrightness');
+  const trailLengthInput = input<HTMLInputElement>('trailLength');
+  const arcHeightInput = input<HTMLInputElement>('arcHeightScale');
   const nodeColorInput = input<HTMLInputElement>('nodeColor');
   const glowInput = input<HTMLInputElement>('glowIntensity');
   const pulseInput = input<HTMLInputElement>('pulseSpeed');
   const bordersInput = input<HTMLInputElement>('showBorders');
   const resetButton = panel.querySelector<HTMLButtonElement>('[data-action="reset"]');
   const pulseButton = panel.querySelector<HTMLButtonElement>('[data-action="pulse"]');
+  const pauseButton = panel.querySelector<HTMLButtonElement>('[data-action="pause"]');
 
   const updateDataset = () => {
     host.dataset.routeColor = state.routeColor;
     host.dataset.routeSpeed = state.routeSpeed.toFixed(2);
+    host.dataset.baseArcOpacity = state.baseArcOpacity.toFixed(2);
+    host.dataset.pointBrightness = state.pointBrightness.toFixed(2);
+    host.dataset.trailLength = state.trailLength.toFixed(2);
+    host.dataset.arcHeightScale = state.arcHeightScale.toFixed(2);
     host.dataset.nodeColor = state.nodeColor;
     host.dataset.glowIntensity = state.glowIntensity.toFixed(2);
     host.dataset.pulseSpeed = state.pulseSpeed.toFixed(2);
     host.dataset.showBorders = String(state.showBorders);
+    host.dataset.paused = String(scene.isPaused());
   };
 
   const sync = () => {
     routeColorInput.value = state.routeColor;
     routeSpeedInput.value = String(state.routeSpeed);
+    baseArcOpacityInput.value = String(state.baseArcOpacity);
+    pointBrightnessInput.value = String(state.pointBrightness);
+    trailLengthInput.value = String(state.trailLength);
+    arcHeightInput.value = String(state.arcHeightScale);
     nodeColorInput.value = state.nodeColor;
     glowInput.value = String(state.glowIntensity);
     pulseInput.value = String(state.pulseSpeed);
     bordersInput.checked = state.showBorders;
+    if (pauseButton) {
+      pauseButton.textContent = scene.isPaused() ? '继续动画' : '暂停动画';
+      pauseButton.setAttribute('aria-pressed', String(scene.isPaused()));
+    }
     updateDataset();
   };
 
@@ -100,6 +135,26 @@ export function createControls(
 
   routeSpeedInput.addEventListener('input', () => {
     state.routeSpeed = Number(routeSpeedInput.value);
+    updateDataset();
+  });
+
+  baseArcOpacityInput.addEventListener('input', () => {
+    state.baseArcOpacity = Number(baseArcOpacityInput.value);
+    updateDataset();
+  });
+
+  pointBrightnessInput.addEventListener('input', () => {
+    state.pointBrightness = Number(pointBrightnessInput.value);
+    updateDataset();
+  });
+
+  trailLengthInput.addEventListener('input', () => {
+    state.trailLength = Number(trailLengthInput.value);
+    updateDataset();
+  });
+
+  arcHeightInput.addEventListener('input', () => {
+    state.arcHeightScale = Number(arcHeightInput.value);
     updateDataset();
   });
 
@@ -131,6 +186,11 @@ export function createControls(
 
   pulseButton?.addEventListener('click', () => {
     callbacks.onTriggerPulse();
+  });
+
+  pauseButton?.addEventListener('click', () => {
+    scene.setPaused(!scene.isPaused());
+    sync();
   });
 
   sync();

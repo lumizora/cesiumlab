@@ -293,11 +293,10 @@ interface ExperimentModule {
 Stage 2（`earth-network-convergence`）证据：
 
 - 1672 × 941 纯净 Viewer 截图（`?capture=1`），实际 CesiumJS/WebGL 输出；
-- 1672 × 941 画布，约 10167 个颜色簇、60.4% 非暗像素；
+- 1672 × 941 画布，约 9685 个颜色簇、60.0% 非暗像素；
 - `t=0 / 2 / 5 / 10s` 时间序列截图存在可见变化；
-- 节点环约 2.5s 持续扩散；中心脉冲由光点抵达触发，1.3s 单环冲击波，手动触发截图见 `earth-network-hub-pulse.png`；
-- 拖动旋转、滚轮缩放、参数面板与重置 Showcase 已实际检查；
-- 7 条金色弧线、7 个蓝色节点（全部带光柱）、6 层静态中心环；节点环约 2.5s 持续扩散；中心脉冲由光点抵达触发，1.3s 单环冲击波；边界/省界来自 Natural Earth；
+- 7 条三维金色弧线、7 个蓝色节点、6 层静态中心环；飞线 3–5s，带金白色光点与连续 taper 拖尾；节点出发触发 1.2s 扩散，中心抵达触发 1.3s 单环脉冲；
+- 拖动旋转、滚轮缩放、颜色/透明度/亮度/拖尾/速度/弧高参数、暂停/继续、手动触发中心脉冲与重置 Showcase 已实际检查；
 - Stage 2 证据：[docs/evidence/stage-2/](docs/evidence/stage-2/)。
 
 Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
@@ -309,7 +308,7 @@ Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
 - **Stage 2 尚未获得 Visual Approved**；S2-001 只是 Agent 自检的原型，等待用户 Stage 3 验收；
 - Stage 2 的夜景纹理是 4096×2048 单幅影像，近看会糊；参考图中的暖色地形/城市灯光细节未完全复现；
 - Natural Earth 边界不是权威争议边界裁定；台湾按 Natural Earth 独立单元绘制，参考图轮廓与实际地理数据存在差异；
-- 金色弧线/光柱的动画方向与周期是设计假设，不是参考 GIF/视频事实；
+- 金色弧线/光柱/拖尾的动画方向与周期是设计假设，不是参考 GIF/视频事实；
 - 未验证 Firefox、Safari、移动端浏览器、真实 GPU 桌面窗口截图；本轮只使用 Edge/Chromium headless；
 - 未做真实托管平台部署；`base` 路径验证只覆盖本地 `vite preview`；
 - 未做内存泄漏分析；生命周期通过重新加载场景、画布数量、再次进入退出检查，不等于证明无泄漏；

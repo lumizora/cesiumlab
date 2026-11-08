@@ -16,13 +16,22 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
   browser,
 }) => {
   const consoleErrors: string[] = [];
+  const navigationNoise: string[] = [];
   const pageErrors: string[] = [];
   const failedRequests: string[] = [];
   const ionResponses: string[] = [];
 
+  const isNavigationNoise = (text: string) =>
+    /Failed to load resource.*ERR_CONNECTION_CLOSED/.test(text);
+
   page.on('console', (message) => {
     if (message.type() === 'error') {
-      consoleErrors.push(redactText(message.text()));
+      const text = redactText(message.text());
+      if (isNavigationNoise(text)) {
+        navigationNoise.push(text);
+        return;
+      }
+      consoleErrors.push(text);
     }
   });
   page.on('pageerror', (error) => {
@@ -208,6 +217,29 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
   });
   await expect(sceneHost).toHaveAttribute('data-route-speed', '2.00');
 
+  const setRange = async (name: string, value: string) => {
+    await page.locator(`[data-control="${name}"]`).evaluate((element, nextValue) => {
+      if (element instanceof HTMLInputElement) {
+        element.value = nextValue;
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }, value);
+  };
+
+  await setRange('baseArcOpacity', '0.32');
+  await setRange('pointBrightness', '1.35');
+  await setRange('trailLength', '0.24');
+  await setRange('arcHeightScale', '1.2');
+  await expect(sceneHost).toHaveAttribute('data-base-arc-opacity', '0.32');
+  await expect(sceneHost).toHaveAttribute('data-point-brightness', '1.35');
+  await expect(sceneHost).toHaveAttribute('data-trail-length', '0.24');
+  await expect(sceneHost).toHaveAttribute('data-arc-height-scale', '1.20');
+
+  await page.getByRole('button', { name: '暂停动画' }).click();
+  await expect(sceneHost).toHaveAttribute('data-paused', 'true');
+  await page.getByRole('button', { name: '继续动画' }).click();
+  await expect(sceneHost).toHaveAttribute('data-paused', 'false');
+
   await page.screenshot({
     path: path.join(EVIDENCE_DIR, 'earth-network-controls.png'),
     fullPage: false,
@@ -217,6 +249,11 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
   await expect(sceneHost).toHaveAttribute('data-show-borders', 'true');
   await expect(sceneHost).toHaveAttribute('data-route-color', '#ffa31a');
   await expect(sceneHost).toHaveAttribute('data-route-speed', '1.00');
+  await expect(sceneHost).toHaveAttribute('data-base-arc-opacity', '0.55');
+  await expect(sceneHost).toHaveAttribute('data-point-brightness', '1.00');
+  await expect(sceneHost).toHaveAttribute('data-trail-length', '0.18');
+  await expect(sceneHost).toHaveAttribute('data-arc-height-scale', '1.00');
+  await expect(sceneHost).toHaveAttribute('data-paused', 'false');
   await expect(sceneHost).toHaveAttribute('data-reset-count', '1');
 
   // Freeze route arrivals first so the manual pulse test is deterministic.
@@ -277,6 +314,7 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
     hubPulseEvidence,
     ionResponses: [...new Set(ionResponses)].slice(0, 40),
     consoleErrors,
+    navigationNoise,
     pageErrors,
     failedRequests,
   };

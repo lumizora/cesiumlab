@@ -24,7 +24,29 @@ const DEFAULT_STATE: NetworkState = {
   pulseSpeed: 1,
   glowIntensity: 1,
   showBorders: true,
+  baseArcOpacity: 0.55,
+  pointBrightness: 1,
+  trailLength: 0.18,
+  arcHeightScale: 1,
 };
+
+const TERRAIN_TIMEOUT_MS = 6_000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | null> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => resolve(null), timeoutMs);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
 
 export async function mount(context: ExperimentMountContext): Promise<ExperimentCleanup> {
   const { container, onError } = context;
@@ -98,10 +120,19 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
 
     if (window.CESIUM_ION_TOKEN) {
       try {
-        viewer.terrainProvider = await Cesium.createWorldTerrainAsync({
-          requestVertexNormals: true,
-        });
-        container.dataset.terrain = 'world-terrain';
+        const terrain = await withTimeout(
+          Cesium.createWorldTerrainAsync({
+            requestVertexNormals: true,
+          }),
+          TERRAIN_TIMEOUT_MS,
+        );
+        if (terrain) {
+          viewer.terrainProvider = terrain;
+          container.dataset.terrain = 'world-terrain';
+        } else {
+          container.dataset.terrain = 'ellipsoid';
+          console.warn('[cesiumlab] Cesium World Terrain timed out; using ellipsoid terrain.');
+        }
       } catch {
         container.dataset.terrain = 'ellipsoid';
         console.warn('[cesiumlab] Cesium World Terrain unavailable; using ellipsoid terrain.');
@@ -167,6 +198,7 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
     let controls: ControlsHandle | null = null;
     const resetShowcase = () => {
       Object.assign(state, DEFAULT_STATE);
+      network.setPaused(false);
       network.setShowBorders(state.showBorders);
       network.restart();
       applyGlow();
@@ -202,6 +234,7 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
       }
       container.dataset.hubPulseCount = String(network.getHubPulseCount());
       container.dataset.hubPulseActive = String(network.isHubPulseActive());
+      container.dataset.paused = String(network.isPaused());
     });
 
     const removeRenderError = scene.renderError.addEventListener((_scene, error) => {
@@ -231,6 +264,7 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
       delete container.dataset.resetCount;
       delete container.dataset.hubPulseCount;
       delete container.dataset.hubPulseActive;
+      delete container.dataset.paused;
       delete container.dataset.terrain;
       delete container.dataset.imagery;
       if (viewer && !viewer.isDestroyed()) {
