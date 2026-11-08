@@ -2,41 +2,42 @@
 
 **实验：**`earth-network-convergence`
 **状态：**Prototype / **Awaiting Visual Review**（未获得 Visual Approved）
-**实现提交：**`d578c14`
+**实现提交：**`17569b8`
 **参考：**`docs/stage2/cesiumlab-stage2-task-package/references/S2-001-earth-network/target.png`（内部研发使用，不公开部署原图）
 
 ## 环境与运行
 
-| 项目        | 值                                                                                      |
-| ----------- | --------------------------------------------------------------------------------------- |
-| OS          | Windows 10                                                                              |
-| 浏览器      | Microsoft Edge 157.0.4341.42（Chromium，headless）                                      |
-| GPU / WebGL | NVIDIA GeForce GTX 1070 Ti；ANGLE/D3D11；WebGL 2.0                                      |
-| 画幅        | 1672 × 941（与参考同比例；实际输出即 1672 × 941）                                       |
-| 生产预览    | `http://127.0.0.1:4273/?capture=1#/experiments/earth-network-convergence`               |
-| 地形        | 本次运行 ion endpoint 超时，回退椭球；可选 Cesium World Terrain（无 token/6s 超时回退） |
-| 夜景纹理    | 4096 × 2048 本地单幅纹理                                                                |
-| 证据生成    | `pnpm test:e2e:stage2`                                                                  |
+| 项目        | 值                                                                        |
+| ----------- | ------------------------------------------------------------------------- |
+| OS          | Windows 10                                                                |
+| 浏览器      | Microsoft Edge 157.0.4341.42（Chromium，headless）                        |
+| GPU / WebGL | NVIDIA GeForce GTX 1070 Ti；ANGLE/D3D11；WebGL 2.0                        |
+| 画幅        | 1672 × 941（与参考同比例；实际输出即 1672 × 941）                         |
+| 生产预览    | `http://127.0.0.1:4273/?capture=1#/experiments/earth-network-convergence` |
+| 地形        | Cesium World Terrain（ion；无 token 或 6s 超时回退椭球）                  |
+| 夜景纹理    | 4096 × 2048 本地单幅纹理                                                  |
+| 证据生成    | `pnpm test:e2e:stage2`                                                    |
 
 纯净截图模式通过 `?capture=1` 隐藏站点 UI、Viewer 工具栏和实验控件，保留真实 Cesium Viewer。
 
 ## 实际截图
 
-| 文件                              | 内容                                                |
-| --------------------------------- | --------------------------------------------------- |
-| `earth-network-main-1672x941.png` | 1672×941 主截图；`t≈0`；无站点 UI                   |
-| `earth-network-t2.png`            | 约 2s 后                                            |
-| `earth-network-t5.png`            | 约 5s 后                                            |
-| `earth-network-t10.png`           | 约 10s 后                                           |
-| `earth-network-angle.png`         | 拖动旋转后的斜视角                                  |
-| `earth-network-zoom.png`          | 近距离缩放检查                                      |
-| `earth-network-node-closeup.png`  | 节点近距离检查：波纹为圆形，不再呈细长椭圆          |
-| `earth-network-controls.png`      | 参数面板：绿色飞线、透明度/亮度/拖尾/弧高、隐藏边界 |
-| `earth-network-hub-pulse.png`     | 手动触发中心脉冲后的 1.3s 单环冲击波与中心增亮      |
+| 文件                              | 内容                                                     |
+| --------------------------------- | -------------------------------------------------------- |
+| `earth-network-main-1672x941.png` | 1672×941 主截图；`t≈0`；无站点 UI                        |
+| `earth-network-t2.png`            | 约 2s 后                                                 |
+| `earth-network-t5.png`            | 约 5s 后                                                 |
+| `earth-network-t10.png`           | 约 10s 后                                                |
+| `earth-network-angle.png`         | 拖动旋转后的斜视角                                       |
+| `earth-network-zoom.png`          | 近距离缩放检查                                           |
+| `earth-network-node-closeup.png`  | 节点近距离检查：3 圈错位圆形波纹同时存在                 |
+| `earth-network-controls.png`      | 参数面板：绿色飞线、透明度/亮度/拖尾/弧高、隐藏边界      |
+| `earth-network-hub-ambient.png`   | 停止飞线抵达后的中心环境波纹：无强脉冲时仍有多圈金色扩散 |
+| `earth-network-hub-pulse.png`     | 手动触发中心脉冲后的双圈强脉冲与中心增亮                 |
 
 `stage2-report.json` 记录浏览器、画幅、场景状态、渲染统计、ion 请求、console/page error 与失败请求。命令输出见 `logs/stage2.txt`，revision 见 `logs/revision.txt`。
 
-实测无 console error、page error、失败请求；重进实验后画布数量为 1。渲染统计：约 9822 个颜色簇、60.0% 非暗像素。自动场景状态记录到 `hubPulseCount=2`，说明光点抵达事件已实际触发过中心脉冲。
+实测无 console error、page error、失败请求；重进实验后画布数量为 1。渲染统计：约 10262 个颜色簇、60.6% 非暗像素。自动场景状态记录到 `hubPulseCount=2`，说明光点抵达事件已实际触发过中心脉冲。
 
 ## VA-01～VA-12 自检
 
@@ -46,10 +47,10 @@
 | VA-02 | 通过   | `earth-network-angle.png`、`earth-network-zoom.png` 与主截图视角不同；锚点随球面视差移动                                                                               |
 | VA-03 | 有差异 | 深蓝地球、冷色大气边缘、城市灯光可见；但夜景纹理为单幅 4096×2048 影像，地形/城市灯光细节弱于参考，整体更蓝                                                             |
 | VA-04 | 有差异 | Natural Earth CHN/TWN/HKG/MAC 边界与 CHN 省界可见、青蓝发光；线条受 Bloom 影响偏白，省界比参考更细                                                                     |
-| VA-05 | 通过   | 上海附近金色核心 + 6 层同心环，核心亮度高于普通节点；核心局部接近白色                                                                                                  |
+| VA-05 | 通过   | 上海附近金色核心 + 4 层静态同心环 + 3 圈持续环境波纹；核心亮度高于普通节点，中心视觉权重最高                                                                           |
 | VA-06 | 通过   | 7 条金色三维弧线汇聚到上海，弧高随路径长度变化；基础弧线细而半透明，光点与拖尾沿弧线运动；参考约 8 条，本实现 7 条                                                     |
-| VA-07 | 通过   | 7 个青蓝节点（乌鲁木齐、拉萨、成都、西安、哈尔滨、昆明、广州），均有圆形静态环、事件扩散环与竖向光柱；光柱底部为近似地面高度                                           |
-| VA-08 | 通过   | 主截图/`t2`/`t5`/`t10` 文件不同；光点由节点向中心移动；拖尾为连续 taper 尾部渐隐；飞行约 3–5s；节点出发触发 1.2s 扩散，中心抵达触发 1.3s 单环脉冲                      |
+| VA-07 | 通过   | 7 个青蓝节点（乌鲁木齐、拉萨、成都、西安、哈尔滨、昆明、广州），均有圆形静态环、3 圈连续错位扩散环与竖向光柱；任意时刻约 2–3 圈同时存在                                |
+| VA-08 | 通过   | 主截图/`t2`/`t5`/`t10` 文件不同；光点由节点向中心移动；拖尾为连续 taper 尾部渐隐；飞行约 3–5s；节点持续 3 圈波纹，中心有 3 圈环境波纹 + 抵达双圈强脉冲                 |
 | VA-09 | 有差异 | 青蓝/暖金层级可辨；但蓝色地表更亮，边界更白，参考的整体暖灰地形与金色体积感更强                                                                                        |
 | VA-10 | 通过   | 控制面板可改飞线颜色、基础弧透明度、光点亮度、拖尾长度、速度、弧高、节点颜色、Bloom、节点脉冲、边界显隐；可暂停/继续、手动触发中心脉冲；重置返回默认相机/参数/暂停状态 |
 | VA-11 | 通过   | 生产 preview 正常运行；无 WebGL/Shader 错误；离开/重进后 canvas 数为 1，无明显对象累积                                                                                 |
@@ -61,10 +62,11 @@
 
 - 金色光点沿三维弧线由各节点流向上海；`routeSpeed=1` 时飞行时间约 **3–5s**，按路径长度调整；
 - 每条飞线有连续 `PolylineGlow` 拖尾，默认约占路径 **18%**；尾部 `taperPower` 渐隐、头部保持亮度，叠加金白色光点与 billboard；
-- 节点不是持续循环扩散，而是在对应飞线出发时触发一次约 **1.2s** 的扩散；
-- 金色中心脉冲是**事件触发**：光点抵达后出现单次约 **1.3s** 的 ease-out 单环冲击波，并伴随中心短暂增亮；脉冲激活期间的新抵达会合并/节流，不叠加爆闪；
-- 中心静态同心环作为基线，不持续收缩/呼吸；
-- 动画可暂停/继续；暂停时飞线、节点环、中心脉冲一起冻结；
+- 蓝色节点持续 **3 圈**错位波纹：约 **0.8s** 生成一圈、单圈 **2.4s**，任意时刻约 2–3 圈同时可见；不同节点初始相位不同；
+- 金色中心持续 **3 圈**环境波纹：约 **1.07s** 生成一圈、单圈 **3.2s**，无抵达时也持续存在；
+- 飞线抵达时额外触发 **2 圈**约 **1.3s** 的强脉冲与中心增亮；强脉冲初期扩张快、随后减速/变宽/消散；激活期间新抵达合并/节流；
+- 中心环境波纹与强脉冲叠加，但环境波纹不因强脉冲中断或重置；
+- 动画可暂停/继续；暂停时飞线、节点环、中心波纹一起冻结；
 - 节点光柱轻微呼吸，默认镜头固定；用户可拖动/缩放并重置。
 
 ## 视觉参考与实际结果的前三处差异
@@ -86,7 +88,7 @@
 ## 实现摘要
 
 - `main.ts`：Viewer、夜景纹理、大气、可选地形、Bloom、相机、控制面板、清理；
-- `network.ts`：Natural Earth 边界/省界、7 节点、7 条三维弧线与 taper 拖尾、上海中心、事件环/脉冲、CallbackProperty 动画；
+- `network.ts`：Natural Earth 边界/省界、7 节点、7 条三维弧线与 taper 拖尾、上海中心、节点 3 圈持续波纹 + 中心环境波纹/抵达强脉冲、CallbackProperty 动画；
 - `geo.ts`：本地 GeoJSON 解析；
 - `textures.ts`：运行时生成辉光 sprite；
 - `controls.ts` / `controls.css`：参数面板（颜色/透明度/亮度/拖尾/速度/弧高/暂停）。
