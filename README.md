@@ -169,6 +169,7 @@ cesiumlab/
 │       ├── playwright.config.ts
 │       ├── playwright.base.config.ts
 │       ├── playwright.dev.config.ts
+│       ├── playwright.stage2.config.ts
 │       ├── scripts/sync-cesium.mjs   # 复制 Cesium 静态资源
 │       ├── public/
 │       │   ├── favicon.svg
@@ -199,7 +200,9 @@ cesiumlab/
 │   ├── 03-agent-specification.md
 │   ├── 04-implementation-plan.md
 │   ├── 05-implementation-status.md
-│   └── evidence/stage-1/             # 截图、报告、命令结果
+│   └── evidence/
+│       ├── stage-1/
+│       └── stage-2/             # 截图、报告、命令结果
 └── tests/                            # 跨包测试按需加入（当前未创建）
 ```
 

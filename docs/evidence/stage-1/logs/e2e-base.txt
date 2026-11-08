@@ -6,32 +6,38 @@ $ node scripts/sync-cesium.mjs
 $ vue-tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json
 vite v8.3.6 building client environment for production...
 transforming...
-✓ 1660 modules transformed.
+✓ 1670 modules transformed.
 rendering chunks...
 computing gzip size...
-dist-base/index.html                         0.91 kB │ gzip:     0.57 kB
-dist-base/assets/index-COi184vj.css         36.24 kB │ gzip:     8.56 kB
-dist-base/assets/zip-reader-C8QQIrC_.js      0.08 kB │ gzip:     0.10 kB
-dist-base/assets/main-C8TLavcG.js            5.58 kB │ gzip:     2.34 kB
-dist-base/assets/index-C2IeRC0v.js          88.39 kB │ gzip:    34.74 kB
-dist-base/assets/Cesium-8yV2KeEQ.js      4,942.47 kB │ gzip: 1,357.66 kB
+dist-base/index.html                                   0.91 kB │ gzip:     0.57 kB
+dist-base/assets/china-boundary-DduuHzt5.geojson     129.14 kB
+dist-base/assets/china-provinces-BhRNY3kM.geojson    192.42 kB
+dist-base/assets/night-earth-DunbJrcB.jpg            715.00 kB
+dist-base/assets/main-DHBj6EOO.css                     1.65 kB │ gzip:     0.69 kB
+dist-base/assets/index-DjoWazNV.css                   37.05 kB │ gzip:     8.71 kB
+dist-base/assets/zip-reader-Co6jiboc.js                0.08 kB │ gzip:     0.10 kB
+dist-base/assets/cesium-kh-m_jJo.js                    0.39 kB │ gzip:     0.28 kB
+dist-base/assets/main-Br3Y3LM7.js                      5.24 kB │ gzip:     2.18 kB
+dist-base/assets/main-BajV1mHy.js                     15.49 kB │ gzip:     5.17 kB
+dist-base/assets/index-kWX2yVpz.js                    90.82 kB │ gzip:    35.86 kB
+dist-base/assets/Cesium-Cz5t3Z2k.js                4,942.47 kB │ gzip: 1,357.65 kB
 
 [plugin builtin:vite-reporter]
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 4.24s
-[WebServer] (node:50000) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+✓ built in 2.75s
+[WebServer] (node:19656) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 [WebServer] $ vite preview -c vite.base.config.ts
-[WebServer] (node:20536) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (node:26264) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
 Running 1 test using 1 worker
 
-(node:9632) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:24176) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ok 1 e2e\base-path.spec.ts:15:1 › serves Cesium Workers and Assets under a non-root base path (9.0s)
+  ok 1 e2e\base-path.spec.ts:15:1 › serves Cesium Workers and Assets under a non-root base path (10.3s)
 
-  1 passed (13.8s)
+  1 passed (14.6s)

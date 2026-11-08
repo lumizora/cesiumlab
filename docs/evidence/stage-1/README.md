@@ -67,7 +67,7 @@ pnpm test:e2e:dev
 | `logs/e2e-dev.txt`        | `pnpm test:e2e:dev`              |
 | `logs/revision.txt`       | 本次证据对应的实现提交           |
 
-截图页眉 / 页脚中的 `rev e98c042` 对应实现提交；本目录证据在该提交之后归档。
+截图页眉 / 页脚中的 `rev 87e7da5` 对应当前实现提交；本目录证据在该提交之后归档。Gallery 已包含 S2-001 档案，但本目录仍只验证 Smoke Test 工程链路。
 
 ## 关键结果
 
@@ -81,7 +81,7 @@ pnpm test:e2e:dev
 - `sceneSources`：`ionStatus=ready`、`imagery=cesium-world-imagery`、`terrain=cesium-world-terrain`；
 - console error：0；page error：0；失败请求：0；
 - 画布：1002 × 574；
-- 采样渲染统计：约 3000 个颜色簇，非暗像素比例约 47.7%（证明不是空白画布，且为有影像的渲染）；
+- 采样渲染统计：约 2630 个颜色簇，非暗像素比例约 47.7%（证明不是空白画布，且为有影像的渲染）；
 - 相机拖动旋转与滚轮缩放：前后画布截图不同，交互真实生效。
 - 所有 URL 在写入证据前经过脱敏：移除 `access_token` / `token` / `key` / `signature` 查询参数及 JWT 形态字符串。
 
@@ -98,14 +98,14 @@ pnpm test:e2e:dev
 - `/src/main.ts`、`/src/catalog/registry.ts`、`/src/experiments/loader.ts` 等开发模块均为 200；
 - `/cesium/Workers/...` 与 `/cesium/Assets/...` 仍为 200；
 - `sceneSources` 为 ion ready（World Imagery + World Terrain）；
-- 画布 1002 × 574，约 4300 个颜色簇，非暗像素比例约 47.7%；
+- 画布 1002 × 574，约 4343 个颜色簇，非暗像素比例约 47.7%；
 - console/page error 与失败请求均为 0。
 
 ## 图片
 
 | 文件                         | 内容                                                                                   |
 | ---------------------------- | -------------------------------------------------------------------------------------- |
-| `gallery.png`                | Gallery 全页：两个登记档案、真实状态、阶段说明                                         |
+| `gallery.png`                | Gallery 全页：三个登记档案、真实状态、阶段说明                                         |
 | `smoke-test-detail.png`      | Smoke Test 详情页首屏（1440×900 视口，非全页拼接）                                     |
 | `smoke-test-viewer.png`      | Viewer 元素截图：World Imagery + World Terrain、椭球、立方体、发光连线、异步多边形区域 |
 | `interaction-after-drag.png` | 鼠标拖动旋转后的画布（与默认视角不同）                                                 |
