@@ -1,0 +1,14 @@
+
+ RUN  v5.1.0 D:/com.alwaysmissly/cesiumlab/apps/playground
+
+ ✓ src/catalog/schema.test.ts (7 tests) 18ms
+ ✓ src/experiments/loader.test.ts (5 tests) 23ms
+ ✓ src/cesium/webgl-support.test.ts (1 test) 8ms
+ ✓ src/cesium/base-url.test.ts (1 test) 7ms
+ ✓ src/catalog/registry.test.ts (4 tests) 9ms
+ ✓ src/router.test.ts (5 tests) 10ms
+
+ Test Files  6 passed (6)
+      Tests  23 passed (23)
+   Start at  10:38:15
+   Duration  702ms (import 50%, transform 27%, tests 12%, worker 11%, environment 1%)

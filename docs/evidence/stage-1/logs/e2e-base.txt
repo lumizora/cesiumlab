@@ -1,0 +1,37 @@
+$ pnpm --filter @cesiumlab/playground test:e2e:base
+$ pnpm run build:base && playwright test -c playwright.base.config.ts
+$ pnpm run prepare:cesium && pnpm run typecheck && vite build -c vite.base.config.ts
+$ node scripts/sync-cesium.mjs
+[cesium] Static assets already synced for 1.147.0.
+$ vue-tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json
+vite v8.3.6 building client environment for production...
+transforming...
+✓ 1659 modules transformed.
+rendering chunks...
+computing gzip size...
+dist-base/index.html                         0.91 kB │ gzip:     0.57 kB
+dist-base/assets/index-COi184vj.css         36.24 kB │ gzip:     8.56 kB
+dist-base/assets/zip-reader-BVMxwIqE.js      0.08 kB │ gzip:     0.10 kB
+dist-base/assets/main-CmyJuLaT.js            4.57 kB │ gzip:     1.90 kB
+dist-base/assets/index-CRa2ilQA.js          87.84 kB │ gzip:    34.36 kB
+dist-base/assets/Cesium-Da7pVIim.js      4,942.47 kB │ gzip: 1,357.65 kB
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.22s
+[WebServer] (node:45900) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] $ vite preview -c vite.base.config.ts
+[WebServer] (node:4952) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:29596) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 e2e\base-path.spec.ts:12:1 › serves Cesium Workers and Assets under a non-root base path (4.5s)
+
+  1 passed (8.2s)

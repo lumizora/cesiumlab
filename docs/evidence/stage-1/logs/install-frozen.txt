@@ -1,0 +1,5 @@
+Scope: all 2 workspace projects
+[WARN] The store at C:\Users\Zhaoyang Yuan\AppData\Local\pnpm\store\v11 is not used because packages cannot be hard linked from it into this project. Using the store at D:\.pnpm-store\v11 instead. Set storeDir to choose the store.
+✓ Lockfile passes supply-chain policies (verified 13m ago)
+Lockfile is up to date, resolution step is skipped
+Done in 49ms using pnpm v12.8.1

@@ -235,7 +235,7 @@ interface ExperimentModule {
 - Microsoft Edge 157.0.4341.42（Chromium，headless）；
 - Windows 10，NVIDIA GeForce GTX 1070 Ti，ANGLE/D3D11；
 - WebGL 2.0；
-- 画布 1002 × 574，检测到 2082 个颜色簇、46.5% 非暗像素；
+- 画布 1002 × 574，检测到 1730 个颜色簇、47.7% 非暗像素；
 - Cesium Workers / Assets 请求均为 HTTP 200；
 - 无 console error、page error 或失败请求。
 

@@ -1,0 +1,53 @@
+{
+  "capturedAt": "2026-11-08T02:38:55.734Z",
+  "baseURL": "http://127.0.0.1:4273/",
+  "browserVersion": "157.0.4341.42",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "webgl": {
+    "vendor": "Google Inc. (NVIDIA)",
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1070 Ti (0x00001B82) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "renderStats": {
+    "hasCanvas": true,
+    "width": 1002,
+    "height": 574,
+    "uniqueColors": 1730,
+    "nonDarkRatio": 0.4771571838900596,
+    "sampledPixels": 143787
+  },
+  "cesiumResponses": [
+    "200 /cesium/Assets/Images/ion-credit.png",
+    "200 /cesium/Assets/approximateTerrainHeights.json",
+    "200 /cesium/Assets/IAU2006_XYS/IAU2006_XYS_18.json",
+    "200 /cesium/Workers/transferTypedArrayTest.js",
+    "200 /cesium/Workers/createGeometry.js",
+    "200 /cesium/Workers/chunk-MDI2T7LJ.js",
+    "200 /cesium/Workers/chunk-SOIWLLGP.js",
+    "200 /cesium/Workers/createVerticesFromHeightmap.js",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_py.jpg",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_px.jpg",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_my.jpg",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_mx.jpg",
+    "200 /cesium/Workers/chunk-GACOCTFW.js",
+    "200 /cesium/Assets/Textures/moonSmall.jpg",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_pz.jpg",
+    "200 /cesium/Workers/chunk-FZYUOFLY.js",
+    "200 /cesium/Workers/createPolygonGeometry.js",
+    "200 /cesium/Workers/createEllipsoidOutlineGeometry.js",
+    "200 /cesium/Workers/createBoxOutlineGeometry.js",
+    "200 /cesium/Workers/createBoxGeometry.js",
+    "200 /cesium/Workers/createPolylineGeometry.js",
+    "200 /cesium/Workers/createEllipsoidGeometry.js",
+    "200 /cesium/Workers/incrementallyBuildTerrainPicker.js",
+    "200 /cesium/Workers/combineGeometry.js"
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "failedRequests": []
+}
