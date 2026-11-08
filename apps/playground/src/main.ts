@@ -9,4 +9,10 @@ import { createApp } from 'vue';
 
 import App from './App.vue';
 
+// Capture mode is used for clean visual-review screenshots: it hides the
+// Playground chrome and experiment controls while keeping the real Viewer.
+if (new URLSearchParams(window.location.search).get('capture') === '1') {
+  document.documentElement.classList.add('capture-mode');
+}
+
 createApp(App).mount('#app');

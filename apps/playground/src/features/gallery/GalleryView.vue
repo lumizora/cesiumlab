@@ -23,10 +23,10 @@ const runnableCount = computed(() => catalogStats.runnable);
     <section class="notice" role="note" aria-label="当前阶段说明">
       <span class="notice-mark" aria-hidden="true">!</span>
       <div>
-        <strong>尚未提供首个正式视觉参考。</strong>
+        <strong>S2-001 视觉参考已收到，首个视觉实验正在自检。</strong>
         <p>
-          当前仅有中性 Smoke Test 用于验证工程基础设施。它不是视觉实验，也没有被标记为 Visual
-          Approved；首个特效等待你的参考输入。
+          <em>Earth Network Convergence</em> 处于 Prototype / Awaiting Visual Review；不会由 Agent
+          自行标记为 Visual Approved。Smoke Test 仍只是工程验证，不是视觉成果。
         </p>
       </div>
     </section>

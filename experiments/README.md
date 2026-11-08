@@ -37,9 +37,10 @@ VITE_CESIUM_ION_TOKEN=<public client token>
 
 ## 当前实验
 
-| ID                          | 类型              | 状态            | 说明                           |
-| --------------------------- | ----------------- | --------------- | ------------------------------ |
-| `cesium-smoke-test`         | smoke-test        | runnable        | 中性工程烟雾测试，不是视觉实验 |
-| `awaiting-visual-reference` | visual-experiment | not-implemented | 等待用户提供首个正式视觉参考   |
+| ID                          | 类型              | 状态            | 说明                                  |
+| --------------------------- | ----------------- | --------------- | ------------------------------------- |
+| `earth-network-convergence` | visual-experiment | runnable        | S2-001 夜间地球光网汇聚，等待视觉验收 |
+| `cesium-smoke-test`         | smoke-test        | runnable        | 中性工程烟雾测试，不是视觉实验        |
+| `awaiting-visual-reference` | visual-experiment | not-implemented | 参考接收历史记录，实际实验见 S2-001   |
 
-尚未选定首个特效，也没有 Visual Approved 实验。Smoke Test 不构成视觉复现成果。
+`earth-network-convergence` 当前为 **Prototype / Awaiting Visual Review**，没有 Visual Approved。Smoke Test 仍只用于工程验证。

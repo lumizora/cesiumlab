@@ -13,7 +13,7 @@
 
 ## 当前状态
 
-**Stage 0（仓库与工程基础）与 Stage 1（最小 Web + CesiumJS 环境）已完成并通过工程检查。**
+**Stage 0（仓库与工程基础）、Stage 1（最小 Web + CesiumJS 环境）已完成；Stage 2 首个视觉参考实验已实现并自检，当前停在 `Awaiting Visual Review`。**
 
 已具备：
 
@@ -21,16 +21,16 @@
 - `apps/playground`：Vue 3 + TypeScript + Vite + CesiumJS；
 - 真实 CesiumJS Viewer；配置 Cesium ion 时加载 World Imagery + World Terrain，未配置或服务失败时回退本地网格；
 - Cesium Workers / ThirdParty / Assets / Widgets 静态资源复制与 `CESIUM_BASE_URL` 配置；
-- 最简 Gallery / Detail，手工登记两个实验档案；
+- Gallery / Detail，手工登记三个实验档案；
+- `earth-network-convergence`：S2-001 夜间地球光网汇聚视觉原型（Prototype / Awaiting Visual Review）；
 - 根路径与非根路径（`/cesiumlab/`）的生产构建与浏览器验证；
 - 加载中、加载失败、WebGL 不可用、运行错误提示；
 - Viewer 清理：路由离开、重新加载、`pagehide` 时销毁；
-- Vitest 单元测试与 Playwright 真实浏览器检查。
+- Vitest 单元测试、Playwright 真实浏览器检查与 Stage 2 纯净 Viewer 截图模式。
 
 **尚未完成 / 未开始：**
 
-- 首个真实视觉参考实验（Stage 2）：当前没有视觉参考，不能自行选择特效；
-- 任何 `Visual Approved` 结论：Smoke Test 只是工程烟雾测试；
+- `Visual Approved`：S2-001 只完成 Agent 自检，必须由用户进行 Stage 3 视觉验收；
 - `packages/effects` API 与 npm 发布：没有真实候选，也没有发布批准；
 - 公开部署：未选择托管平台，未执行部署。
 
@@ -52,6 +52,18 @@ pnpm dev
 ```
 
 开发服务器：<http://127.0.0.1:5273/>
+
+Stage 2 视觉实验入口：
+
+```text
+http://127.0.0.1:5273/#/experiments/earth-network-convergence
+```
+
+纯净 Viewer 截图模式（隐藏站点 UI 和实验控件）：
+
+```text
+http://127.0.0.1:5273/?capture=1#/experiments/earth-network-convergence
+```
 
 生产构建与预览：
 
@@ -90,22 +102,23 @@ VITE_CESIUM_ION_TOKEN=<public client token>
 
 ## 常用命令
 
-| 命令                 | 作用                                                |
-| -------------------- | --------------------------------------------------- |
-| `pnpm dev`           | 启动 Playground 开发服务器                          |
-| `pnpm build`         | 类型检查 + 生产构建到 `apps/playground/dist`        |
-| `pnpm preview`       | 预览默认构建                                        |
-| `pnpm build:base`    | 构建非根路径版本到 `apps/playground/dist-base`      |
-| `pnpm preview:base`  | 在 `/cesiumlab/` 下预览非根路径版本                 |
-| `pnpm typecheck`     | `vue-tsc` + `tsc` 类型检查                          |
-| `pnpm lint`          | ESLint 检查                                         |
-| `pnpm format`        | Prettier 写入格式化                                 |
-| `pnpm format:check`  | Prettier 检查                                       |
-| `pnpm test`          | Vitest 单元测试                                     |
-| `pnpm test:e2e`      | 构建后运行 Playwright 浏览器检查（含截图）          |
-| `pnpm test:e2e:base` | 构建后运行非根路径浏览器检查                        |
-| `pnpm test:e2e:dev`  | 启动 Vite dev server 并运行开发模式浏览器检查       |
-| `pnpm check`         | format check + lint + typecheck + unit test + build |
+| 命令                   | 作用                                                |
+| ---------------------- | --------------------------------------------------- |
+| `pnpm dev`             | 启动 Playground 开发服务器                          |
+| `pnpm build`           | 类型检查 + 生产构建到 `apps/playground/dist`        |
+| `pnpm preview`         | 预览默认构建                                        |
+| `pnpm build:base`      | 构建非根路径版本到 `apps/playground/dist-base`      |
+| `pnpm preview:base`    | 在 `/cesiumlab/` 下预览非根路径版本                 |
+| `pnpm typecheck`       | `vue-tsc` + `tsc` 类型检查                          |
+| `pnpm lint`            | ESLint 检查                                         |
+| `pnpm format`          | Prettier 写入格式化                                 |
+| `pnpm format:check`    | Prettier 检查                                       |
+| `pnpm test`            | Vitest 单元测试                                     |
+| `pnpm test:e2e`        | 构建后运行 Playwright 浏览器检查（含截图）          |
+| `pnpm test:e2e:base`   | 构建后运行非根路径浏览器检查                        |
+| `pnpm test:e2e:dev`    | 启动 Vite dev server 并运行开发模式浏览器检查       |
+| `pnpm test:e2e:stage2` | Stage 2 构建、纯净 Viewer 截图、时间序列与参数检查  |
+| `pnpm check`           | format check + lint + typecheck + unit test + build |
 
 带 Cesium ion 断言运行（需要 `.env.local`）：
 
@@ -175,8 +188,9 @@ cesiumlab/
 │   ├── contract.ts                   # Contract v0.1（mount + cleanup）
 │   ├── cesium.ts                     # 动态 Cesium 加载 + ion token
 │   ├── README.md
-│   ├── cesium-smoke-test/            # 当前唯一可运行实验（Smoke Test）
-│   └── awaiting-visual-reference/    # 未实现视觉实验档案
+│   ├── earth-network-convergence/    # S2-001 视觉原型（runnable）
+│   ├── cesium-smoke-test/            # 工程 Smoke Test
+│   └── awaiting-visual-reference/    # 参考接收历史档案
 ├── packages/
 │   └── README.md                     # 暂无正式包
 ├── docs/
@@ -258,6 +272,7 @@ interface ExperimentModule {
 | 浏览器检查 | `pnpm test:e2e`                                | 3 个 Playwright 测试通过                               |
 | 非根路径   | `pnpm test:e2e:base`                           | 1 个 Playwright 测试通过                               |
 | 开发模式   | `pnpm test:e2e:dev`                            | 1 个 Playwright 测试通过                               |
+| Stage 2    | `pnpm test:e2e:stage2`                         | 1 个 Playwright 测试通过（截图/时间序列/参数）         |
 | Cesium ion | `$env:CESIUMLAB_EXPECT_ION="1"; pnpm test:e2e` | 通过：`ionStatus=ready`、World Imagery + World Terrain |
 
 浏览器证据：
@@ -266,19 +281,31 @@ interface ExperimentModule {
 - Windows 10，NVIDIA GeForce GTX 1070 Ti，ANGLE/D3D11；
 - WebGL 2.0；
 - Vite dev（5273）、生产 preview（4273）与非根路径 preview（4274）均完成真实渲染检查；
-- 画布 1002 × 574，约 3000–4300 个颜色簇、47.7% 非暗像素（以报告为准）；
+- 画布 1002 × 574（Smoke Test），约 3000–4300 个颜色簇、47.7% 非暗像素（以报告为准）；
 - `data-imagery-source="cesium-world-imagery"`、`data-terrain-source="cesium-world-terrain"`；
 - Cesium Workers / Assets 与 Cesium ion endpoint / terrain 瓦片请求均为 HTTP 200；
 - 相机拖动旋转与滚轮缩放通过前后画布截图差异验证；
 - 无 console error、page error 或失败请求。
 
-截图、报告与命令记录位于：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
+Stage 2（`earth-network-convergence`）证据：
+
+- 1672 × 941 纯净 Viewer 截图（`?capture=1`），实际 CesiumJS/WebGL 输出；
+- 1672 × 941 画布，约 10295 个颜色簇、59.6% 非暗像素；
+- `t=0 / 2 / 5 / 10s` 时间序列截图存在可见变化；
+- 拖动旋转、滚轮缩放、参数面板与重置 Showcase 已实际检查；
+- 7 条金色弧线、7 个蓝色节点（全部带光柱）、6 层中心环；边界/省界来自 Natural Earth；
+- Stage 2 证据：[docs/evidence/stage-2/](docs/evidence/stage-2/)。
+
+Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
 
 **注意：以上是工程与真实渲染检查，不是视觉验收。项目没有 Visual Approved 实验。**
 
 ## 已知限制与未验证项
 
-- 没有首个视觉参考，因此没有视觉实验，也没有与参考的视觉差异结论；
+- **Stage 2 尚未获得 Visual Approved**；S2-001 只是 Agent 自检的原型，等待用户 Stage 3 验收；
+- Stage 2 的夜景纹理是 4096×2048 单幅影像，近看会糊；参考图中的暖色地形/城市灯光细节未完全复现；
+- Natural Earth 边界不是权威争议边界裁定；台湾按 Natural Earth 独立单元绘制，参考图轮廓与实际地理数据存在差异；
+- 金色弧线/光柱的动画方向与周期是设计假设，不是参考 GIF/视频事实；
 - 未验证 Firefox、Safari、移动端浏览器、真实 GPU 桌面窗口截图；本轮只使用 Edge/Chromium headless；
 - 未做真实托管平台部署；`base` 路径验证只覆盖本地 `vite preview`；
 - 未做内存泄漏分析；生命周期通过重新加载场景、画布数量、再次进入退出检查，不等于证明无泄漏；
@@ -292,6 +319,4 @@ interface ExperimentModule {
 
 ## 下一步
 
-Stage 2 的前置条件是用户提供**具体视觉参考**（图片 / 视频 / GIF / 明确视觉目标）并指示开始。当前工程环境已具备承载实验的条件，但不得由 Agent 自行选定首个特效，也不得把 Smoke Test 当作视觉成果。
-
-在收到参考后，将按 `docs/03-agent-specification.md` 的视觉实验 SOP 进行拆解、实现、真实浏览器检查和视觉验收提交。
+Stage 2 已完成 Agent 自检，状态为 **Prototype / Awaiting Visual Review**。下一步需要用户进行 Stage 3 视觉验收：查看 1672×941 主截图、`t=0/2/5/10s` 时间序列与交互检查，决定接受、继续修改或重做。只有用户能批准 `Visual Approved`；未获批准前不得进入 `packages/effects` 通用化或 npm 发布。

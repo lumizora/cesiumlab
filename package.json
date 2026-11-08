@@ -24,6 +24,7 @@
     "test:e2e": "pnpm --filter @cesiumlab/playground test:e2e",
     "test:e2e:base": "pnpm --filter @cesiumlab/playground test:e2e:base",
     "test:e2e:dev": "pnpm --filter @cesiumlab/playground test:e2e:dev",
+    "test:e2e:stage2": "pnpm --filter @cesiumlab/playground test:e2e:stage2",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {

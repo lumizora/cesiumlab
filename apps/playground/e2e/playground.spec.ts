@@ -52,8 +52,8 @@ test('gallery, live Cesium smoke test, reload and archived detail', async ({ pag
   await page.goto('/');
   await expect(page).toHaveTitle(/cesiumlab/);
   await expect(page.getByRole('heading', { level: 1, name: 'CesiumJS 视觉实验库' })).toBeVisible();
-  await expect(page.getByTestId('experiment-card')).toHaveCount(2);
-  await expect(page.getByText('尚未提供首个正式视觉参考。')).toBeVisible();
+  await expect(page.getByTestId('experiment-card')).toHaveCount(3);
+  await expect(page.getByText('S2-001 视觉参考已收到，首个视觉实验正在自检。')).toBeVisible();
 
   await page.screenshot({ path: path.join(EVIDENCE_DIR, 'gallery.png'), fullPage: true });
 
@@ -235,9 +235,9 @@ test('gallery, live Cesium smoke test, reload and archived detail', async ({ pag
   await page.getByRole('link', { name: '← 返回 Gallery' }).first().click();
   await expect(page.getByRole('heading', { level: 1, name: 'CesiumJS 视觉实验库' })).toBeVisible();
 
-  await page.getByRole('link', { name: /首个视觉实验/ }).click();
+  await page.getByRole('link', { name: /视觉参考接收记录/ }).click();
   await expect(
-    page.getByRole('heading', { level: 1, name: '首个视觉实验（等待参考）' }),
+    page.getByRole('heading', { level: 1, name: '视觉参考接收记录（S2-001）' }),
   ).toBeVisible();
   await expect(page.getByText('该实验暂无运行场景')).toBeVisible();
   await expect(page.locator('.viewer-canvas canvas')).toHaveCount(0);

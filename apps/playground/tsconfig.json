@@ -15,6 +15,7 @@
     "playwright.config.ts",
     "playwright.base.config.ts",
     "playwright.dev.config.ts",
+    "playwright.stage2.config.ts",
     "e2e/**/*.ts"
   ]
 }

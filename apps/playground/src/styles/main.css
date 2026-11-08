@@ -890,3 +890,50 @@ main:focus {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Clean visual-review capture: hide Playground chrome, keep the real Viewer. */
+html.capture-mode,
+html.capture-mode body,
+html.capture-mode #app,
+html.capture-mode .app-shell,
+html.capture-mode main {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+html.capture-mode .site-header,
+html.capture-mode .site-footer,
+html.capture-mode .skip-link,
+html.capture-mode .detail-header,
+html.capture-mode .back-link,
+html.capture-mode .viewer-section .section-heading,
+html.capture-mode .notes,
+html.capture-mode .detail-meta,
+html.capture-mode .viewer-toolbar,
+html.capture-mode .viewer-hint,
+html.capture-mode .earth-controls {
+  display: none !important;
+}
+
+html.capture-mode .page,
+html.capture-mode .detail-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+html.capture-mode .viewer-section {
+  margin: 0;
+}
+
+html.capture-mode .viewer-host {
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}

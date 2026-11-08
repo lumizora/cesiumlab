@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "earth-network-convergence",
+  "title": "Earth Network Convergence",
+  "summary": "夜间地球 · 中国区域光网汇聚。7 条金色飞线从不同方位的蓝色节点汇聚到上海，配以青蓝边界、竖向光柱与同心脉冲。Stage 2 视觉原型，等待用户视觉验收。",
+  "kind": "visual-experiment",
+  "maturity": "prototype",
+  "runtimeStatus": "runnable",
+  "entry": "./main.ts",
+  "referenceVisibility": "private",
+  "tags": ["stage2", "earth", "night", "network", "china", "cesium-ion-optional"],
+  "notes": {
+    "overview": "以真实 CesiumJS 3D 地球呈现夜空下的中国区域：7 个蓝色节点分布在乌鲁木齐、拉萨、成都、西安、哈尔滨、昆明和广州，金色弧线从各节点向上海汇聚。中心有金色核心与多层同心环，节点带扩散环和竖向光柱；青蓝色线描绘合规来源的中国边界与省界。",
+    "technology": "CesiumJS Viewer + 本地 NASA 夜景单幅纹理 + Natural Earth 1:50m 边界数据；PolylineGlowMaterialProperty、Entity ellipse、cylinder、billboard 与 CallbackProperty 驱动流动光点、节点扩散和中心脉冲；Cesium bloom 后处理提供辉光；可选 Cesium World Terrain 仅用于地形起伏。参考 PNG 没有被用作场景贴图。",
+    "limitations": "参考为 AI 生成的静态概念图，弧线/光柱的动画方向与周期是本次设计假设；Natural Earth 边界不是权威争议边界裁定，台湾按 Natural Earth 独立单元绘制并保留来源说明；夜景纹理为 4096×2048 单幅影像，近看会变糊；地形为可选 ion 数据，无 token 时回退椭球；Bloom 与色调为实时近似，未做像素级匹配。"
+  },
+  "verification": {
+    "checkedAt": "2026-11-08",
+    "environment": "Windows 10 · Microsoft Edge 157.0.4341.42 (Chromium, headless) · NVIDIA GeForce GTX 1070 Ti (ANGLE/D3D11) · WebGL 2.0 · 1672×941 capture · Cesium World Terrain",
+    "evidence": "docs/evidence/stage-2/"
+  }
+}

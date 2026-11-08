@@ -1,3 +1,4 @@
+import earthNetworkMetadata from '../../../../experiments/earth-network-convergence/metadata.json';
 import smokeTestMetadata from '../../../../experiments/cesium-smoke-test/metadata.json';
 import awaitingReferenceMetadata from '../../../../experiments/awaiting-visual-reference/metadata.json';
 
@@ -13,6 +14,10 @@ import type { ExperimentModule } from '../../../../experiments/contract';
  * bundle, and only explicitly registered entries can ever execute.
  */
 const rawMetadata: ReadonlyArray<{ source: string; value: unknown }> = [
+  {
+    source: 'experiments/earth-network-convergence/metadata.json',
+    value: earthNetworkMetadata,
+  },
   { source: 'experiments/cesium-smoke-test/metadata.json', value: smokeTestMetadata },
   {
     source: 'experiments/awaiting-visual-reference/metadata.json',
@@ -25,6 +30,8 @@ const metadata: ExperimentMetadata[] = rawMetadata.map(({ source, value }) =>
 );
 
 const runtimeLoaders: Readonly<Record<string, () => Promise<ExperimentModule>>> = {
+  'earth-network-convergence': () =>
+    import('../../../../experiments/earth-network-convergence/main'),
   'cesium-smoke-test': () => import('../../../../experiments/cesium-smoke-test/main'),
 };
 

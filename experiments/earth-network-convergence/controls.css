@@ -1,0 +1,110 @@
+.earth-controls {
+  position: absolute;
+  top: 58px;
+  left: 16px;
+  z-index: 6;
+  width: 248px;
+  padding: 14px;
+  border: 1px solid rgba(112, 214, 255, 0.24);
+  border-radius: 12px;
+  background: rgba(3, 12, 22, 0.78);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  color: #dff6ff;
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.earth-controls__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(112, 214, 255, 0.18);
+}
+
+.earth-controls__header strong {
+  flex: 1;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+.earth-controls__eyebrow {
+  width: 100%;
+  color: #5eead4;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+.earth-controls__state {
+  color: #fbbf24;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+.earth-controls__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 28px;
+  color: #9fc4d8;
+  cursor: pointer;
+}
+
+.earth-controls__row input[type='color'] {
+  width: 34px;
+  height: 22px;
+  padding: 1px;
+  border: 1px solid rgba(112, 214, 255, 0.3);
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.earth-controls__row input[type='range'] {
+  width: 112px;
+  accent-color: #5eead4;
+  cursor: pointer;
+}
+
+.earth-controls__row--check {
+  margin-top: 3px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(112, 214, 255, 0.12);
+}
+
+.earth-controls__row input[type='checkbox'] {
+  accent-color: #38bdf8;
+}
+
+.earth-controls__reset {
+  width: 100%;
+  margin-top: 10px;
+  padding: 7px 10px;
+  border: 1px solid rgba(94, 234, 212, 0.4);
+  border-radius: 7px;
+  background: rgba(94, 234, 212, 0.1);
+  color: #ccfbf1;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.earth-controls__reset:hover {
+  background: rgba(94, 234, 212, 0.18);
+}
+
+@media (max-width: 720px) {
+  .earth-controls {
+    top: auto;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    width: auto;
+  }
+}

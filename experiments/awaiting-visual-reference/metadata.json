@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "id": "awaiting-visual-reference",
-  "title": "首个视觉实验（等待参考）",
-  "summary": "尚未收到首个正式视觉参考。该档案用于验证 Gallery 能展示未完成实验，不代表已经选定任何特效。",
+  "title": "视觉参考接收记录（S2-001）",
+  "summary": "首个视觉参考已通过 S2-001 任务包提供；本档案保留为参考接收历史。实际实验见 earth-network-convergence。",
   "kind": "visual-experiment",
   "maturity": "idea",
   "runtimeStatus": "not-implemented",
-  "referenceVisibility": "none",
-  "tags": ["pending", "visual-reference", "not-implemented"],
+  "referenceVisibility": "private",
+  "tags": ["archived", "reference-intake", "stage2"],
   "notes": {
-    "overview": "项目当前只完成工程基础设施和中性 Smoke Test。首个视觉实验必须由用户提供的图片、视频、GIF 或明确视觉目标驱动，不能由 Agent 自行选择特效代替。",
-    "technology": "尚未选择技术路线。收到视觉参考后，将先拆解可观察特征与不可观察假设，再选择 Entity、Primitive、CustomShader、PostProcessStage 等合适的 CesiumJS 技术。",
-    "limitations": "没有运行入口，因此该档案只展示说明和真实状态。它不会被表述为可运行实验，也不会被标记为 Visual Approved。"
+    "overview": "该档案记录 Stage 2 开始前的状态：当时尚未收到具体视觉参考，也没有可运行场景。S2-001 任务包提供了 “夜间地球 · 中国区域光网汇聚” 参考后，实际实现已迁移到 earth-network-convergence。",
+    "technology": "本档案没有运行入口。S2-001 的实现使用 CesiumJS Viewer、夜景纹理、Natural Earth 边界与动态光效，详见 earth-network-convergence。",
+    "limitations": "仅作为历史记录保留，不提供运行场景，也不代表当前视觉成果。参考原图不在公开页面展示。"
   }
 }
