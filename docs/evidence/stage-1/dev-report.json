@@ -1,0 +1,62 @@
+{
+  "capturedAt": "2026-11-08T02:46:57.394Z",
+  "mode": "vite dev",
+  "baseURL": "http://127.0.0.1:5273/",
+  "browserVersion": "157.0.4341.42",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "renderStats": {
+    "hasCanvas": true,
+    "width": 1002,
+    "height": 574,
+    "uniqueColors": 1740,
+    "nonDarkRatio": 0.4771571838900596
+  },
+  "cesiumResponses": [
+    "200 /src/cesium/base-url.ts",
+    "200 /@fs/D:/com.alwaysmissly/cesiumlab/node_modules/.pnpm/cesium@1.147.0/node_modules/cesium/Build/Cesium/Widgets/widgets.css",
+    "200 /src/cesium/webgl-support.ts",
+    "200 /cesium/Assets/Images/ion-credit.png",
+    "200 /cesium/Assets/approximateTerrainHeights.json",
+    "200 /cesium/Assets/IAU2006_XYS/IAU2006_XYS_18.json",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_px.jpg",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_mx.jpg",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_py.jpg",
+    "200 /cesium/Assets/Textures/moonSmall.jpg",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_my.jpg",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_pz.jpg",
+    "200 /cesium/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg",
+    "200 /cesium/Workers/createGeometry.js",
+    "200 /cesium/Workers/createVerticesFromHeightmap.js",
+    "200 /cesium/Workers/transferTypedArrayTest.js",
+    "200 /cesium/Workers/chunk-SOIWLLGP.js",
+    "200 /cesium/Workers/chunk-MDI2T7LJ.js",
+    "200 /cesium/Workers/chunk-FZYUOFLY.js",
+    "200 /cesium/Workers/chunk-GACOCTFW.js",
+    "200 /cesium/Workers/createEllipsoidGeometry.js",
+    "200 /cesium/Workers/createPolygonGeometry.js",
+    "200 /cesium/Workers/createEllipsoidOutlineGeometry.js",
+    "200 /cesium/Workers/createBoxOutlineGeometry.js",
+    "200 /cesium/Workers/createBoxGeometry.js",
+    "200 /cesium/Workers/createPolylineGeometry.js",
+    "200 /cesium/Workers/combineGeometry.js",
+    "200 /cesium/Workers/incrementallyBuildTerrainPicker.js"
+  ],
+  "devModuleResponses": [
+    "200 /src/main.ts",
+    "200 /src/cesium/base-url.ts",
+    "200 /src/router.ts",
+    "200 /src/catalog/format.ts",
+    "200 /src/catalog/registry.ts",
+    "200 /src/cesium/webgl-support.ts",
+    "200 /src/catalog/schema.ts",
+    "200 /src/experiments/loader.ts",
+    "200 /src/catalog/types.ts"
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "failedRequests": []
+}

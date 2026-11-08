@@ -30,6 +30,7 @@ pnpm test
 pnpm build
 pnpm test:e2e
 pnpm test:e2e:base
+pnpm test:e2e:dev
 ```
 
 | 检查                     | 结果                        |
@@ -41,6 +42,7 @@ pnpm test:e2e:base
 | 生产构建                 | 通过（`dist`、`dist-base`） |
 | Playwright 根路径        | 3 个测试通过                |
 | Playwright `/cesiumlab/` | 1 个测试通过                |
+| Playwright Vite dev      | 1 个测试通过                |
 
 命令原始输出保存在 `logs/`：
 
@@ -54,9 +56,10 @@ pnpm test:e2e:base
 | `logs/build.txt`          | `pnpm build`                     |
 | `logs/e2e.txt`            | `pnpm test:e2e`                  |
 | `logs/e2e-base.txt`       | `pnpm test:e2e:base`             |
+| `logs/e2e-dev.txt`        | `pnpm test:e2e:dev`              |
 | `logs/revision.txt`       | 本次证据对应的实现提交           |
 
-截图页眉 / 页脚中的 `rev eae467a` 对应实现提交；本目录证据在该提交之后归档。
+截图页眉 / 页脚中的 `rev 910425e` 对应实现提交；本目录证据在该提交之后归档。
 
 ## 关键结果
 
@@ -67,13 +70,21 @@ pnpm test:e2e:base
 - 全部请求 HTTP 200；
 - console error：0；page error：0；失败请求：0；
 - 画布：1002 × 574；
-- 采样渲染统计：1730 个颜色簇，非暗像素比例约 47.7%（证明不是空白画布）。
+- 采样渲染统计：1695 个颜色簇，非暗像素比例约 47.7%（证明不是空白画布）。
 
 非根路径 `pnpm test:e2e:base`：
 
 - 所有 Cesium 请求均为 `/cesiumlab/cesium/...`；
 - 无 `/cesium/...` 根路径回落；
 - 全部 200；console/page error 与失败请求均为 0。
+
+开发模式 `pnpm test:e2e:dev`：
+
+- Playwright 自行启动 `pnpm dev`（Vite dev server，5273）；
+- `/src/main.ts`、`/src/catalog/registry.ts`、`/src/experiments/loader.ts` 等开发模块均为 200；
+- `/cesium/Workers/...` 与 `/cesium/Assets/...` 仍为 200；
+- 画布 1002 × 574，1740 个颜色簇，非暗像素比例约 47.7%；
+- console/page error 与失败请求均为 0。
 
 ## 图片
 
@@ -86,6 +97,7 @@ pnpm test:e2e:base
 | `archived-detail.png`      | 未实现视觉实验档案：无运行场景，导航可用                                        |
 | `webgl-unavailable.png`    | 模拟 WebGL 不可用时的明确提示与重试入口                                         |
 | `base-path-smoke-test.png` | `/cesiumlab/` 非根路径部署下的真实渲染                                          |
+| `dev-mode-smoke-test.png`  | Vite dev server（5273）下的真实渲染                                             |
 
 > 详情页采用视口截图而不是 `fullPage`，避免浏览器对 `position: sticky` 页头做全页拼接时产生重复页头伪影。
 
@@ -93,6 +105,7 @@ pnpm test:e2e:base
 
 - `browser-report.json`：根路径的浏览器版本、UA、WebGL vendor/renderer、画布尺寸、采样颜色统计、Cesium 响应、console/page error、失败请求。
 - `base-path-report.json`：非根路径的对应记录，用于确认 Workers/Assets 的 URL 前缀。
+- `dev-report.json`：Vite dev server 的对应记录，包含开发模块与 Cesium 静态资源的响应。
 
 ## 可重复性
 

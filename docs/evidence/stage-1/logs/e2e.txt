@@ -11,29 +11,29 @@ rendering chunks...
 computing gzip size...
 dist/index.html                         0.88 kB │ gzip:     0.57 kB
 dist/assets/index-COi184vj.css         36.24 kB │ gzip:     8.56 kB
-dist/assets/zip-reader-BIyyXU78.js      0.08 kB │ gzip:     0.10 kB
-dist/assets/main-DNwh1mUR.js            4.57 kB │ gzip:     1.91 kB
-dist/assets/index-CgGcEzwC.js          87.82 kB │ gzip:    34.35 kB
-dist/assets/Cesium-CpvPhBMm.js      4,942.47 kB │ gzip: 1,357.65 kB
+dist/assets/zip-reader-DdsKW-B8.js      0.08 kB │ gzip:     0.10 kB
+dist/assets/main-D_7W9Xvb.js            4.57 kB │ gzip:     1.91 kB
+dist/assets/index-B3T2OsQ4.js          87.82 kB │ gzip:    34.35 kB
+dist/assets/Cesium-B8rFdqtJ.js      4,942.47 kB │ gzip: 1,357.65 kB
 
 [plugin builtin:vite-reporter]
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 2.02s
-[WebServer] (node:28944) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+✓ built in 2.40s
+[WebServer] (node:46564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 [WebServer] $ vite preview
-[WebServer] (node:49836) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (node:24724) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
 Running 3 tests using 1 worker
 
-(node:28604) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:39308) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ok 1 e2e\playground.spec.ts:12:1 › gallery, live Cesium smoke test, reload and archived detail (6.9s)
-  ok 2 e2e\playground.spec.ts:201:1 › shows a WebGL fallback and keeps navigation usable (1.0s)
-  ok 3 e2e\playground.spec.ts:228:1 › unknown experiment route keeps navigation usable (698ms)
+  ok 1 e2e\playground.spec.ts:12:1 › gallery, live Cesium smoke test, reload and archived detail (8.2s)
+  ok 2 e2e\playground.spec.ts:201:1 › shows a WebGL fallback and keeps navigation usable (1.6s)
+  ok 3 e2e\playground.spec.ts:228:1 › unknown experiment route keeps navigation usable (899ms)
 
-  3 passed (11.5s)
+  3 passed (15.8s)

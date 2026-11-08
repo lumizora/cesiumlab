@@ -11,27 +11,27 @@ rendering chunks...
 computing gzip size...
 dist-base/index.html                         0.91 kB │ gzip:     0.57 kB
 dist-base/assets/index-COi184vj.css         36.24 kB │ gzip:     8.56 kB
-dist-base/assets/zip-reader-BVMxwIqE.js      0.08 kB │ gzip:     0.10 kB
-dist-base/assets/main-CmyJuLaT.js            4.57 kB │ gzip:     1.90 kB
-dist-base/assets/index-CRa2ilQA.js          87.84 kB │ gzip:    34.36 kB
-dist-base/assets/Cesium-Da7pVIim.js      4,942.47 kB │ gzip: 1,357.65 kB
+dist-base/assets/zip-reader-Dpw7aheS.js      0.08 kB │ gzip:     0.10 kB
+dist-base/assets/main-9ftAI09s.js            4.57 kB │ gzip:     1.91 kB
+dist-base/assets/index-B43TWkrQ.js          87.84 kB │ gzip:    34.36 kB
+dist-base/assets/Cesium-CnW33a5_.js      4,942.47 kB │ gzip: 1,357.65 kB
 
 [plugin builtin:vite-reporter]
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 2.22s
-[WebServer] (node:45900) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+✓ built in 2.21s
+[WebServer] (node:46732) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 [WebServer] $ vite preview -c vite.base.config.ts
-[WebServer] (node:4952) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (node:15032) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
 Running 1 test using 1 worker
 
-(node:29596) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:40792) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ok 1 e2e\base-path.spec.ts:12:1 › serves Cesium Workers and Assets under a non-root base path (4.5s)
+  ok 1 e2e\base-path.spec.ts:12:1 › serves Cesium Workers and Assets under a non-root base path (4.6s)
 
-  1 passed (8.2s)
+  1 passed (8.3s)
