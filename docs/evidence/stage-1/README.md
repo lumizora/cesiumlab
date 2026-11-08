@@ -46,18 +46,18 @@ pnpm test:e2e:dev
 
 命令原始输出保存在 `logs/`：
 
-| 文件                      | 命令                             |
-| ------------------------- | -------------------------------- |
-| `logs/install-frozen.txt` | `pnpm install --frozen-lockfile` |
-| `logs/format-check.txt`   | `pnpm format:check`              |
-| `logs/lint.txt`           | `pnpm lint`                      |
-| `logs/typecheck.txt`      | `pnpm typecheck`                 |
-| `logs/unit-test.txt`      | `pnpm test`                      |
-| `logs/build.txt`          | `pnpm build`                     |
-| `logs/e2e.txt`            | `pnpm test:e2e`                  |
-| `logs/e2e-base.txt`       | `pnpm test:e2e:base`             |
-| `logs/e2e-dev.txt`        | `pnpm test:e2e:dev`              |
-| `logs/revision.txt`       | 本次证据对应的实现提交           |
+| 文件                      | 命令                                   |
+| ------------------------- | -------------------------------------- |
+| `logs/install-frozen.txt` | `pnpm install --frozen-lockfile`       |
+| `logs/format-check.txt`   | `pnpm format:check`                    |
+| `logs/lint.txt`           | `pnpm lint`                            |
+| `logs/typecheck.txt`      | `pnpm typecheck`                       |
+| `logs/unit-test.txt`      | `pnpm test`                            |
+| `logs/build.txt`          | `pnpm build`                           |
+| `logs/e2e.txt`            | `playwright test`（复用 910425e 构建） |
+| `logs/e2e-base.txt`       | `pnpm test:e2e:base`                   |
+| `logs/e2e-dev.txt`        | `pnpm test:e2e:dev`                    |
+| `logs/revision.txt`       | 本次证据对应的实现提交                 |
 
 截图页眉 / 页脚中的 `rev 910425e` 对应实现提交；本目录证据在该提交之后归档。
 
@@ -70,7 +70,8 @@ pnpm test:e2e:dev
 - 全部请求 HTTP 200；
 - console error：0；page error：0；失败请求：0；
 - 画布：1002 × 574；
-- 采样渲染统计：1695 个颜色簇，非暗像素比例约 47.7%（证明不是空白画布）。
+- 采样渲染统计：约 1700 个颜色簇，非暗像素比例约 47.7%（证明不是空白画布）；
+- 相机拖动旋转与滚轮缩放：前后画布截图不同，交互真实生效。
 
 非根路径 `pnpm test:e2e:base`：
 
@@ -88,16 +89,18 @@ pnpm test:e2e:dev
 
 ## 图片
 
-| 文件                       | 内容                                                                            |
-| -------------------------- | ------------------------------------------------------------------------------- |
-| `gallery.png`              | Gallery 全页：两个登记档案、真实状态、阶段说明                                  |
-| `smoke-test-detail.png`    | Smoke Test 详情页首屏（1440×900 视口，非全页拼接）                              |
-| `smoke-test-viewer.png`    | Viewer 元素截图：真实 CesiumJS 网格地球、椭球、立方体、发光连线、异步多边形区域 |
-| `smoke-test-notes.png`     | 实现说明区：它做了什么 / 技术路线 / 已知限制                                    |
-| `archived-detail.png`      | 未实现视觉实验档案：无运行场景，导航可用                                        |
-| `webgl-unavailable.png`    | 模拟 WebGL 不可用时的明确提示与重试入口                                         |
-| `base-path-smoke-test.png` | `/cesiumlab/` 非根路径部署下的真实渲染                                          |
-| `dev-mode-smoke-test.png`  | Vite dev server（5273）下的真实渲染                                             |
+| 文件                         | 内容                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------- |
+| `gallery.png`                | Gallery 全页：两个登记档案、真实状态、阶段说明                                  |
+| `smoke-test-detail.png`      | Smoke Test 详情页首屏（1440×900 视口，非全页拼接）                              |
+| `smoke-test-viewer.png`      | Viewer 元素截图：真实 CesiumJS 网格地球、椭球、立方体、发光连线、异步多边形区域 |
+| `interaction-after-drag.png` | 鼠标拖动旋转后的画布（与默认视角不同）                                          |
+| `interaction-after-zoom.png` | 滚轮缩放后的画布（与拖动后视角不同）                                            |
+| `smoke-test-notes.png`       | 实现说明区：它做了什么 / 技术路线 / 已知限制                                    |
+| `archived-detail.png`        | 未实现视觉实验档案：无运行场景，导航可用                                        |
+| `webgl-unavailable.png`      | 模拟 WebGL 不可用时的明确提示与重试入口                                         |
+| `base-path-smoke-test.png`   | `/cesiumlab/` 非根路径部署下的真实渲染                                          |
+| `dev-mode-smoke-test.png`    | Vite dev server（5273）下的真实渲染                                             |
 
 > 详情页采用视口截图而不是 `fullPage`，避免浏览器对 `position: sticky` 页头做全页拼接时产生重复页头伪影。
 

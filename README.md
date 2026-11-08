@@ -238,7 +238,8 @@ interface ExperimentModule {
 - Windows 10，NVIDIA GeForce GTX 1070 Ti，ANGLE/D3D11；
 - WebGL 2.0；
 - Vite dev（5273）、生产 preview（4273）与非根路径 preview（4274）均完成真实渲染检查；
-- 画布 1002 × 574，检测到 1695 个颜色簇、47.7% 非暗像素；
+- 画布 1002 × 574，约 1700 个颜色簇、47.7% 非暗像素（以报告为准）；
+- 相机拖动旋转与滚轮缩放通过前后画布截图差异验证；
 - Cesium Workers / Assets 请求均为 HTTP 200；
 - 无 console error、page error 或失败请求。
 

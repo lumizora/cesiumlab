@@ -155,6 +155,42 @@ test('gallery, live Cesium smoke test, reload and archived detail', async ({ pag
     path: path.join(EVIDENCE_DIR, 'smoke-test-notes.png'),
   });
 
+  const canvas = page.locator('.viewer-canvas canvas');
+  await canvas.evaluate((element) =>
+    element.scrollIntoView({ block: 'center', inline: 'nearest' }),
+  );
+  await page.waitForTimeout(300);
+  const canvasBox = await canvas.boundingBox();
+  expect(canvasBox).not.toBeNull();
+
+  if (canvasBox) {
+    const beforeInteraction = await canvas.screenshot();
+    await page.mouse.move(
+      canvasBox.x + canvasBox.width * 0.5,
+      canvasBox.y + canvasBox.height * 0.55,
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      canvasBox.x + canvasBox.width * 0.68,
+      canvasBox.y + canvasBox.height * 0.57,
+      { steps: 16 },
+    );
+    await page.mouse.up();
+    await page.waitForTimeout(900);
+
+    const afterDrag = await canvas.screenshot({
+      path: path.join(EVIDENCE_DIR, 'interaction-after-drag.png'),
+    });
+    expect(afterDrag.equals(beforeInteraction)).toBe(false);
+
+    await page.mouse.wheel(0, -700);
+    await page.waitForTimeout(900);
+    const afterZoom = await canvas.screenshot({
+      path: path.join(EVIDENCE_DIR, 'interaction-after-zoom.png'),
+    });
+    expect(afterZoom.equals(afterDrag)).toBe(false);
+  }
+
   await page.getByRole('button', { name: '重新加载场景' }).click();
   await expect(page.getByTestId('viewer-host')).toHaveAttribute('data-state', 'ready');
   await expect(page.locator('.viewer-canvas canvas')).toHaveCount(1);

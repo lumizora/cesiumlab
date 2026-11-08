@@ -42,7 +42,7 @@ S2（首个视觉参考实验）没有启动，因为没有视觉参考，也没
 | ----------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------- |
 | `dev` 与 `build/preview` 可实际渲染 | 通过：Vite dev 与 production preview 均创建真实 Cesium Viewer                        | `docs/evidence/stage-1/`、Playwright           |
 | Cesium Workers/Assets 请求正确      | 通过：Workers、Assets、Widgets、ThirdParty 均为 200；无失败请求                      | `browser-report.json`、`base-path-report.json` |
-| 桌面 Chromium 可旋转、缩放基础场景  | 通过：Edge 157（Chromium）headless 实际渲染；交互由 Cesium 默认相机控制提供          | 截图与 Playwright 渲染检查                     |
+| 桌面 Chromium 可旋转、缩放基础场景  | 通过：Edge 157（Chromium）headless 实际渲染；Playwright 拖动与滚轮操作后截图发生变化 | 截图与 Playwright 渲染检查                     |
 | 一个错误的实验详情不破坏站点导航    | 通过：未登记 ID 显示“找不到实验”；无运行入口的档案显示说明，导航继续可用             | Playwright 测试 2/3                            |
 | 没有注册的实验代码不自动进入构建    | 通过：只有 `runtimeLoaders` 显式登记的实验才 `import()`；档案元数据可独立展示        | `src/catalog/registry.ts`                      |
 | 非根路径部署 Workers 可访问         | 通过：`/cesiumlab/` 构建下所有 Cesium 请求位于 `/cesiumlab/cesium/...`，无根路径回落 | `base-path-report.json`                        |
@@ -59,6 +59,7 @@ S2（首个视觉参考实验）没有启动，因为没有视觉参考，也没
   - `cesium-smoke-test`（runnable，Smoke Test）；
   - `awaiting-visual-reference`（not-implemented，等待视觉参考）；
 - 加载中、加载失败、WebGL 不可用、运行错误提示；
+- 相机拖动旋转、滚轮缩放：Playwright 操作前后画布截图差异验证；
 - cleanup：移除监听、调用 `viewer.destroy()`、清空容器；覆盖路由离开、重新加载、`pagehide`、bfcache `pageshow`；
 - 根路径与非根路径两套构建配置；
 - Vitest 单元测试 + Playwright 浏览器检查 + 截图/报告。

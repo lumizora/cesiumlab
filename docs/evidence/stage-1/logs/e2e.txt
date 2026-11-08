@@ -1,39 +1,17 @@
-$ pnpm --filter @cesiumlab/playground test:e2e
-$ pnpm run build && playwright test
-$ pnpm run prepare:cesium && pnpm run typecheck && vite build
-$ node scripts/sync-cesium.mjs
-[cesium] Static assets already synced for 1.147.0.
-$ vue-tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json
-vite v8.3.6 building client environment for production...
-transforming...
-✓ 1659 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                         0.88 kB │ gzip:     0.57 kB
-dist/assets/index-COi184vj.css         36.24 kB │ gzip:     8.56 kB
-dist/assets/zip-reader-DdsKW-B8.js      0.08 kB │ gzip:     0.10 kB
-dist/assets/main-D_7W9Xvb.js            4.57 kB │ gzip:     1.91 kB
-dist/assets/index-B3T2OsQ4.js          87.82 kB │ gzip:    34.35 kB
-dist/assets/Cesium-B8rFdqtJ.js      4,942.47 kB │ gzip: 1,357.65 kB
-
-[plugin builtin:vite-reporter]
-(!) Some chunks are larger than 500 kB after minification. Consider:
-- Using dynamic import() to code-split the application
-- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
-- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 2.40s
-[WebServer] (node:46564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# App revision 910425e; production build reused.
+# Command: pnpm --filter @cesiumlab/playground exec playwright test
+[WebServer] (node:48620) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 [WebServer] $ vite preview
-[WebServer] (node:24724) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (node:14900) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
 Running 3 tests using 1 worker
 
-(node:39308) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:50068) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ok 1 e2e\playground.spec.ts:12:1 › gallery, live Cesium smoke test, reload and archived detail (8.2s)
-  ok 2 e2e\playground.spec.ts:201:1 › shows a WebGL fallback and keeps navigation usable (1.6s)
-  ok 3 e2e\playground.spec.ts:228:1 › unknown experiment route keeps navigation usable (899ms)
+  ok 1 e2e\playground.spec.ts:12:1 › gallery, live Cesium smoke test, reload and archived detail (11.4s)
+  ok 2 e2e\playground.spec.ts:237:1 › shows a WebGL fallback and keeps navigation usable (1.1s)
+  ok 3 e2e\playground.spec.ts:264:1 › unknown experiment route keeps navigation usable (762ms)
 
-  3 passed (15.8s)
+  3 passed (17.8s)
