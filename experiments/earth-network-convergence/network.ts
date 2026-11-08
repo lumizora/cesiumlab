@@ -238,87 +238,44 @@ export async function createNetworkScene(
     );
   };
 
-  interface NodeRippleState {
-    entity: Entity | null;
-    coord: LngLat;
-    ground: number;
-    baseRadius: number;
-    startedAt: number;
-    active: boolean;
-    radius: number;
-    alpha: number;
-  }
-  const nodeRippleStates: NodeRippleState[] = [];
-
   /**
-   * Event-driven node ripple. It is triggered when a gold flight departs from
-   * that node, expands once, fades, and is hidden; it is not a continuous loop.
+   * Continuous node ripple. Three staggered rings share one 2.4s lifetime and
+   * are offset by 0.8s, so an active node always shows roughly 2-3 rings.
    */
-  const addNodeRipple = (coord: LngLat, ground: number, baseRadius: number): NodeRippleState => {
-    const ripple: NodeRippleState = {
-      entity: null,
-      coord,
-      ground,
-      baseRadius,
-      startedAt: 0,
-      active: false,
-      radius: baseRadius * 0.08,
-      alpha: 0,
-    };
+  const addNodeRipple = (
+    coord: LngLat,
+    ground: number,
+    baseRadius: number,
+    phase: number,
+  ): Entity => {
+    const lifetime = 2.4;
+    const progressAt = () => ((elapsed() * state.pulseSpeed) / lifetime + phase) % 1;
 
-    ripple.entity = addEntity(
+    return addEntity(
       viewer.entities.add({
-        show: false,
         polyline: {
           positions: new Cesium.CallbackProperty(
-            () => circlePositionsAt(coord, ripple.radius, ground + 8_000, 64),
+            () =>
+              circlePositionsAt(
+                coord,
+                baseRadius * (0.08 + 0.92 * progressAt()),
+                ground + 8_000,
+                64,
+              ),
             false,
           ),
-          width: 2,
+          width: new Cesium.CallbackProperty(() => 1.3 + 1.7 * progressAt(), false),
           arcType: Cesium.ArcType.NONE,
           material: new Cesium.PolylineGlowMaterialProperty({
             glowPower: 0.48,
-            color: new Cesium.CallbackProperty(() => getNodeColor().withAlpha(ripple.alpha), false),
+            color: new Cesium.CallbackProperty(
+              () => getNodeColor().withAlpha(0.58 * Math.pow(1 - progressAt(), 1.25)),
+              false,
+            ),
           }),
         },
       }),
     );
-
-    nodeRippleStates.push(ripple);
-    return ripple;
-  };
-
-  const triggerNodeRipple = (index: number) => {
-    const ripple = nodeRippleStates[index];
-    if (!ripple) {
-      return;
-    }
-    ripple.startedAt = elapsed();
-    ripple.active = true;
-    ripple.radius = ripple.baseRadius * 0.08;
-    ripple.alpha = 0.55;
-    if (ripple.entity) {
-      ripple.entity.show = true;
-    }
-  };
-
-  const updateNodeRipples = () => {
-    const duration = Math.max(0.35, 1.2 / Math.max(0.1, state.pulseSpeed));
-    for (const ripple of nodeRippleStates) {
-      if (!ripple.active) {
-        continue;
-      }
-      const progress = Math.min(1, (elapsed() - ripple.startedAt) / duration);
-      ripple.radius = ripple.baseRadius * (0.08 + 0.92 * progress);
-      ripple.alpha = 0.55 * Math.pow(1 - progress, 1.2);
-      if (progress >= 1) {
-        ripple.active = false;
-        ripple.alpha = 0;
-        if (ripple.entity) {
-          ripple.entity.show = false;
-        }
-      }
-    }
   };
 
   const geo = await loadChinaGeoData(boundaryUrl, provinceUrl);
@@ -374,7 +331,7 @@ export async function createNetworkScene(
     provinceEntities.push(entity);
   }
 
-  for (const node of NODES) {
+  for (const [nodeIndex, node] of NODES.entries()) {
     const ground = terrainHeight(node.coord);
     const nodePosition = Cesium.Cartesian3.fromDegrees(
       node.coord[0],
@@ -424,7 +381,9 @@ export async function createNetworkScene(
       0.22,
       1.2,
     );
-    addNodeRipple(node.coord, ground, 90_000);
+    for (let ringIndex = 0; ringIndex < 3; ringIndex += 1) {
+      addNodeRipple(node.coord, ground, 90_000, nodeIndex * 0.17 + ringIndex / 3);
+    }
 
     if (node.beam) {
       const beamLength = 520_000;
@@ -519,40 +478,86 @@ export async function createNetworkScene(
   );
 
   const centerPosition = Cesium.Cartesian3.fromDegrees(CENTER[0], CENTER[1], centerGround);
-  for (const [index, baseRadius] of [
-    120_000, 210_000, 330_000, 470_000, 620_000, 780_000,
-  ].entries()) {
-    addStaticRing(centerPosition, baseRadius, 10_000, getRouteColor, 0.52 - index * 0.055, 2.5);
+  for (const [index, baseRadius] of [120_000, 240_000, 390_000, 560_000].entries()) {
+    addStaticRing(centerPosition, baseRadius, 10_000, getRouteColor, 0.28 - index * 0.05, 2);
   }
 
+  // Layer 1: continuous ambient hub ripples. Three staggered rings are always
+  // present; they are independent of arrival events and never reset on a pulse.
+  const HUB_AMBIENT_LIFETIME = 3.2;
+  const hubAmbientProgress = (phase: number) => (elapsed() / HUB_AMBIENT_LIFETIME + phase) % 1;
+
+  for (let index = 0; index < 3; index += 1) {
+    const phase = index / 3;
+    addEntity(
+      viewer.entities.add({
+        polyline: {
+          positions: new Cesium.CallbackProperty(() => {
+            const progress = hubAmbientProgress(phase);
+            const eased = 1 - Math.pow(1 - progress, 2.1);
+            return circlePositionsAt(CENTER, 25_000 + 700_000 * eased, centerGround + 11_000);
+          }, false),
+          width: new Cesium.CallbackProperty(() => 3 + 3.5 * hubAmbientProgress(phase), false),
+          arcType: Cesium.ArcType.NONE,
+          material: new Cesium.PolylineGlowMaterialProperty({
+            glowPower: 0.4,
+            color: new Cesium.CallbackProperty(
+              () => getRouteColor().withAlpha(0.5 * Math.pow(1 - hubAmbientProgress(phase), 1.3)),
+              false,
+            ),
+          }),
+        },
+      }),
+    );
+  }
+
+  // Layer 2: arrival-triggered strong pulse, two high-brightness rings that
+  // expand quickly, decelerate, widen and fade. Ambient rings are untouched.
   const HUB_PULSE_DURATION = 1.3;
   let hubPulseActive = false;
   let hubPulseStartedAt = Number.NEGATIVE_INFINITY;
   let hubPulseCount = 0;
-  let hubPulseRadius = 25_000;
-  let hubPulseAlpha = 0;
   let hubFlash = 0;
 
-  const hubWave = addEntity(
-    viewer.entities.add({
-      show: false,
-      polyline: {
-        positions: new Cesium.CallbackProperty(
-          () => circlePositionsAt(CENTER, hubPulseRadius, centerGround + 12_000),
-          false,
-        ),
-        width: new Cesium.CallbackProperty(() => 3.5 + 3 * (1 - hubPulseAlpha), false),
-        arcType: Cesium.ArcType.NONE,
-        material: new Cesium.PolylineGlowMaterialProperty({
-          glowPower: 0.45,
-          color: new Cesium.CallbackProperty(
-            () => getRouteColor().withAlpha(hubPulseAlpha * 0.82),
+  interface HubPulseRing {
+    entity: Entity | null;
+    offset: number;
+    progress: number;
+    radius: number;
+    alpha: number;
+  }
+  const hubPulseRings: HubPulseRing[] = [];
+
+  for (const offset of [0, 0.12]) {
+    const ring: HubPulseRing = {
+      entity: null,
+      offset,
+      progress: 0,
+      radius: 25_000,
+      alpha: 0,
+    };
+    ring.entity = addEntity(
+      viewer.entities.add({
+        show: false,
+        polyline: {
+          positions: new Cesium.CallbackProperty(
+            () => circlePositionsAt(CENTER, ring.radius, centerGround + 13_000),
             false,
           ),
-        }),
-      },
-    }),
-  );
+          width: new Cesium.CallbackProperty(() => 4 + 8 * ring.progress, false),
+          arcType: Cesium.ArcType.NONE,
+          material: new Cesium.PolylineGlowMaterialProperty({
+            glowPower: 0.5,
+            color: new Cesium.CallbackProperty(
+              () => getRouteColor().withAlpha(ring.alpha * 0.9),
+              false,
+            ),
+          }),
+        },
+      }),
+    );
+    hubPulseRings.push(ring);
+  }
 
   const hubFlashEntity = addEntity(
     viewer.entities.add({
@@ -560,10 +565,10 @@ export async function createNetworkScene(
       position: Cesium.Cartesian3.fromDegrees(CENTER[0], CENTER[1], centerGround + 42_000),
       billboard: {
         image: glowTexture,
-        scale: new Cesium.CallbackProperty(() => 0.18 + 0.55 * hubFlash, false),
+        scale: new Cesium.CallbackProperty(() => 0.2 + 0.9 * hubFlash, false),
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
         color: new Cesium.CallbackProperty(
-          () => getRouteColor().withAlpha(0.28 + 0.4 * hubFlash),
+          () => getRouteColor().withAlpha(0.3 + 0.5 * hubFlash),
           false,
         ),
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -579,7 +584,11 @@ export async function createNetworkScene(
     hubPulseActive = true;
     hubPulseStartedAt = elapsed();
     hubPulseCount += 1;
-    hubWave.show = true;
+    for (const ring of hubPulseRings) {
+      if (ring.entity) {
+        ring.entity.show = true;
+      }
+    }
     hubFlashEntity.show = true;
   };
 
@@ -587,17 +596,36 @@ export async function createNetworkScene(
     if (!hubPulseActive) {
       return;
     }
-    const progress = Math.min(1, (elapsed() - hubPulseStartedAt) / HUB_PULSE_DURATION);
-    const eased = 1 - Math.pow(1 - progress, 2.2);
-    hubPulseRadius = 25_000 + 520_000 * eased;
-    hubPulseAlpha = 0.8 * Math.pow(1 - progress, 1.22);
-    hubFlash = Math.pow(1 - progress, 4);
+    const age = elapsed() - hubPulseStartedAt;
+    let anyRingActive = false;
 
-    if (progress >= 1) {
+    for (const ring of hubPulseRings) {
+      const progress = Math.min(1, (age - ring.offset) / HUB_PULSE_DURATION);
+      if (progress < 0) {
+        ring.progress = 0;
+        ring.alpha = 0;
+        if (ring.entity) {
+          ring.entity.show = false;
+        }
+        continue;
+      }
+      ring.progress = progress;
+      const eased = 1 - Math.pow(1 - progress, 2.4);
+      ring.radius = 25_000 + 760_000 * eased;
+      ring.alpha = 0.95 * Math.pow(1 - progress, 1.1);
+      if (ring.entity) {
+        ring.entity.show = progress < 1;
+      }
+      if (progress < 1) {
+        anyRingActive = true;
+      }
+    }
+
+    hubFlash = Math.pow(Math.max(0, 1 - age / 0.5), 2);
+
+    if (!anyRingActive) {
       hubPulseActive = false;
-      hubPulseAlpha = 0;
       hubFlash = 0;
-      hubWave.show = false;
       hubFlashEntity.show = false;
     }
   };
@@ -756,12 +784,10 @@ export async function createNetworkScene(
       const progress = ((elapsed() * state.routeSpeed) / schedule.duration + schedule.phase) % 1;
       if (progress < schedule.lastProgress - 0.5) {
         triggerHubPulse();
-        triggerNodeRipple(schedule.nodeIndex);
       }
       schedule.lastProgress = progress;
     }
 
-    updateNodeRipples();
     updateHubPulse();
   });
 
@@ -769,18 +795,15 @@ export async function createNetworkScene(
     hubPulseActive = false;
     hubPulseStartedAt = Number.NEGATIVE_INFINITY;
     hubPulseCount = 0;
-    hubPulseRadius = 25_000;
-    hubPulseAlpha = 0;
     hubFlash = 0;
-    hubWave.show = false;
     hubFlashEntity.show = false;
 
-    for (const ripple of nodeRippleStates) {
-      ripple.active = false;
-      ripple.alpha = 0;
-      ripple.radius = ripple.baseRadius * 0.08;
-      if (ripple.entity) {
-        ripple.entity.show = false;
+    for (const ring of hubPulseRings) {
+      ring.progress = 0;
+      ring.alpha = 0;
+      ring.radius = 25_000;
+      if (ring.entity) {
+        ring.entity.show = false;
       }
     }
 

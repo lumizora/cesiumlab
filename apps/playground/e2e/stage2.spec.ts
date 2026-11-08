@@ -264,6 +264,12 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
     }
   });
   await expect(sceneHost).toHaveAttribute('data-route-speed', '0.00');
+  await page.waitForTimeout(1_500);
+  await expect(sceneHost).toHaveAttribute('data-hub-pulse-active', 'false');
+  await page.screenshot({
+    path: path.join(EVIDENCE_DIR, 'earth-network-hub-ambient.png'),
+    fullPage: false,
+  });
 
   await page.getByRole('button', { name: '触发中心脉冲' }).click();
   await expect(sceneHost).toHaveAttribute('data-hub-pulse-active', 'true');
@@ -297,6 +303,7 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
     triggeredManually: true,
     activeAfterTrigger: true,
     activeAfterExpiry: false,
+    ambientScreenshot: 'earth-network-hub-ambient.png',
     screenshot: 'earth-network-hub-pulse.png',
   };
 
