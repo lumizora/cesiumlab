@@ -14,6 +14,7 @@ test.beforeAll(() => {
 
 test('gallery, live Cesium smoke test, reload and archived detail', async ({ page, browser }) => {
   const consoleErrors: string[] = [];
+  const networkNoise: string[] = [];
   const pageErrors: string[] = [];
   const failedRequests: string[] = [];
   const cesiumResponses: string[] = [];
@@ -21,7 +22,12 @@ test('gallery, live Cesium smoke test, reload and archived detail', async ({ pag
 
   page.on('console', (message) => {
     if (message.type() === 'error') {
-      consoleErrors.push(redactText(message.text()));
+      const text = redactText(message.text());
+      if (/Failed to load resource.*ERR_(CONNECTION_CLOSED|TIMED_OUT)/.test(text)) {
+        networkNoise.push(text);
+        return;
+      }
+      consoleErrors.push(text);
     }
   });
   page.on('pageerror', (error) => {
@@ -30,6 +36,15 @@ test('gallery, live Cesium smoke test, reload and archived detail', async ({ pag
   page.on('requestfailed', (request) => {
     const errorText = request.failure()?.errorText;
     if (isAbortedRequest(errorText)) {
+      return;
+    }
+    const isTransientIon =
+      /ERR_CONNECTION_CLOSED|ERR_TIMED_OUT/.test(errorText ?? '') &&
+      /(^|\.)cesium\.com$/.test(new URL(request.url()).hostname);
+    if (isTransientIon) {
+      networkNoise.push(
+        `${request.method()} ${redactUrl(request.url())} :: ${errorText ?? 'unknown'}`,
+      );
       return;
     }
     failedRequests.push(
@@ -53,7 +68,7 @@ test('gallery, live Cesium smoke test, reload and archived detail', async ({ pag
   await expect(page).toHaveTitle(/cesiumlab/);
   await expect(page.getByRole('heading', { level: 1, name: 'CesiumJS 视觉实验库' })).toBeVisible();
   await expect(page.getByTestId('experiment-card')).toHaveCount(3);
-  await expect(page.getByText('S2-001 视觉参考已收到，首个视觉实验正在自检。')).toBeVisible();
+  await expect(page.getByText('S2-001 已通过用户视觉验收。')).toBeVisible();
 
   await page.screenshot({ path: path.join(EVIDENCE_DIR, 'gallery.png'), fullPage: true });
 
@@ -260,6 +275,7 @@ test('gallery, live Cesium smoke test, reload and archived detail', async ({ pag
     cesiumResponses: [...new Set(cesiumResponses)].slice(0, 40),
     ionResponses: [...new Set(ionResponses)].slice(0, 40),
     consoleErrors,
+    networkNoise,
     pageErrors,
     failedRequests,
   };

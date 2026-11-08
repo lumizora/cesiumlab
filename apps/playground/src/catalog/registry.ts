@@ -55,4 +55,5 @@ export function getExperiment(id: string): CatalogEntry | undefined {
 export const catalogStats = {
   total: catalog.length,
   runnable: catalog.filter((entry) => entry.metadata.runtimeStatus === 'runnable').length,
+  visualApproved: catalog.filter((entry) => entry.metadata.maturity === 'visual-approved').length,
 };

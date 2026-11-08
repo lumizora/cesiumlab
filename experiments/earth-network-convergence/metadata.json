@@ -2,15 +2,23 @@
   "schemaVersion": 1,
   "id": "earth-network-convergence",
   "title": "Earth Network Convergence",
-  "summary": "夜间地球 · 中国区域光网汇聚。7 条金色飞线从不同方位的蓝色节点汇聚到上海，配以青蓝边界、竖向光柱与同心脉冲。Stage 2 视觉原型，等待用户视觉验收。",
+  "summary": "夜间地球 · 中国区域光网汇聚。7 条金色飞线从不同方位的蓝色节点汇聚到上海，配以青蓝边界、分层全息光束与连续多圈脉冲。已通过用户视觉验收（2026-11-08）。",
   "kind": "visual-experiment",
-  "maturity": "prototype",
+  "maturity": "visual-approved",
   "runtimeStatus": "runnable",
   "entry": "./main.ts",
   "referenceVisibility": "private",
-  "tags": ["stage2", "earth", "night", "network", "china", "cesium-ion-optional"],
+  "tags": [
+    "stage2",
+    "earth",
+    "night",
+    "network",
+    "china",
+    "cesium-ion-optional",
+    "visual-approved"
+  ],
   "notes": {
-    "overview": "以真实 CesiumJS 3D 地球呈现夜空下的中国区域：7 个蓝色节点分布在乌鲁木齐、拉萨、成都、西安、哈尔滨、昆明和广州，金色弧线从各节点向上海汇聚。中心有金色核心与多层同心环，节点带扩散环和竖向光柱；青蓝色线描绘合规来源的中国边界与省界。",
+    "overview": "以真实 CesiumJS 3D 地球呈现夜空下的中国区域：7 个蓝色节点分布在乌鲁木齐、拉萨、成都、西安、哈尔滨、昆明和广州，金色弧线从各节点向上海汇聚。中心有持续多圈金色环境波纹与抵达强脉冲，节点带连续多圈扩散环和分层全息能量光束；青蓝色线描绘合规来源的中国边界与省界。",
     "technology": "CesiumJS Viewer + 本地 NASA 夜景单幅纹理 + Natural Earth 1:50m 边界数据；EllipsoidGeodesic 生成 97 点真实三维弧线，PolylineGlow 基础弧线 + 单条 taper 拖尾 + 金白色光点；PolylineGlowMaterialProperty、Entity ellipse、billboard、polyline 与 CallbackProperty 驱动飞线、节点 3 圈连续错位波纹、中心 3 圈环境波纹与抵达强脉冲；节点光柱由 3 层、约 90 个径向辉光 billboard 沿高度堆叠，scaleByDistance + 指数透明度衰减 + 慢速呼吸；中心强脉冲为 1.3s、2 圈、ease-out；Cesium bloom 后处理提供辉光；可选 Cesium World Terrain 仅用于地形起伏，6s 超时回退椭球。参考 PNG 没有被用作场景贴图。",
     "limitations": "参考为 AI 生成的静态概念图，弧线/光柱的动画方向与周期是本次设计假设；拖尾使用 PolylineGlow taper 近似，不是自定义逐顶点流体；节点光柱由相机朝向的 billboard 堆叠近似，不是真正体积光/Shader 光线步进，近景可见层叠粒子感；光点为屏幕空间 point/billboard，未做体积光/运动模糊；Natural Earth 边界不是权威争议边界裁定，台湾按 Natural Earth 独立单元绘制并保留来源说明；夜景纹理为 4096×2048 单幅影像，近看会变糊；地形为可选 ion 数据，无 token 或 6s 超时回退椭球；Bloom 与色调为实时近似，未做像素级匹配。"
   },

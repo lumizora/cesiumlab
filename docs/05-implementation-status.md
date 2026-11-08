@@ -6,16 +6,16 @@
 
 ## 1. 范围
 
-已完成 Stage 0、Stage 1，并完成 Stage 2 首个视觉参考实验 S2-001 的 Agent 自检：
+已完成 Stage 0、Stage 1，并完成 Stage 2 首个视觉参考实验 S2-001；该实验已于 2026-11-08 通过用户视觉验收：
 
 ```text
 S0 仓库基础  →  S1 最小 Web / Cesium 环境  →  S2 earth-network-convergence
                                                         │
                                                         ▼
-                                             Awaiting Visual Review（停止）
+                                             Visual Approved（已批准）
 ```
 
-S3 需要用户视觉验收，尚未开始。当前没有 `Visual Approved` 实验，没有 `packages/effects` 正式包，没有 npm 发布或公开部署。
+Stage 3 / `packages/effects` 通用化尚未开始；需要用户明确指示后才能进入封装评估。当前没有正式包，没有 npm 发布或公开部署。
 
 ## 2. Gate S0：仓库与执行规范
 
@@ -110,7 +110,7 @@ S3 需要用户视觉验收，尚未开始。当前没有 `Visual Approved` 实�
 
 | 项目     | 结果                                                                                                                                                    |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 状态     | **Prototype / Awaiting Visual Review**；未获 Visual Approved                                                                                            |
+| 状态     | **Visual Approved**（用户批准：2026-11-08；批准基线 revision `e5da645`）                                                                                |
 | 参考     | `docs/stage2/cesiumlab-stage2-task-package/references/S2-001-earth-network/target.png`（内部研发；未公开部署）                                          |
 | 实现     | `experiments/earth-network-convergence/`（main/network/geo/textures/controls）                                                                          |
 | 场景     | 夜空地球、Natural Earth 中国边界/省界、7 个蓝色节点与分层全息能量光束、7 条金色弧线、上海金色中心与 3 圈环境波纹                                        |
@@ -131,7 +131,7 @@ Stage 2 动画假设与实际周期：
 
 ## 6. 未验证 / 未执行
 
-- **视觉验收**：S2-001 没有 Visual Approved；需用户执行 Stage 3 视觉验收。
+- **视觉验收**：S2-001 已获用户 Visual Approved（2026-11-08）；未重新验证后续修改是否保持基线。
 - **浏览器覆盖**：未测试 Firefox、Safari、移动端浏览器；本轮只用 Edge/Chromium headless。
 - **真实桌面窗口/录屏**：未进行人工桌面观察或视频录制；截图来自 headless Edge 的真实 WebGL 输出；Stage 2 使用 1672×941 时间序列代替录屏。
 - **公开部署**：未选择托管平台，未部署；只验证本地 `vite preview` 的根路径与 `/cesiumlab/` 子路径。
@@ -143,8 +143,10 @@ Stage 2 动画假设与实际周期：
 
 ## 7. 下一步条件
 
-Stage 2 已停在 `Awaiting Visual Review`。下一步需要用户进行 **Stage 3 视觉验收**：
+S2-001 已通过用户视觉验收，批准基线为 revision `e5da645`。当前**不自动进入** Stage 3 或 `packages/effects` 通用化；需要用户明确指示“封装/通用化”后，才进入候选评估。
 
-1. 查看 1672×941 主截图、`t=0/2/5/10s` 时间序列、角度/缩放截图与参数面板截图；
-2. 对照参考，决定接受、继续修改或重做；
-3. 只有用户明确确认后才能标记 `Visual Approved`；未获批准前不得进入 `packages/effects` 通用化或 npm 发布。
+在获得该指示前：
+
+1. 保持现有实验可运行、可回看证据；
+2. 不发布 npm 包，不做破坏性公开 API 变更；
+3. 后续修改需对照已批准基线重新检查，出现视觉退化时回到用户验收关口。

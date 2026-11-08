@@ -27,5 +27,8 @@ describe('manual experiment catalog', () => {
     expect(catalogStats.runnable).toBe(
       catalog.filter((entry) => entry.metadata.runtimeStatus === 'runnable').length,
     );
+    expect(catalogStats.visualApproved).toBe(
+      catalog.filter((entry) => entry.metadata.maturity === 'visual-approved').length,
+    );
   });
 });

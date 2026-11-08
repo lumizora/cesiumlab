@@ -7,6 +7,7 @@ import { catalog, catalogStats } from '../../catalog/registry';
 import { experimentHref } from '../../router';
 
 const runnableCount = computed(() => catalogStats.runnable);
+const visualApprovedCount = computed(() => catalogStats.visualApproved);
 </script>
 
 <template>
@@ -23,10 +24,10 @@ const runnableCount = computed(() => catalogStats.runnable);
     <section class="notice" role="note" aria-label="当前阶段说明">
       <span class="notice-mark" aria-hidden="true">!</span>
       <div>
-        <strong>S2-001 视觉参考已收到，首个视觉实验正在自检。</strong>
+        <strong>S2-001 已通过用户视觉验收。</strong>
         <p>
-          <em>Earth Network Convergence</em> 处于 Prototype / Awaiting Visual Review；不会由 Agent
-          自行标记为 Visual Approved。Smoke Test 仍只是工程验证，不是视觉成果。
+          <em>Earth Network Convergence</em> 已标记为 Visual
+          Approved；后续封装或通用化仍需用户明确批准。 Smoke Test 仍只是工程验证，不是视觉成果。
         </p>
       </div>
     </section>
@@ -41,7 +42,7 @@ const runnableCount = computed(() => catalogStats.runnable);
         <span class="stat-label">可运行</span>
       </div>
       <div class="stat">
-        <span class="stat-value">0</span>
+        <span class="stat-value">{{ visualApprovedCount }}</span>
         <span class="stat-label">Visual Approved</span>
       </div>
     </section>

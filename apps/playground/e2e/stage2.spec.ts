@@ -334,7 +334,12 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
   const report = {
     capturedAt: new Date().toISOString(),
     experiment: 'earth-network-convergence',
-    status: 'Awaiting Visual Review',
+    status: 'Visual Approved',
+    approval: {
+      approvedAt: '2026-11-08',
+      approvedBy: 'user',
+      baselineRevision: 'e5da645',
+    },
     baseURL: 'http://127.0.0.1:4273/?capture=1',
     viewport: page.viewportSize(),
     browserVersion: browser.version(),

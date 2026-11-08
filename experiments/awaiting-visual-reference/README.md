@@ -14,5 +14,5 @@ Stage 2 开始前，项目尚未收到具体视觉参考。S2-001 任务包随�
 ## 说明
 
 - 没有将 `Cesium Smoke Test` 冒充为视觉复现成果；
-- 实际实验处于 **Prototype / Awaiting Visual Review**；
+- 实际实验 `earth-network-convergence` 已于 2026-11-08 通过用户视觉验收（Visual Approved）；本档案仅保留参考接收历史；
 - 只有用户能够批准 Visual Approved。

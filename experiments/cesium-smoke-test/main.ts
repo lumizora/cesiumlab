@@ -8,6 +8,22 @@ const HOME_VIEW = {
   pitchDegrees: -62,
 };
 
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Cesium ion request timed out')), timeoutMs);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 /**
  * Neutral CesiumJS smoke test.
  *
@@ -87,13 +103,19 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
 
     if (ionConfigured) {
       const [imageryResult, terrainResult] = await Promise.allSettled([
-        Cesium.createWorldImageryAsync({
-          style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS,
-        }),
-        Cesium.createWorldTerrainAsync({
-          requestWaterMask: true,
-          requestVertexNormals: true,
-        }),
+        withTimeout(
+          Cesium.createWorldImageryAsync({
+            style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS,
+          }),
+          6_000,
+        ),
+        withTimeout(
+          Cesium.createWorldTerrainAsync({
+            requestWaterMask: true,
+            requestVertexNormals: true,
+          }),
+          6_000,
+        ),
       ]);
 
       if (imageryResult.status === 'fulfilled') {

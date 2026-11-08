@@ -13,7 +13,7 @@
 
 ## 当前状态
 
-**Stage 0（仓库与工程基础）、Stage 1（最小 Web + CesiumJS 环境）已完成；Stage 2 首个视觉参考实验已实现并自检，当前停在 `Awaiting Visual Review`。**
+**Stage 0（仓库与工程基础）、Stage 1（最小 Web + CesiumJS 环境）已完成；Stage 2 首个视觉参考实验 S2-001 已于 2026-11-08 通过用户视觉验收（Visual Approved）。**
 
 已具备：
 
@@ -22,7 +22,7 @@
 - 真实 CesiumJS Viewer；配置 Cesium ion 时加载 World Imagery + World Terrain，未配置或服务失败时回退本地网格；
 - Cesium Workers / ThirdParty / Assets / Widgets 静态资源复制与 `CESIUM_BASE_URL` 配置；
 - Gallery / Detail，手工登记三个实验档案；
-- `earth-network-convergence`：S2-001 夜间地球光网汇聚视觉原型（Prototype / Awaiting Visual Review）；
+- `earth-network-convergence`：S2-001 夜间地球光网汇聚视觉实验，已 Visual Approved；
 - 根路径与非根路径（`/cesiumlab/`）的生产构建与浏览器验证；
 - 加载中、加载失败、WebGL 不可用、运行错误提示；
 - Viewer 清理：路由离开、重新加载、`pagehide` 时销毁；
@@ -30,9 +30,9 @@
 
 **尚未完成 / 未开始：**
 
-- `Visual Approved`：S2-001 只完成 Agent 自检，必须由用户进行 Stage 3 视觉验收；
-- `packages/effects` API 与 npm 发布：没有真实候选，也没有发布批准；
-- 公开部署：未选择托管平台，未执行部署。
+- `packages/effects` API 与 npm 发布：S2-001 尚未通用化，也没有发布批准；
+- 公开部署：未选择托管平台，未执行部署；
+- 后续修改仍需对照已批准的 S2-001 基线检查视觉退化。
 
 ## 环境要求
 
@@ -301,11 +301,11 @@ Stage 2（`earth-network-convergence`）证据：
 
 Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
 
-**注意：以上是工程与真实渲染检查，不是视觉验收。项目没有 Visual Approved 实验。**
+**注意：以上是工程与真实渲染检查；S2-001 已由用户完成视觉验收并标记 Visual Approved，不代表其他实验或 npm 通用化已获批准。**
 
 ## 已知限制与未验证项
 
-- **Stage 2 尚未获得 Visual Approved**；S2-001 只是 Agent 自检的原型，等待用户 Stage 3 验收；
+- **S2-001 已获用户 Visual Approved（2026-11-08，基线 `e5da645`）**；后续修改需对照该基线检查视觉退化；
 - Stage 2 的夜景纹理是 4096×2048 单幅影像，近看会糊；参考图中的暖色地形/城市灯光细节未完全复现；
 - Natural Earth 边界不是权威争议边界裁定；台湾按 Natural Earth 独立单元绘制，参考图轮廓与实际地理数据存在差异；
 - 金色弧线/光柱/拖尾的动画方向与周期是设计假设，不是参考 GIF/视频事实；
@@ -322,4 +322,4 @@ Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
 
 ## 下一步
 
-Stage 2 已完成 Agent 自检，状态为 **Prototype / Awaiting Visual Review**。下一步需要用户进行 Stage 3 视觉验收：查看 1672×941 主截图、`t=0/2/5/10s` 时间序列与交互检查，决定接受、继续修改或重做。只有用户能批准 `Visual Approved`；未获批准前不得进入 `packages/effects` 通用化或 npm 发布。
+S2-001 已通过用户视觉验收，批准基线为 revision `e5da645`。当前**不自动进入** `packages/effects` 通用化或 npm 发布；需要用户明确指示“封装/通用化”后，才进入候选评估。后续修改应重新对照已批准基线检查视觉退化。

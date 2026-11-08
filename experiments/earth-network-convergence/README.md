@@ -1,8 +1,8 @@
 # Earth Network Convergence
 
 **S2-001 · 夜间地球 · 中国区域光网汇聚**
-**状态：Prototype / Awaiting Visual Review**
-**不是最终 npm API，也不是已通过视觉验收的成果。**
+**状态：Visual Approved（用户批准：2026-11-08；基线 revision `e5da645`）**
+**不是最终 npm API；未进入通用化封装。**
 
 ## 视觉目标
 
@@ -126,7 +126,7 @@ pnpm preview
 - 重进实验后 canvas 数为 1；
 - 证据：`docs/evidence/stage-2/`。
 
-这仍是 Agent 自检，不是用户视觉验收。
+这仍是 Agent 自检记录；用户已于 2026-11-08 完成视觉验收并批准该基线。后续通用化仍需用户明确指示。
 
 ## 已知限制
 
