@@ -3,6 +3,7 @@ import type { NetworkScene, NetworkState } from './network';
 export interface ControlsCallbacks {
   onGlowChange: () => void;
   onReset: () => void;
+  onTriggerPulse: () => void;
 }
 
 export interface ControlsHandle {
@@ -33,13 +34,14 @@ const PANEL_HTML = `
     <input type="range" min="0" max="2" step="0.05" data-control="glowIntensity" aria-label="辉光强度" />
   </label>
   <label class="earth-controls__row">
-    <span>脉冲速度</span>
-    <input type="range" min="0" max="2.5" step="0.05" data-control="pulseSpeed" aria-label="脉冲速度" />
+    <span>节点脉冲</span>
+    <input type="range" min="0" max="2.5" step="0.05" data-control="pulseSpeed" aria-label="节点脉冲速度" />
   </label>
   <label class="earth-controls__row earth-controls__row--check">
     <span>显示地理边界</span>
     <input type="checkbox" data-control="showBorders" aria-label="显示地理边界" />
   </label>
+  <button type="button" class="earth-controls__pulse" data-action="pulse">触发中心脉冲</button>
   <button type="button" class="earth-controls__reset" data-action="reset">重置 Showcase</button>
 `;
 
@@ -70,6 +72,7 @@ export function createControls(
   const pulseInput = input<HTMLInputElement>('pulseSpeed');
   const bordersInput = input<HTMLInputElement>('showBorders');
   const resetButton = panel.querySelector<HTMLButtonElement>('[data-action="reset"]');
+  const pulseButton = panel.querySelector<HTMLButtonElement>('[data-action="pulse"]');
 
   const updateDataset = () => {
     host.dataset.routeColor = state.routeColor;
@@ -124,6 +127,10 @@ export function createControls(
 
   resetButton?.addEventListener('click', () => {
     callbacks.onReset();
+  });
+
+  pulseButton?.addEventListener('click', () => {
+    callbacks.onTriggerPulse();
   });
 
   sync();

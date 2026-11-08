@@ -209,6 +209,26 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
   await expect(sceneHost).toHaveAttribute('data-route-speed', '1.00');
   await expect(sceneHost).toHaveAttribute('data-reset-count', '1');
 
+  // Freeze route arrivals first so the manual pulse test is deterministic.
+  await page.locator('[data-control="routeSpeed"]').evaluate((element) => {
+    if (element instanceof HTMLInputElement) {
+      element.value = '0';
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  });
+  await expect(sceneHost).toHaveAttribute('data-route-speed', '0.00');
+
+  await page.getByRole('button', { name: '触发中心脉冲' }).click();
+  await expect(sceneHost).toHaveAttribute('data-hub-pulse-active', 'true');
+  expect(Number(await sceneHost.getAttribute('data-hub-pulse-count'))).toBeGreaterThanOrEqual(1);
+  await page.waitForTimeout(250);
+  await page.screenshot({
+    path: path.join(EVIDENCE_DIR, 'earth-network-hub-pulse.png'),
+    fullPage: false,
+  });
+  await page.waitForTimeout(1_400);
+  await expect(sceneHost).toHaveAttribute('data-hub-pulse-active', 'false');
+
   await page.getByRole('button', { name: '重新加载场景' }).click();
   await expect(page.getByTestId('viewer-host')).toHaveAttribute('data-state', 'ready');
   await expect(page.locator('.viewer-canvas canvas')).toHaveCount(1);
@@ -226,6 +246,13 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
     return { ...element?.dataset };
   });
 
+  const hubPulseEvidence = {
+    triggeredManually: true,
+    activeAfterTrigger: true,
+    activeAfterExpiry: false,
+    screenshot: 'earth-network-hub-pulse.png',
+  };
+
   const report = {
     capturedAt: new Date().toISOString(),
     experiment: 'earth-network-convergence',
@@ -237,6 +264,7 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
     sceneData,
     renderStats,
     controlState,
+    hubPulseEvidence,
     ionResponses: [...new Set(ionResponses)].slice(0, 40),
     consoleErrors,
     pageErrors,

@@ -165,6 +165,7 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
     controls = createControls(container, state, network, {
       onGlowChange: applyGlow,
       onReset: resetShowcase,
+      onTriggerPulse: () => network.triggerHubPulse(),
     });
 
     const canvas = scene.canvas;
@@ -179,11 +180,15 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
     container.dataset.provinceLines = String(network.counts.provinceLines);
     container.dataset.showBorders = String(state.showBorders);
     container.dataset.resetCount = '0';
+    container.dataset.hubPulseCount = '0';
+    container.dataset.hubPulseActive = 'false';
 
     const removePostRender = scene.postRender.addEventListener(() => {
       if (container.dataset.sceneReady !== 'true') {
         container.dataset.sceneReady = 'true';
       }
+      container.dataset.hubPulseCount = String(network.getHubPulseCount());
+      container.dataset.hubPulseActive = String(network.isHubPulseActive());
     });
 
     const removeRenderError = scene.renderError.addEventListener((_scene, error) => {
@@ -211,6 +216,8 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
       delete container.dataset.provinceLines;
       delete container.dataset.showBorders;
       delete container.dataset.resetCount;
+      delete container.dataset.hubPulseCount;
+      delete container.dataset.hubPulseActive;
       delete container.dataset.terrain;
       delete container.dataset.imagery;
       if (viewer && !viewer.isDestroyed()) {

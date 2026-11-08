@@ -82,6 +82,7 @@
   accent-color: #38bdf8;
 }
 
+.earth-controls__pulse,
 .earth-controls__reset {
   width: 100%;
   margin-top: 10px;
@@ -93,6 +94,21 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+}
+
+.earth-controls__pulse {
+  margin-top: 12px;
+  border-color: rgba(255, 195, 92, 0.48);
+  background: rgba(255, 179, 70, 0.1);
+  color: #ffdf9f;
+}
+
+.earth-controls__pulse:hover {
+  background: rgba(255, 179, 70, 0.18);
+}
+
+.earth-controls__reset {
+  margin-top: 7px;
 }
 
 .earth-controls__reset:hover {

@@ -293,10 +293,11 @@ interface ExperimentModule {
 Stage 2（`earth-network-convergence`）证据：
 
 - 1672 × 941 纯净 Viewer 截图（`?capture=1`），实际 CesiumJS/WebGL 输出；
-- 1672 × 941 画布，约 10295 个颜色簇、59.6% 非暗像素；
+- 1672 × 941 画布，约 10042 个颜色簇、60.3% 非暗像素；
 - `t=0 / 2 / 5 / 10s` 时间序列截图存在可见变化；
+- 节点环约 2.5s 持续扩散；中心脉冲由光点抵达触发，1.3s 单环冲击波，手动触发截图见 `earth-network-hub-pulse.png`；
 - 拖动旋转、滚轮缩放、参数面板与重置 Showcase 已实际检查；
-- 7 条金色弧线、7 个蓝色节点（全部带光柱）、6 层中心环；边界/省界来自 Natural Earth；
+- 7 条金色弧线、7 个蓝色节点（全部带光柱）、6 层静态中心环；节点环约 2.5s 持续扩散；中心脉冲由光点抵达触发，1.3s 单环冲击波；边界/省界来自 Natural Earth；
 - Stage 2 证据：[docs/evidence/stage-2/](docs/evidence/stage-2/)。
 
 Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。

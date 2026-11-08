@@ -27,6 +27,9 @@ export interface NetworkScene {
   restart(): void;
   setShowBorders(show: boolean): void;
   setGlowIntensity(value: number): void;
+  triggerHubPulse(): void;
+  getHubPulseCount(): number;
+  isHubPulseActive(): boolean;
   destroy(): void;
 }
 
@@ -100,9 +103,11 @@ export async function createNetworkScene(
   const allEntities: Entity[] = [];
 
   let startedAt = performance.now();
+  let resetHubPulseState = () => {};
   const elapsed = () => (performance.now() - startedAt) / 1000;
   const restart = () => {
     startedAt = performance.now();
+    resetHubPulseState();
   };
 
   let lastRouteHex = state.routeColor;
@@ -135,58 +140,73 @@ export async function createNetworkScene(
     return entity;
   };
 
-  interface PulseRingOptions {
-    position: CesiumNamespace.Cartesian3;
-    baseRadius: number;
-    minScale: number;
-    maxScale: number;
-    phase: number;
-    alpha: number;
-    color: () => CesiumNamespace.Color;
-    height: number;
-    width?: number;
-  }
+  const addStaticRing = (
+    position: CesiumNamespace.Cartesian3,
+    radius: number,
+    height: number,
+    color: () => CesiumNamespace.Color,
+    alpha: number,
+    width = 2,
+  ): Entity => {
+    return addEntity(
+      viewer.entities.add({
+        position,
+        ellipse: {
+          semiMajorAxis: radius,
+          semiMinorAxis: radius,
+          height,
+          fill: false,
+          outline: true,
+          outlineWidth: width,
+          outlineColor: new Cesium.CallbackProperty(() => color().withAlpha(alpha), false),
+        },
+      }),
+    );
+  };
 
   /**
-   * The single pulse implementation shared by the gold core and the blue nodes.
-   * A ring only expands outward, fades, and restarts at its base radius; it
-   * never contracts, which avoids the "jellyfish" breathing look.
+   * Blue node ripple: continuous, low-energy, 2.5s loop per node, with each
+   * node phased differently. It deliberately does not share timing or meaning
+   * with the gold hub pulse.
    */
-  const addPulseRing = (options: PulseRingOptions): Entity => {
-    const cycleSeconds = 4.5;
+  const addNodeRipple = (
+    position: CesiumNamespace.Cartesian3,
+    baseRadius: number,
+    phase: number,
+  ): Entity => {
+    const cycleSeconds = 2.5;
     let lastFrame = -1;
-    let radius = options.baseRadius * options.minScale;
+    let radius = baseRadius * 0.08;
 
     const getRadius = () => {
       const time = elapsed() * state.pulseSpeed;
       const frame = Math.floor(time * 60);
       if (frame !== lastFrame) {
         lastFrame = frame;
-        const phase = (time / cycleSeconds + options.phase) % 1;
-        radius =
-          options.baseRadius * (options.minScale + (options.maxScale - options.minScale) * phase);
+        const progress = (time / cycleSeconds + phase) % 1;
+        radius = baseRadius * (0.08 + 0.92 * progress);
       }
       return radius;
     };
 
     const getAlpha = () => {
-      const phase = ((elapsed() * state.pulseSpeed) / cycleSeconds + options.phase) % 1;
-      return options.alpha * (1 - phase);
+      const progress = ((elapsed() * state.pulseSpeed) / cycleSeconds + phase) % 1;
+      return 0.55 * Math.pow(1 - progress, 1.4);
     };
 
     return addEntity(
       viewer.entities.add({
-        position: options.position,
+        position,
         ellipse: {
           semiMajorAxis: new Cesium.CallbackProperty(getRadius, false),
-          // Constant floor keeps the ellipse valid while the major axis pulses.
-          semiMinorAxis: options.baseRadius * options.minScale * 0.98,
-          height: options.height,
+          // Constant floor keeps the ellipse valid while the major axis grows.
+          semiMinorAxis: baseRadius * 0.08 * 0.98,
+          height: 8_000,
           fill: false,
           outline: true,
-          outlineWidth: options.width ?? 2,
+          outlineWidth: 2,
           outlineColor: new Cesium.CallbackProperty(
-            () => options.color().withAlpha(getAlpha()),
+            () => getNodeColor().withAlpha(getAlpha()),
             false,
           ),
         },
@@ -247,7 +267,7 @@ export async function createNetworkScene(
     provinceEntities.push(entity);
   }
 
-  for (const node of NODES) {
+  for (const [nodeIndex, node] of NODES.entries()) {
     const ground = terrainHeight(node.coord);
     const nodePosition = Cesium.Cartesian3.fromDegrees(
       node.coord[0],
@@ -281,21 +301,19 @@ export async function createNetworkScene(
       }),
     );
 
-    for (const [baseRadius, phaseOffset] of [
-      [110_000, 0],
-      [180_000, 0.5],
-    ] as const) {
-      addPulseRing({
-        position: Cesium.Cartesian3.fromDegrees(node.coord[0], node.coord[1], ground),
-        baseRadius,
-        minScale: 0.35,
-        maxScale: 1.2,
-        phase: phaseOffset,
-        alpha: 0.7,
-        color: getNodeColor,
-        height: 8_000,
-      });
-    }
+    addStaticRing(
+      Cesium.Cartesian3.fromDegrees(node.coord[0], node.coord[1], ground),
+      55_000,
+      8_000,
+      getNodeColor,
+      0.35,
+      1.5,
+    );
+    addNodeRipple(
+      Cesium.Cartesian3.fromDegrees(node.coord[0], node.coord[1], ground),
+      150_000,
+      (nodeIndex * 0.17) % 1,
+    );
 
     if (node.beam) {
       const beamLength = 520_000;
@@ -389,21 +407,112 @@ export async function createNetworkScene(
     }),
   );
 
+  const centerPosition = Cesium.Cartesian3.fromDegrees(CENTER[0], CENTER[1], centerGround);
   for (const [index, baseRadius] of [
     120_000, 210_000, 330_000, 470_000, 620_000, 780_000,
   ].entries()) {
-    addPulseRing({
-      position: Cesium.Cartesian3.fromDegrees(CENTER[0], CENTER[1], centerGround),
-      baseRadius,
-      minScale: 1,
-      maxScale: 1.12,
-      phase: index / 6,
-      alpha: 0.8,
-      color: getRouteColor,
-      height: 10_000,
-      width: 4,
-    });
+    addStaticRing(centerPosition, baseRadius, 10_000, getRouteColor, 0.52 - index * 0.055, 2.5);
   }
+
+  const HUB_PULSE_DURATION = 1.3;
+  let hubPulseActive = false;
+  let hubPulseStartedAt = Number.NEGATIVE_INFINITY;
+  let hubPulseCount = 0;
+  let hubPulseRadius = 25_000;
+  let hubPulseAlpha = 0;
+  let hubFlash = 0;
+
+  const circlePositions = (radius: number): CesiumNamespace.Cartesian3[] => {
+    const positions: CesiumNamespace.Cartesian3[] = [];
+    const latRadians = Cesium.Math.toRadians(CENTER[1]);
+    const segments = 96;
+    for (let index = 0; index <= segments; index += 1) {
+      const angle = (index / segments) * Math.PI * 2;
+      const deltaLat = (radius * Math.sin(angle)) / 110_540;
+      const deltaLon = (radius * Math.cos(angle)) / (111_320 * Math.cos(latRadians));
+      positions.push(
+        Cesium.Cartesian3.fromDegrees(
+          CENTER[0] + deltaLon,
+          CENTER[1] + deltaLat,
+          centerGround + 12_000,
+        ),
+      );
+    }
+    return positions;
+  };
+
+  const hubWave = addEntity(
+    viewer.entities.add({
+      show: false,
+      polyline: {
+        positions: new Cesium.CallbackProperty(() => circlePositions(hubPulseRadius), false),
+        width: new Cesium.CallbackProperty(() => 4 + 5 * (1 - hubPulseAlpha), false),
+        arcType: Cesium.ArcType.NONE,
+        material: new Cesium.PolylineGlowMaterialProperty({
+          glowPower: 0.45,
+          color: new Cesium.CallbackProperty(
+            () => getRouteColor().withAlpha(hubPulseAlpha * 0.95),
+            false,
+          ),
+        }),
+      },
+    }),
+  );
+
+  const hubFlashEntity = addEntity(
+    viewer.entities.add({
+      show: false,
+      position: Cesium.Cartesian3.fromDegrees(CENTER[0], CENTER[1], centerGround + 42_000),
+      billboard: {
+        image: glowTexture,
+        scale: new Cesium.CallbackProperty(() => 0.2 + 0.65 * hubFlash, false),
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        color: new Cesium.CallbackProperty(
+          () => getRouteColor().withAlpha(0.35 + 0.5 * hubFlash),
+          false,
+        ),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    }),
+  );
+
+  const triggerHubPulse = () => {
+    // Merge arrivals while a pulse is active rather than stacking flashes.
+    if (hubPulseActive) {
+      return;
+    }
+    hubPulseActive = true;
+    hubPulseStartedAt = performance.now();
+    hubPulseCount += 1;
+    hubWave.show = true;
+    hubFlashEntity.show = true;
+  };
+
+  const updateHubPulse = (now: number) => {
+    if (!hubPulseActive) {
+      return;
+    }
+    const progress = Math.min(1, (now - hubPulseStartedAt) / 1000 / HUB_PULSE_DURATION);
+    const eased = 1 - Math.pow(1 - progress, 2.2);
+    hubPulseRadius = 25_000 + 520_000 * eased;
+    hubPulseAlpha = Math.pow(1 - progress, 1.22);
+    hubFlash = Math.pow(1 - progress, 4);
+
+    if (progress >= 1) {
+      hubPulseActive = false;
+      hubPulseAlpha = 0;
+      hubFlash = 0;
+      hubWave.show = false;
+      hubFlashEntity.show = false;
+    }
+  };
+
+  interface RouteSchedule {
+    duration: number;
+    phase: number;
+    lastProgress: number;
+  }
+  const routeSchedules: RouteSchedule[] = [];
 
   for (const [index, route] of ROUTES.entries()) {
     const arc = buildArc(Cesium, route.from, CENTER);
@@ -435,6 +544,11 @@ export async function createNetworkScene(
     );
 
     const phaseOffset = index * 0.13;
+    routeSchedules.push({
+      duration: arc.duration,
+      phase: phaseOffset,
+      lastProgress: ((elapsed() * state.routeSpeed) / arc.duration + phaseOffset) % 1,
+    });
     const positionAt = (progress: number) => {
       const pointIndex = Math.min(
         arc.positions.length - 1,
@@ -479,6 +593,37 @@ export async function createNetworkScene(
     }
   }
 
+  const removePreRender = viewer.scene.preRender.addEventListener(() => {
+    const now = performance.now();
+    const time = (now - startedAt) / 1000;
+
+    for (const schedule of routeSchedules) {
+      const progress = ((time * state.routeSpeed) / schedule.duration + schedule.phase) % 1;
+      if (progress < schedule.lastProgress - 0.5) {
+        triggerHubPulse();
+      }
+      schedule.lastProgress = progress;
+    }
+
+    updateHubPulse(now);
+  });
+
+  resetHubPulseState = () => {
+    hubPulseActive = false;
+    hubPulseStartedAt = Number.NEGATIVE_INFINITY;
+    hubPulseCount = 0;
+    hubPulseRadius = 25_000;
+    hubPulseAlpha = 0;
+    hubFlash = 0;
+    hubWave.show = false;
+    hubFlashEntity.show = false;
+
+    for (const schedule of routeSchedules) {
+      schedule.lastProgress =
+        ((elapsed() * state.routeSpeed) / schedule.duration + schedule.phase) % 1;
+    }
+  };
+
   const setShowBorders = (show: boolean) => {
     for (const entity of borderEntities) {
       entity.show = show;
@@ -500,7 +645,11 @@ export async function createNetworkScene(
     setGlowIntensity: (value: number) => {
       state.glowIntensity = value;
     },
+    triggerHubPulse,
+    getHubPulseCount: () => hubPulseCount,
+    isHubPulseActive: () => hubPulseActive,
     destroy: () => {
+      removePreRender();
       for (const entity of allEntities) {
         viewer.entities.remove(entity);
       }
