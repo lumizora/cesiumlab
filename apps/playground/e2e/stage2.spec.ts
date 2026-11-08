@@ -42,6 +42,15 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
     if (isAbortedRequest(errorText)) {
       return;
     }
+    const isTransientIon =
+      /ERR_CONNECTION_CLOSED|ERR_TIMED_OUT/.test(errorText ?? '') &&
+      /(^|\.)cesium\.com$/.test(new URL(request.url()).hostname);
+    if (isTransientIon) {
+      navigationNoise.push(
+        `${request.method()} ${redactUrl(request.url())} :: ${errorText ?? 'unknown'}`,
+      );
+      return;
+    }
     failedRequests.push(
       `${request.method()} ${redactUrl(request.url())} :: ${errorText ?? 'unknown'}`,
     );
@@ -230,10 +239,20 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
   await setRange('pointBrightness', '1.35');
   await setRange('trailLength', '0.24');
   await setRange('arcHeightScale', '1.2');
+  await setRange('beamHeight', '1.2');
+  await setRange('beamCoreWidth', '1.2');
+  await setRange('beamGlowWidth', '1.3');
+  await setRange('beamIntensity', '1.1');
+  await setRange('beamBreathingSpeed', '1.5');
   await expect(sceneHost).toHaveAttribute('data-base-arc-opacity', '0.32');
   await expect(sceneHost).toHaveAttribute('data-point-brightness', '1.35');
   await expect(sceneHost).toHaveAttribute('data-trail-length', '0.24');
   await expect(sceneHost).toHaveAttribute('data-arc-height-scale', '1.20');
+  await expect(sceneHost).toHaveAttribute('data-beam-height', '1.20');
+  await expect(sceneHost).toHaveAttribute('data-beam-core-width', '1.20');
+  await expect(sceneHost).toHaveAttribute('data-beam-glow-width', '1.30');
+  await expect(sceneHost).toHaveAttribute('data-beam-intensity', '1.10');
+  await expect(sceneHost).toHaveAttribute('data-beam-breathing-speed', '1.50');
 
   await page.getByRole('button', { name: '暂停动画' }).click();
   await expect(sceneHost).toHaveAttribute('data-paused', 'true');
@@ -253,6 +272,11 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
   await expect(sceneHost).toHaveAttribute('data-point-brightness', '1.00');
   await expect(sceneHost).toHaveAttribute('data-trail-length', '0.18');
   await expect(sceneHost).toHaveAttribute('data-arc-height-scale', '1.00');
+  await expect(sceneHost).toHaveAttribute('data-beam-height', '1.00');
+  await expect(sceneHost).toHaveAttribute('data-beam-core-width', '1.00');
+  await expect(sceneHost).toHaveAttribute('data-beam-glow-width', '1.00');
+  await expect(sceneHost).toHaveAttribute('data-beam-intensity', '1.00');
+  await expect(sceneHost).toHaveAttribute('data-beam-breathing-speed', '1.00');
   await expect(sceneHost).toHaveAttribute('data-paused', 'false');
   await expect(sceneHost).toHaveAttribute('data-reset-count', '1');
 

@@ -81,8 +81,37 @@
   border-top: 1px solid rgba(112, 214, 255, 0.12);
 }
 
-.earth-controls__row input[type='checkbox'] {
+.earth-controls__row--check input[type='checkbox'] {
   accent-color: #38bdf8;
+}
+
+.earth-controls__group {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(112, 214, 255, 0.12);
+}
+
+.earth-controls__group summary {
+  padding: 2px 0;
+  color: #7dd3fc;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  list-style: none;
+}
+
+.earth-controls__group summary::-webkit-details-marker {
+  display: none;
+}
+
+.earth-controls__group summary::before {
+  content: '▸ ';
+  color: #5eead4;
+}
+
+.earth-controls__group[open] summary::before {
+  content: '▾ ';
 }
 
 .earth-controls__pause,

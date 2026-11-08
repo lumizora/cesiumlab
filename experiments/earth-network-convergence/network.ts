@@ -17,6 +17,11 @@ export interface NetworkState {
   pointBrightness: number;
   trailLength: number;
   arcHeightScale: number;
+  beamHeight: number;
+  beamCoreWidth: number;
+  beamGlowWidth: number;
+  beamIntensity: number;
+  beamBreathingSpeed: number;
 }
 
 export interface NetworkCounts {
@@ -38,6 +43,9 @@ export interface NetworkScene {
   isHubPulseActive(): boolean;
   destroy(): void;
 }
+
+const BEAM_HEIGHT_FACTORS = [1, 0.86, 0.94, 1.04, 0.9, 0.82, 0.98];
+const BEAM_INTENSITY_FACTORS = [1, 0.9, 0.95, 1.05, 0.92, 0.88, 1];
 
 const CENTER: LngLat = [121.4737, 31.2304];
 
@@ -346,53 +354,112 @@ export async function createNetworkScene(
     }
 
     if (node.beam) {
-      const beamLength = 520_000;
-      addEntity(
-        viewer.entities.add({
-          position: Cesium.Cartesian3.fromDegrees(
-            node.coord[0],
-            node.coord[1],
-            ground + beamLength / 2,
-          ),
-          cylinder: {
-            length: beamLength,
-            topRadius: 2_000,
-            bottomRadius: 13_000,
-            material: new Cesium.ColorMaterialProperty(
-              new Cesium.CallbackProperty(() => getNodeColor().withAlpha(0.1), false),
-            ),
-          },
-        }),
-      );
+      const baseHeight = 520_000 * BEAM_HEIGHT_FACTORS[nodeIndex]!;
+      const intensityFactor = BEAM_INTENSITY_FACTORS[nodeIndex]!;
+      const phase = nodeIndex * 0.9;
+      const breath = () =>
+        0.985 +
+        0.015 *
+          Math.sin(
+            (elapsed() * Math.PI * 2) / (7 / Math.max(0.2, state.beamBreathingSpeed)) + phase,
+          );
+      const breathAlpha = () =>
+        0.9 +
+        0.1 *
+          Math.sin(
+            (elapsed() * Math.PI * 2) / (8 / Math.max(0.2, state.beamBreathingSpeed)) + phase + 1.1,
+          );
 
-      addEntity(
-        viewer.entities.add({
-          polyline: {
-            positions: [
-              Cesium.Cartesian3.fromDegrees(node.coord[0], node.coord[1], ground + 2_000),
-              Cesium.Cartesian3.fromDegrees(node.coord[0], node.coord[1], ground + beamLength),
-            ],
-            width: 5,
-            arcType: Cesium.ArcType.NONE,
-            material: new Cesium.PolylineGlowMaterialProperty({
-              glowPower: 0.5,
-              color: new Cesium.CallbackProperty(() => getNodeColor().withAlpha(0.52), false),
+      const layers: ReadonlyArray<{
+        count: number;
+        scale: number;
+        alpha: number;
+        kind: 'core' | 'glow';
+        color: () => CesiumNamespace.Color;
+      }> = [
+        {
+          count: 36,
+          scale: 0.11,
+          alpha: 0.82,
+          kind: 'core',
+          color: () =>
+            Cesium.Color.lerp(Cesium.Color.WHITE, getNodeColor(), 0.12, new Cesium.Color()),
+        },
+        {
+          count: 30,
+          scale: 0.19,
+          alpha: 0.3,
+          kind: 'glow',
+          color: () =>
+            Cesium.Color.lerp(getNodeColor(), Cesium.Color.WHITE, 0.4, new Cesium.Color()),
+        },
+        {
+          count: 24,
+          scale: 0.3,
+          alpha: 0.12,
+          kind: 'glow',
+          color: getNodeColor,
+        },
+      ];
+
+      const nearFar = new Cesium.NearFarScalar(700_000, 2.8, 9_000_000, 0.65);
+      for (const layer of layers) {
+        const widthFactor = layer.kind === 'core' ? state.beamCoreWidth : state.beamGlowWidth;
+        for (let index = 0; index < layer.count; index += 1) {
+          const t = index / (layer.count - 1);
+          addEntity(
+            viewer.entities.add({
+              position: new Cesium.CallbackPositionProperty(
+                () =>
+                  Cesium.Cartesian3.fromDegrees(
+                    node.coord[0],
+                    node.coord[1],
+                    ground + 8_000 + (baseHeight * state.beamHeight - 8_000) * t,
+                  ),
+                false,
+              ),
+              billboard: {
+                image: glowTexture,
+                scale: new Cesium.CallbackProperty(
+                  () => layer.scale * (1 - 0.55 * t) * widthFactor * breath(),
+                  false,
+                ),
+                scaleByDistance: nearFar,
+                verticalOrigin: Cesium.VerticalOrigin.CENTER,
+                color: new Cesium.CallbackProperty(
+                  () =>
+                    layer
+                      .color()
+                      .withAlpha(
+                        Math.min(
+                          1,
+                          layer.alpha *
+                            Math.pow(1 - t, 1.35) *
+                            state.beamIntensity *
+                            intensityFactor *
+                            breathAlpha(),
+                        ),
+                      ),
+                  false,
+                ),
+              },
             }),
-          },
-        }),
-      );
+          );
+        }
+      }
 
+      // A soft base bloom visually joins the beam to the node marker.
       addEntity(
         viewer.entities.add({
-          position: Cesium.Cartesian3.fromDegrees(
-            node.coord[0],
-            node.coord[1],
-            ground + beamLength,
-          ),
-          point: {
-            pixelSize: 4,
-            color: new Cesium.CallbackProperty(() => getNodeColor().withAlpha(0.9), false),
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          position: Cesium.Cartesian3.fromDegrees(node.coord[0], node.coord[1], ground + 16_000),
+          billboard: {
+            image: glowTexture,
+            scale: new Cesium.CallbackProperty(() => 0.3 * state.beamIntensity * breath(), false),
+            verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            color: new Cesium.CallbackProperty(
+              () => getNodeColor().withAlpha(0.5 * state.beamIntensity * breathAlpha()),
+              false,
+            ),
           },
         }),
       );

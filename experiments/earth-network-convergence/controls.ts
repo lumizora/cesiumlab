@@ -41,6 +41,29 @@ const PANEL_HTML = `
     <span>弧线高度</span>
     <input type="range" min="0.6" max="1.6" step="0.05" data-control="arcHeightScale" aria-label="弧线高度倍率" />
   </label>
+  <details class="earth-controls__group">
+    <summary>Energy Beam</summary>
+    <label class="earth-controls__row">
+      <span>光束高度</span>
+      <input type="range" min="0.6" max="1.5" step="0.05" data-control="beamHeight" aria-label="光束高度" />
+    </label>
+    <label class="earth-controls__row">
+      <span>核心宽度</span>
+      <input type="range" min="0.5" max="2" step="0.05" data-control="beamCoreWidth" aria-label="光束核心宽度" />
+    </label>
+    <label class="earth-controls__row">
+      <span>光晕宽度</span>
+      <input type="range" min="0.5" max="2" step="0.05" data-control="beamGlowWidth" aria-label="光束光晕宽度" />
+    </label>
+    <label class="earth-controls__row">
+      <span>底部亮度</span>
+      <input type="range" min="0.3" max="1.5" step="0.05" data-control="beamIntensity" aria-label="光束底部亮度" />
+    </label>
+    <label class="earth-controls__row">
+      <span>呼吸速度</span>
+      <input type="range" min="0.2" max="2" step="0.05" data-control="beamBreathingSpeed" aria-label="光束呼吸速度" />
+    </label>
+  </details>
   <label class="earth-controls__row">
     <span>节点颜色</span>
     <input type="color" data-control="nodeColor" aria-label="节点颜色" />
@@ -88,6 +111,11 @@ export function createControls(
   const pointBrightnessInput = input<HTMLInputElement>('pointBrightness');
   const trailLengthInput = input<HTMLInputElement>('trailLength');
   const arcHeightInput = input<HTMLInputElement>('arcHeightScale');
+  const beamHeightInput = input<HTMLInputElement>('beamHeight');
+  const beamCoreWidthInput = input<HTMLInputElement>('beamCoreWidth');
+  const beamGlowWidthInput = input<HTMLInputElement>('beamGlowWidth');
+  const beamIntensityInput = input<HTMLInputElement>('beamIntensity');
+  const beamBreathingInput = input<HTMLInputElement>('beamBreathingSpeed');
   const nodeColorInput = input<HTMLInputElement>('nodeColor');
   const glowInput = input<HTMLInputElement>('glowIntensity');
   const pulseInput = input<HTMLInputElement>('pulseSpeed');
@@ -103,6 +131,11 @@ export function createControls(
     host.dataset.pointBrightness = state.pointBrightness.toFixed(2);
     host.dataset.trailLength = state.trailLength.toFixed(2);
     host.dataset.arcHeightScale = state.arcHeightScale.toFixed(2);
+    host.dataset.beamHeight = state.beamHeight.toFixed(2);
+    host.dataset.beamCoreWidth = state.beamCoreWidth.toFixed(2);
+    host.dataset.beamGlowWidth = state.beamGlowWidth.toFixed(2);
+    host.dataset.beamIntensity = state.beamIntensity.toFixed(2);
+    host.dataset.beamBreathingSpeed = state.beamBreathingSpeed.toFixed(2);
     host.dataset.nodeColor = state.nodeColor;
     host.dataset.glowIntensity = state.glowIntensity.toFixed(2);
     host.dataset.pulseSpeed = state.pulseSpeed.toFixed(2);
@@ -117,6 +150,11 @@ export function createControls(
     pointBrightnessInput.value = String(state.pointBrightness);
     trailLengthInput.value = String(state.trailLength);
     arcHeightInput.value = String(state.arcHeightScale);
+    beamHeightInput.value = String(state.beamHeight);
+    beamCoreWidthInput.value = String(state.beamCoreWidth);
+    beamGlowWidthInput.value = String(state.beamGlowWidth);
+    beamIntensityInput.value = String(state.beamIntensity);
+    beamBreathingInput.value = String(state.beamBreathingSpeed);
     nodeColorInput.value = state.nodeColor;
     glowInput.value = String(state.glowIntensity);
     pulseInput.value = String(state.pulseSpeed);
@@ -155,6 +193,31 @@ export function createControls(
 
   arcHeightInput.addEventListener('input', () => {
     state.arcHeightScale = Number(arcHeightInput.value);
+    updateDataset();
+  });
+
+  beamHeightInput.addEventListener('input', () => {
+    state.beamHeight = Number(beamHeightInput.value);
+    updateDataset();
+  });
+
+  beamCoreWidthInput.addEventListener('input', () => {
+    state.beamCoreWidth = Number(beamCoreWidthInput.value);
+    updateDataset();
+  });
+
+  beamGlowWidthInput.addEventListener('input', () => {
+    state.beamGlowWidth = Number(beamGlowWidthInput.value);
+    updateDataset();
+  });
+
+  beamIntensityInput.addEventListener('input', () => {
+    state.beamIntensity = Number(beamIntensityInput.value);
+    updateDataset();
+  });
+
+  beamBreathingInput.addEventListener('input', () => {
+    state.beamBreathingSpeed = Number(beamBreathingInput.value);
     updateDataset();
   });
 

@@ -113,7 +113,7 @@ S3 需要用户视觉验收，尚未开始。当前没有 `Visual Approved` 实�
 | 状态     | **Prototype / Awaiting Visual Review**；未获 Visual Approved                                                                                            |
 | 参考     | `docs/stage2/cesiumlab-stage2-task-package/references/S2-001-earth-network/target.png`（内部研发；未公开部署）                                          |
 | 实现     | `experiments/earth-network-convergence/`（main/network/geo/textures/controls）                                                                          |
-| 场景     | 夜空地球、Natural Earth 中国边界/省界、7 个蓝色节点与光柱、7 条金色弧线、上海金色中心与 3 圈环境波纹                                                    |
+| 场景     | 夜空地球、Natural Earth 中国边界/省界、7 个蓝色节点与分层全息能量光束、7 条金色弧线、上海金色中心与 3 圈环境波纹                                        |
 | 数据     | 夜景纹理（three-globe 示例资源，MIT 仓库；底层 NASA Black Marble 待公开前复核）；Natural Earth 1:50m（Public Domain）；Cesium World Terrain（可选 ion） |
 | 纯净截图 | `docs/evidence/stage-2/earth-network-main-1672x941.png`（1672×941）                                                                                     |
 | 时间序列 | `earth-network-t2.png` / `t5.png` / `t10.png`；主截图即 t0                                                                                              |

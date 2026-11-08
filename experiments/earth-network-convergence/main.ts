@@ -28,6 +28,11 @@ const DEFAULT_STATE: NetworkState = {
   pointBrightness: 1,
   trailLength: 0.18,
   arcHeightScale: 1,
+  beamHeight: 1,
+  beamCoreWidth: 1,
+  beamGlowWidth: 1,
+  beamIntensity: 1,
+  beamBreathingSpeed: 1,
 };
 
 const TERRAIN_TIMEOUT_MS = 6_000;
