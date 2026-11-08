@@ -1,22 +1,31 @@
 # S2-001 Stage 2 证据与自检
 
 **实验：**`earth-network-convergence`
-**状态：**Prototype / **Awaiting Visual Review**（未获得 Visual Approved）
+**状态：**Visual Approved（用户批准：2026-11-08；批准基线 `e5da645`）
 **实现提交：**`e5da645`
+**证据 / 批准记录提交：**`9f49d39`
 **参考：**`docs/stage2/cesiumlab-stage2-task-package/references/S2-001-earth-network/target.png`（内部研发使用，不公开部署原图）
+
+## 视觉批准记录
+
+- 日期：2026-11-08
+- 批准方式：用户消息“视觉验收通过”
+- 批准基线：实现 revision `e5da645`
+- 范围：当前 S2-001 视觉状态；不包含 npm 通用化或公开 API
+- 记录：[`visual-approval.md`](./visual-approval.md)
 
 ## 环境与运行
 
-| 项目        | 值                                                                        |
-| ----------- | ------------------------------------------------------------------------- |
-| OS          | Windows 10                                                                |
-| 浏览器      | Microsoft Edge 157.0.4341.42（Chromium，headless）                        |
-| GPU / WebGL | NVIDIA GeForce GTX 1070 Ti；ANGLE/D3D11；WebGL 2.0                        |
-| 画幅        | 1672 × 941（与参考同比例；实际输出即 1672 × 941）                         |
-| 生产预览    | `http://127.0.0.1:4273/?capture=1#/experiments/earth-network-convergence` |
-| 地形        | Cesium World Terrain（ion；无 token 或 6s 超时回退椭球）                  |
-| 夜景纹理    | 4096 × 2048 本地单幅纹理                                                  |
-| 证据生成    | `pnpm test:e2e:stage2`                                                    |
+| 项目        | 值                                                                                        |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| OS          | Windows 10                                                                                |
+| 浏览器      | Microsoft Edge 157.0.4341.42（Chromium，headless）                                        |
+| GPU / WebGL | NVIDIA GeForce GTX 1070 Ti；ANGLE/D3D11；WebGL 2.0                                        |
+| 画幅        | 1672 × 941（与参考同比例；实际输出即 1672 × 941）                                         |
+| 生产预览    | `http://127.0.0.1:4273/?capture=1#/experiments/earth-network-convergence`                 |
+| 地形        | 本次批准后证据运行 ion endpoint 超时，回退椭球；视觉批准基线 `e5da645` 使用 World Terrain |
+| 夜景纹理    | 4096 × 2048 本地单幅纹理                                                                  |
+| 证据生成    | `pnpm test:e2e:stage2`                                                                    |
 
 纯净截图模式通过 `?capture=1` 隐藏站点 UI、Viewer 工具栏和实验控件，保留真实 Cesium Viewer。
 
@@ -37,7 +46,7 @@
 
 `stage2-report.json` 记录浏览器、画幅、场景状态、渲染统计、ion 请求、console/page error 与失败请求。命令输出见 `logs/stage2.txt`，revision 见 `logs/revision.txt`。
 
-实测无 console error、page error、失败请求；重进实验后画布数量为 1。渲染统计：约 10261 个颜色簇、60.5% 非暗像素。自动场景状态记录到 `hubPulseCount=2`，说明光点抵达事件已实际触发过中心脉冲。
+实测无 console error、page error、失败请求；重进实验后画布数量为 1。渲染统计：约 10120 个颜色簇、60.2% 非暗像素。自动场景状态记录到 `hubPulseCount=2`，说明光点抵达事件已实际触发过中心脉冲。
 
 ## VA-01～VA-12 自检
 
