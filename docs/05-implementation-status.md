@@ -67,18 +67,18 @@ S2（首个视觉参考实验）没有启动，因为没有视觉参考，也没
 
 ## 4. 实际执行的检查
 
-| 命令                                   | 结果                                                   |
-| -------------------------------------- | ------------------------------------------------------ |
-| `pnpm install`                         | 通过，生成 `pnpm-lock.yaml`                            |
-| `pnpm format:check`                    | 通过                                                   |
-| `pnpm lint`                            | 通过                                                   |
-| `pnpm typecheck`                       | 通过（`vue-tsc` + `tsc`）                              |
-| `pnpm test`                            | 6 个测试文件、23 个测试通过                            |
-| `pnpm build`                           | 通过，产物 `apps/playground/dist`                      |
-| `pnpm test:e2e`                        | 3 个 Playwright 测试通过                               |
-| `pnpm test:e2e:base`                   | 1 个 Playwright 测试通过                               |
-| `pnpm test:e2e:dev`                    | 1 个 Playwright 测试通过（Vite dev server）            |
-| `CESIUMLAB_EXPECT_ION=1 pnpm test:e2e` | 通过：`ionStatus=ready`，World Imagery + World Terrain |
+| 命令                                           | 结果                                                   |
+| ---------------------------------------------- | ------------------------------------------------------ |
+| `pnpm install`                                 | 通过，生成 `pnpm-lock.yaml`                            |
+| `pnpm format:check`                            | 通过                                                   |
+| `pnpm lint`                                    | 通过                                                   |
+| `pnpm typecheck`                               | 通过（`vue-tsc` + `tsc`）                              |
+| `pnpm test`                                    | 6 个测试文件、23 个测试通过                            |
+| `pnpm build`                                   | 通过，产物 `apps/playground/dist`                      |
+| `pnpm test:e2e`                                | 3 个 Playwright 测试通过                               |
+| `pnpm test:e2e:base`                           | 1 个 Playwright 测试通过                               |
+| `pnpm test:e2e:dev`                            | 1 个 Playwright 测试通过（Vite dev server）            |
+| `$env:CESIUMLAB_EXPECT_ION="1"; pnpm test:e2e` | 通过：`ionStatus=ready`，World Imagery + World Terrain |
 
 环境：
 

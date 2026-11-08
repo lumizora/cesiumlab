@@ -248,17 +248,17 @@ interface ExperimentModule {
 
 本轮实际执行并通过：
 
-| 检查       | 命令                                   | 结果                                                   |
-| ---------- | -------------------------------------- | ------------------------------------------------------ |
-| 格式       | `pnpm format:check`                    | 通过                                                   |
-| Lint       | `pnpm lint`                            | 通过                                                   |
-| 类型       | `pnpm typecheck`                       | 通过                                                   |
-| 单元测试   | `pnpm test`                            | 6 个文件、23 个测试通过                                |
-| 生产构建   | `pnpm build`                           | 通过                                                   |
-| 浏览器检查 | `pnpm test:e2e`                        | 3 个 Playwright 测试通过                               |
-| 非根路径   | `pnpm test:e2e:base`                   | 1 个 Playwright 测试通过                               |
-| 开发模式   | `pnpm test:e2e:dev`                    | 1 个 Playwright 测试通过                               |
-| Cesium ion | `CESIUMLAB_EXPECT_ION=1 pnpm test:e2e` | 通过：`ionStatus=ready`、World Imagery + World Terrain |
+| 检查       | 命令                                           | 结果                                                   |
+| ---------- | ---------------------------------------------- | ------------------------------------------------------ |
+| 格式       | `pnpm format:check`                            | 通过                                                   |
+| Lint       | `pnpm lint`                                    | 通过                                                   |
+| 类型       | `pnpm typecheck`                               | 通过                                                   |
+| 单元测试   | `pnpm test`                                    | 6 个文件、23 个测试通过                                |
+| 生产构建   | `pnpm build`                                   | 通过                                                   |
+| 浏览器检查 | `pnpm test:e2e`                                | 3 个 Playwright 测试通过                               |
+| 非根路径   | `pnpm test:e2e:base`                           | 1 个 Playwright 测试通过                               |
+| 开发模式   | `pnpm test:e2e:dev`                            | 1 个 Playwright 测试通过                               |
+| Cesium ion | `$env:CESIUMLAB_EXPECT_ION="1"; pnpm test:e2e` | 通过：`ionStatus=ready`、World Imagery + World Terrain |
 
 浏览器证据：
 
@@ -266,7 +266,7 @@ interface ExperimentModule {
 - Windows 10，NVIDIA GeForce GTX 1070 Ti，ANGLE/D3D11；
 - WebGL 2.0；
 - Vite dev（5273）、生产 preview（4273）与非根路径 preview（4274）均完成真实渲染检查；
-- 画布 1002 × 574，约 4100 个颜色簇、47.7% 非暗像素（以报告为准）；
+- 画布 1002 × 574，约 3000–4300 个颜色簇、47.7% 非暗像素（以报告为准）；
 - `data-imagery-source="cesium-world-imagery"`、`data-terrain-source="cesium-world-terrain"`；
 - Cesium Workers / Assets 与 Cesium ion endpoint / terrain 瓦片请求均为 HTTP 200；
 - 相机拖动旋转与滚轮缩放通过前后画布截图差异验证；
