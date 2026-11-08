@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "awaiting-visual-reference",
+  "title": "首个视觉实验（等待参考）",
+  "summary": "尚未收到首个正式视觉参考。该档案用于验证 Gallery 能展示未完成实验，不代表已经选定任何特效。",
+  "kind": "visual-experiment",
+  "maturity": "idea",
+  "runtimeStatus": "not-implemented",
+  "referenceVisibility": "none",
+  "tags": ["pending", "visual-reference", "not-implemented"],
+  "notes": {
+    "overview": "项目当前只完成工程基础设施和中性 Smoke Test。首个视觉实验必须由用户提供的图片、视频、GIF 或明确视觉目标驱动，不能由 Agent 自行选择特效代替。",
+    "technology": "尚未选择技术路线。收到视觉参考后，将先拆解可观察特征与不可观察假设，再选择 Entity、Primitive、CustomShader、PostProcessStage 等合适的 CesiumJS 技术。",
+    "limitations": "没有运行入口，因此该档案只展示说明和真实状态。它不会被表述为可运行实验，也不会被标记为 Visual Approved。"
+  }
+}

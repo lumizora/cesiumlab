@@ -1,0 +1,33 @@
+{
+  "name": "@cesiumlab/playground",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Minimal Vue + Vite + CesiumJS playground for cesiumlab experiments.",
+  "type": "module",
+  "scripts": {
+    "prepare:cesium": "node scripts/sync-cesium.mjs",
+    "dev": "pnpm run prepare:cesium && vite",
+    "build": "pnpm run prepare:cesium && pnpm run typecheck && vite build",
+    "build:base": "pnpm run prepare:cesium && pnpm run typecheck && vite build -c vite.base.config.ts",
+    "preview": "vite preview",
+    "preview:base": "vite preview -c vite.base.config.ts",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "pnpm run build && playwright test",
+    "test:e2e:base": "pnpm run build:base && playwright test -c playwright.base.config.ts"
+  },
+  "dependencies": {
+    "cesium": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@playwright/test": "catalog:",
+    "@types/node": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

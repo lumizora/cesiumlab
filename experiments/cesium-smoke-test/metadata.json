@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "cesium-smoke-test",
+  "title": "Cesium Smoke Test",
+  "summary": "使用纯本地资源验证 CesiumJS Viewer、WebGL 渲染、静态资源与生命周期。中性工程烟雾测试，不是视觉实验。",
+  "kind": "smoke-test",
+  "maturity": "prototype",
+  "runtimeStatus": "runnable",
+  "entry": "./main.ts",
+  "referenceVisibility": "none",
+  "tags": ["smoke-test", "viewer", "webgl", "no-ion-token"],
+  "notes": {
+    "overview": "页面创建真实 CesiumJS Viewer，显示不依赖 Cesium ion 令牌的经纬网格地球，并绘制椭球、立方体、发光连线与异步 Primitive 多边形。用于确认 WebGL 渲染、相机交互、Workers/Assets 加载和销毁清理都正常。",
+    "technology": "Vue 3 负责页面与状态，CesiumJS Viewer、Entity API 与 Primitive API 负责真实三维渲染，Vite 负责开发与生产构建。Cesium 的 Workers、ThirdParty、Assets、Widgets 由脚本从 node_modules 复制到 public/cesium，并通过 CESIUM_BASE_URL 指向当前部署基路径。",
+    "limitations": "这是工程烟雾测试，不是任何视觉参考的复现，也不会被标记为 Visual Approved。场景不使用 Cesium ion 影像或地形，因此地球外观是中性网格；它只证明渲染与资源链路可用。"
+  },
+  "verification": {
+    "checkedAt": "2026-11-08",
+    "environment": "Windows 10 · Microsoft Edge 157.0.4341.42 (Chromium, headless) · NVIDIA GeForce GTX 1070 Ti (ANGLE/D3D11) · WebGL 2.0",
+    "evidence": "docs/evidence/stage-1/"
+  }
+}
