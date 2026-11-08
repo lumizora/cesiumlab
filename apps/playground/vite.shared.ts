@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 import vue from '@vitejs/plugin-vue';
 import { defineConfig, type UserConfig } from 'vite';
@@ -28,6 +29,7 @@ interface PlaygroundConfigOptions {
 export function createPlaygroundConfig(options: PlaygroundConfigOptions): UserConfig {
   return defineConfig({
     base: options.base,
+    envDir: fileURLToPath(new URL('../..', import.meta.url)),
     plugins: [vue()],
     define: {
       __APP_VERSION__: JSON.stringify('0.0.0'),

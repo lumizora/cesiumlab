@@ -24,6 +24,17 @@ experiments/<slug>/
 
 `runnable` 实验必须有 `entry`；其他状态必须省略 `entry`。运行状态是声明，实际验证记录写入 `verification`，不要用手写状态代替浏览器检查。
 
+## 共享启动工具
+
+`experiments/cesium.ts` 提供 `loadCesium()`：只执行一次动态 `import('cesium')`，并在返回前把根目录 `.env.local` 中的公开客户端 token 写入 `Cesium.Ion.defaultAccessToken`。实验应使用它加载 Cesium，以保证 `CESIUM_BASE_URL` 与 ion 配置在 Viewer 创建前生效。
+
+```dotenv
+# 仓库根目录 .env.local（gitignored）
+VITE_CESIUM_ION_TOKEN=<public client token>
+```
+
+前端 token 会进入浏览器 bundle，不是秘密；应限制资产与来源。
+
 ## 当前实验
 
 | ID                          | 类型              | 状态            | 说明                           |

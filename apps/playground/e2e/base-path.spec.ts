@@ -3,7 +3,10 @@ import path from 'node:path';
 
 import { expect, test } from '@playwright/test';
 
+import { isAbortedRequest, redactText, redactUrl } from './redact';
+
 const EVIDENCE_DIR = path.resolve(process.cwd(), '../../docs/evidence/stage-1');
+const EXPECT_ION = process.env.CESIUMLAB_EXPECT_ION === '1';
 
 test.beforeAll(() => {
   mkdirSync(EVIDENCE_DIR, { recursive: true });
@@ -14,26 +17,35 @@ test('serves Cesium Workers and Assets under a non-root base path', async ({ pag
   const pageErrors: string[] = [];
   const failedRequests: string[] = [];
   const cesiumResponses: string[] = [];
+  const ionResponses: string[] = [];
 
   page.on('console', (message) => {
     if (message.type() === 'error') {
-      consoleErrors.push(message.text());
+      consoleErrors.push(redactText(message.text()));
     }
   });
   page.on('pageerror', (error) => {
-    pageErrors.push(error.message);
+    pageErrors.push(redactText(error.message));
   });
   page.on('requestfailed', (request) => {
+    const errorText = request.failure()?.errorText;
+    if (isAbortedRequest(errorText)) {
+      return;
+    }
     failedRequests.push(
-      `${request.method()} ${request.url()} :: ${request.failure()?.errorText ?? 'unknown'}`,
+      `${request.method()} ${redactUrl(request.url())} :: ${errorText ?? 'unknown'}`,
     );
   });
   page.on('response', (response) => {
     if (response.status() >= 400) {
-      failedRequests.push(`${response.status()} ${response.url()}`);
+      failedRequests.push(`${response.status()} ${redactUrl(response.url())}`);
     }
     if (response.url().includes('/cesium/')) {
       cesiumResponses.push(`${response.status()} ${new URL(response.url()).pathname}`);
+    }
+    const hostname = new URL(response.url()).hostname;
+    if (hostname.includes('cesium.com')) {
+      ionResponses.push(`${response.status()} ${hostname}${new URL(response.url()).pathname}`);
     }
   });
 
@@ -49,6 +61,12 @@ test('serves Cesium Workers and Assets under a non-root base path', async ({ pag
     (response) => response.url().includes('/cesiumlab/cesium/Assets/') && response.status() === 200,
     { timeout: 30_000 },
   );
+  const ionResponse = EXPECT_ION
+    ? page.waitForResponse(
+        (response) => response.url().includes('api.cesium.com') && response.status() === 200,
+        { timeout: 60_000 },
+      )
+    : null;
 
   await page.getByRole('link', { name: /Cesium Smoke Test/ }).click();
   await expect(page.getByTestId('viewer-host')).toHaveAttribute('data-state', 'ready');
@@ -56,8 +74,26 @@ test('serves Cesium Workers and Assets under a non-root base path', async ({ pag
 
   await workerResponse;
   await assetResponse;
-  await page.waitForTimeout(1_500);
+  if (ionResponse) {
+    await ionResponse;
+  }
+  await page.waitForTimeout(2_000);
   await page.evaluate(() => window.scrollTo(0, 0));
+
+  const sceneSources = await page.evaluate(() => {
+    const element = document.querySelector<HTMLElement>('.viewer-canvas');
+    return {
+      ionStatus: element?.dataset.ionStatus ?? 'missing',
+      imagery: element?.dataset.imagerySource ?? 'missing',
+      terrain: element?.dataset.terrainSource ?? 'missing',
+    };
+  });
+
+  if (EXPECT_ION) {
+    expect(sceneSources.ionStatus).toBe('ready');
+    expect(sceneSources.imagery).toBe('cesium-world-imagery');
+    expect(sceneSources.terrain).toBe('cesium-world-terrain');
+  }
 
   expect(cesiumResponses.length).toBeGreaterThan(0);
   expect(cesiumResponses.every((entry) => entry.startsWith('200 '))).toBe(true);
@@ -73,9 +109,12 @@ test('serves Cesium Workers and Assets under a non-root base path', async ({ pag
   const report = {
     capturedAt: new Date().toISOString(),
     baseURL: 'http://127.0.0.1:4274/cesiumlab/',
+    expectIon: EXPECT_ION,
     userAgent: await page.evaluate(() => navigator.userAgent),
     viewport: page.viewportSize(),
+    sceneSources,
     cesiumResponses: [...new Set(cesiumResponses)].slice(0, 40),
+    ionResponses: [...new Set(ionResponses)].slice(0, 40),
     consoleErrors,
     pageErrors,
     failedRequests,

@@ -1,4 +1,5 @@
 import type { ExperimentCleanup, ExperimentMountContext } from '../contract';
+import { loadCesium } from '../cesium';
 
 import type { Viewer } from 'cesium';
 
@@ -10,7 +11,9 @@ const HOME_VIEW = {
 /**
  * Neutral CesiumJS smoke test.
  *
- * - Real Viewer + WebGL output, no Cesium ion token and no remote imagery.
+ * - Real Viewer + WebGL output.
+ * - When `VITE_CESIUM_ION_TOKEN` is configured, loads Cesium World Imagery and
+ *   Cesium World Terrain; otherwise falls back to a local grid + ellipsoid.
  * - Uses both Entity and asynchronous Primitive APIs so Workers are exercised.
  * - Creates and owns its Viewer, and releases it through the returned cleanup.
  */
@@ -18,7 +21,10 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
   const { container, onError } = context;
   container.replaceChildren();
 
-  const Cesium = await import('cesium');
+  const Cesium = await loadCesium();
+  const ionConfigured = Boolean(
+    (window as Window & { CESIUM_ION_TOKEN?: string }).CESIUM_ION_TOKEN,
+  );
   let viewer: Viewer | undefined;
   let cleanup: ExperimentCleanup | undefined;
 
@@ -61,18 +67,59 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
     viewer.clock.currentTime = Cesium.JulianDate.fromIso8601('2026-11-08T04:00:00Z');
     viewer.clock.shouldAnimate = false;
 
-    // A locally generated grid proves imagery rendering without an ion token.
-    viewer.imageryLayers.addImageryProvider(
-      new Cesium.GridImageryProvider({
-        cells: 4,
-        color: Cesium.Color.fromCssColorString('#2dd4bf').withAlpha(0.32),
-        glowColor: Cesium.Color.fromCssColorString('#0ea5e9').withAlpha(0.16),
-        glowWidth: 3,
-        backgroundColor: Cesium.Color.fromCssColorString('#07131c'),
-        tileWidth: 256,
-        tileHeight: 256,
-      }),
-    );
+    const addLocalGrid = (target: Viewer) => {
+      target.imageryLayers.addImageryProvider(
+        new Cesium.GridImageryProvider({
+          cells: 4,
+          color: Cesium.Color.fromCssColorString('#2dd4bf').withAlpha(0.32),
+          glowColor: Cesium.Color.fromCssColorString('#0ea5e9').withAlpha(0.16),
+          glowWidth: 3,
+          backgroundColor: Cesium.Color.fromCssColorString('#07131c'),
+          tileWidth: 256,
+          tileHeight: 256,
+        }),
+      );
+    };
+
+    let imagerySource = 'local-grid';
+    let terrainSource = 'ellipsoid';
+    let ionStatus = ionConfigured ? 'pending' : 'disabled';
+
+    if (ionConfigured) {
+      const [imageryResult, terrainResult] = await Promise.allSettled([
+        Cesium.createWorldImageryAsync({
+          style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS,
+        }),
+        Cesium.createWorldTerrainAsync({
+          requestWaterMask: true,
+          requestVertexNormals: true,
+        }),
+      ]);
+
+      if (imageryResult.status === 'fulfilled') {
+        viewer.imageryLayers.addImageryProvider(imageryResult.value);
+        imagerySource = 'cesium-world-imagery';
+      } else {
+        addLocalGrid(viewer);
+        console.warn('[cesiumlab] Cesium ion imagery unavailable; using local grid fallback.');
+      }
+
+      if (terrainResult.status === 'fulfilled') {
+        viewer.terrainProvider = terrainResult.value;
+        terrainSource = 'cesium-world-terrain';
+      } else {
+        console.warn('[cesiumlab] Cesium ion terrain unavailable; using ellipsoid fallback.');
+      }
+
+      const ionReady = imagerySource !== 'local-grid' && terrainSource !== 'ellipsoid';
+      ionStatus = ionReady ? 'ready' : imagerySource !== 'local-grid' ? 'partial' : 'fallback';
+    } else {
+      addLocalGrid(viewer);
+    }
+
+    container.dataset.ionStatus = ionStatus;
+    container.dataset.imagerySource = imagerySource;
+    container.dataset.terrainSource = terrainSource;
 
     const beijing = Cesium.Cartesian3.fromDegrees(116.391, 39.907, 220_000);
     const shanghai = Cesium.Cartesian3.fromDegrees(121.474, 31.23, 220_000);
@@ -224,6 +271,9 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
       removeRenderError();
       canvas.removeEventListener('webglcontextlost', handleContextLost, false);
       delete container.dataset.sceneReady;
+      delete container.dataset.ionStatus;
+      delete container.dataset.imagerySource;
+      delete container.dataset.terrainSource;
       if (viewer && !viewer.isDestroyed()) {
         viewer.destroy();
       }

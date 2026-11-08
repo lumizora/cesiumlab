@@ -50,7 +50,7 @@ S2（首个视觉参考实验）没有启动，因为没有视觉参考，也没
 已实现：
 
 - `apps/playground`：Vue 3 + TypeScript + Vite + CesiumJS；
-- 真实 CesiumJS Viewer，使用 `GridImageryProvider` 本地网格地球，不依赖 Cesium ion Token / 远程影像或地形；
+- 真实 CesiumJS Viewer；配置 Cesium ion 时加载 World Imagery + World Terrain，未配置或失败时回退本地网格/椭球；
 - Entity API（椭球、立方体、点、标签、发光折线）+ 异步 Primitive（`PolygonGeometry`）验证 Workers；
 - Cesium 静态资源由 `scripts/sync-cesium.mjs` 从锁定版本复制到 `public/cesium`；
 - `CESIUM_BASE_URL` 在 Cesium 值模块求值前设置，全仓库仅动态 `import('cesium')`；
@@ -60,23 +60,25 @@ S2（首个视觉参考实验）没有启动，因为没有视觉参考，也没
   - `awaiting-visual-reference`（not-implemented，等待视觉参考）；
 - 加载中、加载失败、WebGL 不可用、运行错误提示；
 - 相机拖动旋转、滚轮缩放：Playwright 操作前后画布截图差异验证；
+- 可选 Cesium ion：根 `.env.local` 的 `VITE_CESIUM_ION_TOKEN` 控制；`data-ion-status` / `data-imagery-source` / `data-terrain-source` 暴露实际加载状态；
 - cleanup：移除监听、调用 `viewer.destroy()`、清空容器；覆盖路由离开、重新加载、`pagehide`、bfcache `pageshow`；
 - 根路径与非根路径两套构建配置；
 - Vitest 单元测试 + Playwright 浏览器检查 + 截图/报告。
 
 ## 4. 实际执行的检查
 
-| 命令                 | 结果                                        |
-| -------------------- | ------------------------------------------- |
-| `pnpm install`       | 通过，生成 `pnpm-lock.yaml`                 |
-| `pnpm format:check`  | 通过                                        |
-| `pnpm lint`          | 通过                                        |
-| `pnpm typecheck`     | 通过（`vue-tsc` + `tsc`）                   |
-| `pnpm test`          | 6 个测试文件、23 个测试通过                 |
-| `pnpm build`         | 通过，产物 `apps/playground/dist`           |
-| `pnpm test:e2e`      | 3 个 Playwright 测试通过                    |
-| `pnpm test:e2e:base` | 1 个 Playwright 测试通过                    |
-| `pnpm test:e2e:dev`  | 1 个 Playwright 测试通过（Vite dev server） |
+| 命令                                   | 结果                                                   |
+| -------------------------------------- | ------------------------------------------------------ |
+| `pnpm install`                         | 通过，生成 `pnpm-lock.yaml`                            |
+| `pnpm format:check`                    | 通过                                                   |
+| `pnpm lint`                            | 通过                                                   |
+| `pnpm typecheck`                       | 通过（`vue-tsc` + `tsc`）                              |
+| `pnpm test`                            | 6 个测试文件、23 个测试通过                            |
+| `pnpm build`                           | 通过，产物 `apps/playground/dist`                      |
+| `pnpm test:e2e`                        | 3 个 Playwright 测试通过                               |
+| `pnpm test:e2e:base`                   | 1 个 Playwright 测试通过                               |
+| `pnpm test:e2e:dev`                    | 1 个 Playwright 测试通过（Vite dev server）            |
+| `CESIUMLAB_EXPECT_ION=1 pnpm test:e2e` | 通过：`ionStatus=ready`，World Imagery + World Terrain |
 
 环境：
 
@@ -84,11 +86,22 @@ S2（首个视觉参考实验）没有启动，因为没有视觉参考，也没
 - Node.js 24.14.1；pnpm 12.8.1；
 - Microsoft Edge 157.0.4341.42（Chromium，headless）；
 - NVIDIA GeForce GTX 1070 Ti，ANGLE/D3D11；
-- WebGL 2.0。
+- WebGL 2.0；
+- Cesium ion：World Imagery（AERIAL_WITH_LABELS）+ World Terrain；endpoint 与地形瓦片请求 200。
+
+### Cesium ion 配置
+
+- token 只写入本地 `.env.local`（gitignored），未提交；
+- Vite `envDir` 指向仓库根目录，构建时通过 `import.meta.env.VITE_CESIUM_ION_TOKEN` 注入；
+- `experiments/cesium.ts` 在动态加载 Cesium 后设置 `Ion.defaultAccessToken`；
+- 根 `.env.example` 仅保留空模板；
+- 前端 token 会进入 bundle，属于公开客户端凭据，必须在 Cesium ion 后台限制资产与来源；
+- 未配置或请求失败时回退本地网格，Smoke Test 仍可运行。
 
 详细数据（请求、渲染统计、控制台错误）见
-[`evidence/stage-1/browser-report.json`](./evidence/stage-1/browser-report.json) 与
-[`evidence/stage-1/base-path-report.json`](./evidence/stage-1/base-path-report.json)。
+[`evidence/stage-1/browser-report.json`](./evidence/stage-1/browser-report.json)、
+[`evidence/stage-1/base-path-report.json`](./evidence/stage-1/base-path-report.json) 与
+[`evidence/stage-1/dev-report.json`](./evidence/stage-1/dev-report.json)。
 
 ## 5. 未验证 / 未执行
 
@@ -100,6 +113,7 @@ S2（首个视觉参考实验）没有启动，因为没有视觉参考，也没
 - **内存泄漏**：未做 heap/profile 级分析；只验证了重新加载、路由离开和退出后画布数量与再次进入。
 - **自动发现/通用 Runtime**：按计划暂不实现。
 - **npm 发布**：未创建包、未配置 scope、未定许可证、未发布。
+- **Cesium ion 服务**：已验证当前 token 的 World Imagery/Terrain 加载；未验证其他 ion 资产、配额耗尽、离线或代理环境。前端 token 会暴露在 bundle 中，必须按公开客户端凭据管理。
 
 ## 6. 下一步条件
 

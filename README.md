@@ -19,7 +19,7 @@
 
 - pnpm Monorepo，可继续添加 `packages/*`，无需重做根工程布局；
 - `apps/playground`：Vue 3 + TypeScript + Vite + CesiumJS；
-- 真实 CesiumJS Viewer，无 Cesium ion Token 依赖；
+- 真实 CesiumJS Viewer；配置 Cesium ion 时加载 World Imagery + World Terrain，未配置或服务失败时回退本地网格；
 - Cesium Workers / ThirdParty / Assets / Widgets 静态资源复制与 `CESIUM_BASE_URL` 配置；
 - 最简 Gallery / Detail，手工登记两个实验档案；
 - 根路径与非根路径（`/cesiumlab/`）的生产构建与浏览器验证；
@@ -73,6 +73,21 @@ pnpm preview:base
 
 > 启动与预览端口刻意使用 5273 / 4273 / 4274，避免与本机其他项目的 5173 / 4173 / 4174 服务冲突。
 
+## Cesium ion 配置
+
+World Imagery 与 World Terrain 需要 Cesium ion 的公开客户端 token。在**仓库根目录**创建 `.env.local`（已被 `.gitignore` 忽略）：
+
+```dotenv
+VITE_CESIUM_ION_TOKEN=<public client token>
+```
+
+- Vite `envDir` 指向仓库根目录，因此 `apps/playground` 能读取该变量；
+- `.env.example` 提供空模板，不包含真实 token；
+- 配置后 Smoke Test 会请求 Cesium World Imagery（AERIAL_WITH_LABELS）与 Cesium World Terrain；
+- 未配置或请求失败时，场景回退到本地 `GridImageryProvider` + 椭球地形，仍可运行；
+- 前端 token 会进入构建产物，**必须视为公开客户端 token**；请在 Cesium ion 后台限制可访问资产、允许来源与配额；
+- 浏览器测试可用 `CESIUMLAB_EXPECT_ION=1` 要求场景实际进入 ion 模式，否则只验证回退路径。
+
 ## 常用命令
 
 | 命令                 | 作用                                                |
@@ -91,6 +106,15 @@ pnpm preview:base
 | `pnpm test:e2e:base` | 构建后运行非根路径浏览器检查                        |
 | `pnpm test:e2e:dev`  | 启动 Vite dev server 并运行开发模式浏览器检查       |
 | `pnpm check`         | format check + lint + typecheck + unit test + build |
+
+带 Cesium ion 断言运行（需要 `.env.local`）：
+
+```powershell
+$env:CESIUMLAB_EXPECT_ION="1"
+pnpm test:e2e
+pnpm test:e2e:base
+pnpm test:e2e:dev
+```
 
 Playwright 默认使用系统安装的 Microsoft Edge。若环境没有 Edge，可安装 Playwright Chromium 并切换：
 
@@ -117,6 +141,7 @@ cesiumlab/
 ├── package.json
 ├── pnpm-workspace.yaml
 ├── pnpm-lock.yaml
+├── .env.example                       # ion token 模板（无真实值）
 ├── tsconfig.base.json
 ├── tsconfig.json
 ├── eslint.config.mjs
@@ -130,6 +155,7 @@ cesiumlab/
 │       ├── vitest.config.ts
 │       ├── playwright.config.ts
 │       ├── playwright.base.config.ts
+│       ├── playwright.dev.config.ts
 │       ├── scripts/sync-cesium.mjs   # 复制 Cesium 静态资源
 │       ├── public/
 │       │   ├── favicon.svg
@@ -147,6 +173,7 @@ cesiumlab/
 │       └── e2e/                      # Playwright 规格
 ├── experiments/
 │   ├── contract.ts                   # Contract v0.1（mount + cleanup）
+│   ├── cesium.ts                     # 动态 Cesium 加载 + ion token
 │   ├── README.md
 │   ├── cesium-smoke-test/            # 当前唯一可运行实验（Smoke Test）
 │   └── awaiting-visual-reference/    # 未实现视觉实验档案
@@ -221,16 +248,17 @@ interface ExperimentModule {
 
 本轮实际执行并通过：
 
-| 检查       | 命令                 | 结果                     |
-| ---------- | -------------------- | ------------------------ |
-| 格式       | `pnpm format:check`  | 通过                     |
-| Lint       | `pnpm lint`          | 通过                     |
-| 类型       | `pnpm typecheck`     | 通过                     |
-| 单元测试   | `pnpm test`          | 6 个文件、23 个测试通过  |
-| 生产构建   | `pnpm build`         | 通过                     |
-| 浏览器检查 | `pnpm test:e2e`      | 3 个 Playwright 测试通过 |
-| 非根路径   | `pnpm test:e2e:base` | 1 个 Playwright 测试通过 |
-| 开发模式   | `pnpm test:e2e:dev`  | 1 个 Playwright 测试通过 |
+| 检查       | 命令                                   | 结果                                                   |
+| ---------- | -------------------------------------- | ------------------------------------------------------ |
+| 格式       | `pnpm format:check`                    | 通过                                                   |
+| Lint       | `pnpm lint`                            | 通过                                                   |
+| 类型       | `pnpm typecheck`                       | 通过                                                   |
+| 单元测试   | `pnpm test`                            | 6 个文件、23 个测试通过                                |
+| 生产构建   | `pnpm build`                           | 通过                                                   |
+| 浏览器检查 | `pnpm test:e2e`                        | 3 个 Playwright 测试通过                               |
+| 非根路径   | `pnpm test:e2e:base`                   | 1 个 Playwright 测试通过                               |
+| 开发模式   | `pnpm test:e2e:dev`                    | 1 个 Playwright 测试通过                               |
+| Cesium ion | `CESIUMLAB_EXPECT_ION=1 pnpm test:e2e` | 通过：`ionStatus=ready`、World Imagery + World Terrain |
 
 浏览器证据：
 
@@ -238,9 +266,10 @@ interface ExperimentModule {
 - Windows 10，NVIDIA GeForce GTX 1070 Ti，ANGLE/D3D11；
 - WebGL 2.0；
 - Vite dev（5273）、生产 preview（4273）与非根路径 preview（4274）均完成真实渲染检查；
-- 画布 1002 × 574，约 1700 个颜色簇、47.7% 非暗像素（以报告为准）；
+- 画布 1002 × 574，约 4100 个颜色簇、47.7% 非暗像素（以报告为准）；
+- `data-imagery-source="cesium-world-imagery"`、`data-terrain-source="cesium-world-terrain"`；
+- Cesium Workers / Assets 与 Cesium ion endpoint / terrain 瓦片请求均为 HTTP 200；
 - 相机拖动旋转与滚轮缩放通过前后画布截图差异验证；
-- Cesium Workers / Assets 请求均为 HTTP 200；
 - 无 console error、page error 或失败请求。
 
 截图、报告与命令记录位于：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
@@ -257,7 +286,9 @@ interface ExperimentModule {
 - 未建立自动实验发现、参数 Schema、通用 Runtime、Gallery 搜索/筛选；
 - 没有 npm 包、没有 npm scope / 许可证定案，禁止发布；
 - 项目代码许可证尚未正式决定，仓库当前不提供 `LICENSE` 文件；
-- Smoke Test 页面会显示 Cesium ion 默认 attribution 图标，但场景**不使用** Cesium ion Token、影像或地形服务；该图标来自本地 `Assets/Images/ion-credit.png`。
+- Cesium ion 影像/地形依赖外部服务与网络；服务失败时场景回退本地网格，但不再显示真实影像/地形；
+- Cesium ion token 会进入前端 bundle，必须按公开客户端 token 管理并限制权限；`.env.local` 不提交 Git；
+- Smoke Test 页面会显示 Cesium / Cesium ion / Bing Maps 的 attribution；配置 ion 后使用真实影像与地形服务。
 
 ## 下一步
 
