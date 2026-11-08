@@ -38,7 +38,7 @@ export function createPlaygroundConfig(options: PlaygroundConfigOptions): UserCo
     },
     server: {
       host: '127.0.0.1',
-      port: 5173,
+      port: 5273,
       strictPort: true,
     },
     preview: {

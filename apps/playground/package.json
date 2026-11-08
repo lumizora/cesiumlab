@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "pnpm run build && playwright test",
-    "test:e2e:base": "pnpm run build:base && playwright test -c playwright.base.config.ts"
+    "test:e2e:base": "pnpm run build:base && playwright test -c playwright.base.config.ts",
+    "test:e2e:dev": "playwright test -c playwright.dev.config.ts"
   },
   "dependencies": {
     "cesium": "catalog:",

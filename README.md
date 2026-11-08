@@ -51,7 +51,7 @@ pnpm install
 pnpm dev
 ```
 
-开发服务器：<http://127.0.0.1:5173/>
+开发服务器：<http://127.0.0.1:5273/>
 
 生产构建与预览：
 
@@ -71,7 +71,7 @@ pnpm preview:base
 
 预览地址：<http://127.0.0.1:4274/cesiumlab/>
 
-> 预览端口刻意使用 4273 / 4274，避免与本机其他项目的 4173 / 4174 预览服务冲突。
+> 启动与预览端口刻意使用 5273 / 4273 / 4274，避免与本机其他项目的 5173 / 4173 / 4174 服务冲突。
 
 ## 常用命令
 
@@ -89,6 +89,7 @@ pnpm preview:base
 | `pnpm test`          | Vitest 单元测试                                     |
 | `pnpm test:e2e`      | 构建后运行 Playwright 浏览器检查（含截图）          |
 | `pnpm test:e2e:base` | 构建后运行非根路径浏览器检查                        |
+| `pnpm test:e2e:dev`  | 启动 Vite dev server 并运行开发模式浏览器检查       |
 | `pnpm check`         | format check + lint + typecheck + unit test + build |
 
 Playwright 默认使用系统安装的 Microsoft Edge。若环境没有 Edge，可安装 Playwright Chromium 并切换：
@@ -229,12 +230,14 @@ interface ExperimentModule {
 | 生产构建   | `pnpm build`         | 通过                     |
 | 浏览器检查 | `pnpm test:e2e`      | 3 个 Playwright 测试通过 |
 | 非根路径   | `pnpm test:e2e:base` | 1 个 Playwright 测试通过 |
+| 开发模式   | `pnpm test:e2e:dev`  | 1 个 Playwright 测试通过 |
 
 浏览器证据：
 
 - Microsoft Edge 157.0.4341.42（Chromium，headless）；
 - Windows 10，NVIDIA GeForce GTX 1070 Ti，ANGLE/D3D11；
 - WebGL 2.0；
+- Vite dev（5273）、生产 preview（4273）与非根路径 preview（4274）均完成真实渲染检查；
 - 画布 1002 × 574，检测到 1730 个颜色簇、47.7% 非暗像素；
 - Cesium Workers / Assets 请求均为 HTTP 200；
 - 无 console error、page error 或失败请求。
