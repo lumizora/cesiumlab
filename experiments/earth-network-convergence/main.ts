@@ -148,6 +148,19 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
     };
     setHomeView();
 
+    // Visual-QA close-up preset; used for checking node ring geometry.
+    if (new URLSearchParams(window.location.search).get('focus') === 'node') {
+      viewer.camera.lookAt(
+        Cesium.Cartesian3.fromDegrees(87.6168, 43.8256, 0),
+        new Cesium.HeadingPitchRange(
+          Cesium.Math.toRadians(315),
+          Cesium.Math.toRadians(-38),
+          1_000_000,
+        ),
+      );
+      viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+    }
+
     scene.screenSpaceCameraController.minimumZoomDistance = 600_000;
     scene.screenSpaceCameraController.maximumZoomDistance = 24_000_000;
 

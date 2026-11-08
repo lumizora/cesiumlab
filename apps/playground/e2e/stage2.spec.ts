@@ -172,6 +172,16 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
     });
   }
 
+  await page.goto('/?capture=1&focus=node#/experiments/earth-network-convergence');
+  await expect(page.getByTestId('viewer-host')).toHaveAttribute('data-state', 'ready', {
+    timeout: 60_000,
+  });
+  await page.waitForTimeout(1_200);
+  await page.screenshot({
+    path: path.join(EVIDENCE_DIR, 'earth-network-node-closeup.png'),
+    fullPage: false,
+  });
+
   await page.goto('/#/experiments/earth-network-convergence');
   await expect(page.getByTestId('viewer-host')).toHaveAttribute('data-state', 'ready', {
     timeout: 60_000,

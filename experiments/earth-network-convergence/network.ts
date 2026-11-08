@@ -135,6 +135,26 @@ export async function createNetworkScene(
     return Math.max(0, viewer.scene.globe.getHeight(cartographic) ?? 0);
   };
 
+  /** Builds a true closed circle on the ellipsoid, used for all pulse rings. */
+  const circlePositionsAt = (
+    center: LngLat,
+    radius: number,
+    height: number,
+    segments = 96,
+  ): CesiumNamespace.Cartesian3[] => {
+    const positions: CesiumNamespace.Cartesian3[] = [];
+    const latRadians = Cesium.Math.toRadians(center[1]);
+    for (let index = 0; index <= segments; index += 1) {
+      const angle = (index / segments) * Math.PI * 2;
+      const deltaLat = (radius * Math.sin(angle)) / 110_540;
+      const deltaLon = (radius * Math.cos(angle)) / (111_320 * Math.cos(latRadians));
+      positions.push(
+        Cesium.Cartesian3.fromDegrees(center[0] + deltaLon, center[1] + deltaLat, height),
+      );
+    }
+    return positions;
+  };
+
   const addEntity = (entity: Entity): Entity => {
     allEntities.push(entity);
     return entity;
@@ -170,7 +190,8 @@ export async function createNetworkScene(
    * with the gold hub pulse.
    */
   const addNodeRipple = (
-    position: CesiumNamespace.Cartesian3,
+    coord: LngLat,
+    ground: number,
     baseRadius: number,
     phase: number,
   ): Entity => {
@@ -178,37 +199,35 @@ export async function createNetworkScene(
     let lastFrame = -1;
     let radius = baseRadius * 0.08;
 
+    const getProgress = () => ((elapsed() * state.pulseSpeed) / cycleSeconds + phase) % 1;
+
     const getRadius = () => {
       const time = elapsed() * state.pulseSpeed;
       const frame = Math.floor(time * 60);
       if (frame !== lastFrame) {
         lastFrame = frame;
-        const progress = (time / cycleSeconds + phase) % 1;
-        radius = baseRadius * (0.08 + 0.92 * progress);
+        radius = baseRadius * (0.08 + 0.92 * getProgress());
       }
       return radius;
     };
 
-    const getAlpha = () => {
-      const progress = ((elapsed() * state.pulseSpeed) / cycleSeconds + phase) % 1;
-      return 0.55 * Math.pow(1 - progress, 1.4);
-    };
+    const getAlpha = () => 0.5 * Math.pow(1 - getProgress(), 1.4);
 
     return addEntity(
       viewer.entities.add({
-        position,
-        ellipse: {
-          semiMajorAxis: new Cesium.CallbackProperty(getRadius, false),
-          // Constant floor keeps the ellipse valid while the major axis grows.
-          semiMinorAxis: baseRadius * 0.08 * 0.98,
-          height: 8_000,
-          fill: false,
-          outline: true,
-          outlineWidth: 2,
-          outlineColor: new Cesium.CallbackProperty(
-            () => getNodeColor().withAlpha(getAlpha()),
+        polyline: {
+          // A polyline circle keeps the ripple a true circle at every radius;
+          // an ellipse with a constant minor axis would become a thin sliver.
+          positions: new Cesium.CallbackProperty(
+            () => circlePositionsAt(coord, getRadius(), ground + 8_000, 64),
             false,
           ),
+          width: 2,
+          arcType: Cesium.ArcType.NONE,
+          material: new Cesium.PolylineGlowMaterialProperty({
+            glowPower: 0.48,
+            color: new Cesium.CallbackProperty(() => getNodeColor().withAlpha(getAlpha()), false),
+          }),
         },
       }),
     );
@@ -303,17 +322,21 @@ export async function createNetworkScene(
 
     addStaticRing(
       Cesium.Cartesian3.fromDegrees(node.coord[0], node.coord[1], ground),
-      55_000,
+      28_000,
       8_000,
       getNodeColor,
-      0.35,
+      0.32,
       1.5,
     );
-    addNodeRipple(
+    addStaticRing(
       Cesium.Cartesian3.fromDegrees(node.coord[0], node.coord[1], ground),
-      150_000,
-      (nodeIndex * 0.17) % 1,
+      48_000,
+      8_000,
+      getNodeColor,
+      0.22,
+      1.2,
     );
+    addNodeRipple(node.coord, ground, 90_000, (nodeIndex * 0.17) % 1);
 
     if (node.beam) {
       const beamLength = 520_000;
@@ -422,30 +445,14 @@ export async function createNetworkScene(
   let hubPulseAlpha = 0;
   let hubFlash = 0;
 
-  const circlePositions = (radius: number): CesiumNamespace.Cartesian3[] => {
-    const positions: CesiumNamespace.Cartesian3[] = [];
-    const latRadians = Cesium.Math.toRadians(CENTER[1]);
-    const segments = 96;
-    for (let index = 0; index <= segments; index += 1) {
-      const angle = (index / segments) * Math.PI * 2;
-      const deltaLat = (radius * Math.sin(angle)) / 110_540;
-      const deltaLon = (radius * Math.cos(angle)) / (111_320 * Math.cos(latRadians));
-      positions.push(
-        Cesium.Cartesian3.fromDegrees(
-          CENTER[0] + deltaLon,
-          CENTER[1] + deltaLat,
-          centerGround + 12_000,
-        ),
-      );
-    }
-    return positions;
-  };
-
   const hubWave = addEntity(
     viewer.entities.add({
       show: false,
       polyline: {
-        positions: new Cesium.CallbackProperty(() => circlePositions(hubPulseRadius), false),
+        positions: new Cesium.CallbackProperty(
+          () => circlePositionsAt(CENTER, hubPulseRadius, centerGround + 12_000),
+          false,
+        ),
         width: new Cesium.CallbackProperty(() => 4 + 5 * (1 - hubPulseAlpha), false),
         arcType: Cesium.ArcType.NONE,
         material: new Cesium.PolylineGlowMaterialProperty({

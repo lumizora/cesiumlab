@@ -61,6 +61,12 @@ pnpm dev
 http://127.0.0.1:5273/?capture=1#/experiments/earth-network-convergence
 ```
 
+节点环近景 QA 预设（仅用于检查几何）：
+
+```text
+http://127.0.0.1:5273/?capture=1&focus=node#/experiments/earth-network-convergence
+```
+
 生产预览：
 
 ```powershell
