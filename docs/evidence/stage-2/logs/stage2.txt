@@ -13,31 +13,31 @@ dist/index.html                                   0.88 kB │ gzip:     0.57 kB
 dist/assets/china-boundary-DduuHzt5.geojson     129.14 kB
 dist/assets/china-provinces-BhRNY3kM.geojson    192.42 kB
 dist/assets/night-earth-DunbJrcB.jpg            715.00 kB
-dist/assets/main-DHBj6EOO.css                     1.65 kB │ gzip:     0.69 kB
+dist/assets/main-D9N82dF9.css                     1.86 kB │ gzip:     0.74 kB
 dist/assets/index-DjoWazNV.css                   37.05 kB │ gzip:     8.71 kB
-dist/assets/zip-reader-qVU2zYV1.js                0.08 kB │ gzip:     0.10 kB
-dist/assets/cesium-DCtTI3wF.js                    0.39 kB │ gzip:     0.28 kB
-dist/assets/main-BrHQwiNP.js                      5.24 kB │ gzip:     2.18 kB
-dist/assets/main-Cj_RQAo9.js                     15.46 kB │ gzip:     5.16 kB
-dist/assets/index-B5RGDFes.js                    90.80 kB │ gzip:    35.85 kB
-dist/assets/Cesium-BLaflMcT.js                4,942.47 kB │ gzip: 1,357.66 kB
+dist/assets/zip-reader-BPU73vxN.js                0.08 kB │ gzip:     0.10 kB
+dist/assets/cesium-DfSmKBit.js                    0.39 kB │ gzip:     0.28 kB
+dist/assets/main-Xcrs--dk.js                      5.24 kB │ gzip:     2.18 kB
+dist/assets/main-BTMmXeGH.js                     17.38 kB │ gzip:     5.74 kB
+dist/assets/index-CevmbmMn.js                    90.88 kB │ gzip:    35.91 kB
+dist/assets/Cesium-BCXBYKA8.js                4,942.47 kB │ gzip: 1,357.65 kB
 
 [plugin builtin:vite-reporter]
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 2.44s
-[WebServer] (node:19584) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+✓ built in 2.25s
+[WebServer] (node:37644) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 [WebServer] $ vite preview
-[WebServer] (node:24200) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (node:16744) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
 Running 1 test using 1 worker
 
-(node:9576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:49348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ok 1 e2e\stage2.spec.ts:14:1 › Earth Network Convergence clean capture and animation sequence (33.2s)
+  ok 1 e2e\stage2.spec.ts:14:1 › Earth Network Convergence clean capture and animation sequence (40.5s)
 
-  1 passed (36.2s)
+  1 passed (44.7s)
