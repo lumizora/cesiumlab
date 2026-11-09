@@ -13,13 +13,14 @@
 - 公开部署说明：[docs/06-public-deployment.md](docs/06-public-deployment.md)
 - 部署就绪报告：[docs/07-public-deployment-readiness.md](docs/07-public-deployment-readiness.md)
 - 首次部署记录：[docs/evidence/deployment/](docs/evidence/deployment/)
+- Stage 5A 通用化评估：[docs/08-stage5a-effects-assessment.md](docs/08-stage5a-effects-assessment.md)
 - S2-001 视觉基准：[docs/visual-baselines/S2-001/](docs/visual-baselines/S2-001/)
 - Agent 工作入口：[AGENTS.md](AGENTS.md)
 - License：[MIT](LICENSE)
 
 ## 当前状态
 
-**Stage 0–3 已完成；Stage 4 公开 Playground 与 Stage 4.5 首次 GitHub Pages 部署已完成。公开站点：<https://lumizora.github.io/cesiumlab/>。Stage 2 的 S2-001 已于 2026-11-08 通过用户视觉验收（Visual Approved）。**
+**Stage 0–3 已完成；Stage 4 公开 Playground 与 Stage 4.5 首次 GitHub Pages 部署已完成；Stage 5A 特效通用化评估完成，等待实施批准。公开站点：<https://lumizora.github.io/cesiumlab/>。Stage 2 的 S2-001 已于 2026-11-08 通过用户视觉验收（Visual Approved）。**
 
 已具备：
 
@@ -214,6 +215,7 @@ cesiumlab/
 │   ├── 05-implementation-status.md
 │   ├── 06-public-deployment.md
 │   ├── 07-public-deployment-readiness.md
+│   ├── 08-stage5a-effects-assessment.md
 │   ├── visual-baselines/
 │   │   └── S2-001/                  # 已批准视觉基准、控制帧、相机/参数
 │   └── evidence/

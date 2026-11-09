@@ -1,12 +1,14 @@
-# cesiumlab 实施状态（Stage 0–4.5）
+# cesiumlab 实施状态（Stage 0–5A）
 
-> 更新时间：2026-11-08  
-> 对应计划：[`04-implementation-plan.md`](./04-implementation-plan.md)  
+> 更新时间：2026-11-09
+>
+> 对应计划：[`04-implementation-plan.md`](./04-implementation-plan.md)
+>
 > 本文只记录**实际完成与验证事实**，不替代产品需求、架构或实施计划。
 
 ## 1. 范围
 
-已完成 Stage 0、Stage 1、Stage 2 S2-001（用户 Visual Approved）、Stage 3 视觉基准固化、Stage 4 公开 Playground，以及 Stage 4.5 首次 GitHub Pages 部署。公开站点：<https://lumizora.github.io/cesiumlab/>。
+已完成 Stage 0、Stage 1、Stage 2 S2-001（用户 Visual Approved）、Stage 3 视觉基准固化、Stage 4 公开 Playground、Stage 4.5 首次 GitHub Pages 部署，以及 Stage 5A 特效通用化评估。公开站点：<https://lumizora.github.io/cesiumlab/>。
 
 ```text
 S0 仓库基础 → S1 最小 Web/Cesium → S2 S2-001 → S3 视觉基准固化 → S4 公开 Playground
@@ -202,3 +204,19 @@ S2-001 视觉已批准（基线 `e5da645`），Stage 4 公开 Playground 与 Sta
 2. 如需严格 CSP/安全响应头，评估 Cloudflare Pages/Vercel；
 3. 后续视觉修改继续对照 `docs/visual-baselines/S2-001/` 检查退化；
 4. 进入封装评估或 npm 发布前，等待用户明确批准。
+
+## 11. Stage 5A：特效通用化评估
+
+已完成代码审查与 `@cesiumlab/effects` 首轮 API 设计，**未修改 S2-001、未创建包、未发布 npm**。
+
+| 候选        | 结论                                                    |
+| ----------- | ------------------------------------------------------- |
+| Flowing Arc | 高复用；进入首轮候选                                    |
+| Node Ripple | 低风险；优先实现                                        |
+| Hub Pulse   | 与 Node Ripple 保持独立 API；随后实现                   |
+| Energy Beam | 有条件候选；约 637 billboard/7 束，最后实现并设性能门槛 |
+
+推荐顺序：共享内部基础 → Node Ripple → Flowing Arc → Hub Pulse → Energy Beam。
+完整报告：[`08-stage5a-effects-assessment.md`](./08-stage5a-effects-assessment.md)。
+
+当前状态：**等待 Stage 5B 实施批准**。
