@@ -13,6 +13,7 @@
 - 部署就绪报告：[docs/07-public-deployment-readiness.md](docs/07-public-deployment-readiness.md)
 - S2-001 视觉基准：[docs/visual-baselines/S2-001/](docs/visual-baselines/S2-001/)
 - Agent 工作入口：[AGENTS.md](AGENTS.md)
+- License：[MIT](LICENSE)
 
 ## 当前状态
 
@@ -163,6 +164,7 @@ cesiumlab/
 ├── pnpm-workspace.yaml
 ├── pnpm-lock.yaml
 ├── .env.example                       # ion token 模板（无真实值）
+├── LICENSE                            # MIT
 ├── tsconfig.base.json
 ├── tsconfig.json
 ├── eslint.config.mjs
@@ -307,7 +309,7 @@ interface ExperimentModule {
 Stage 2（`earth-network-convergence`）证据：
 
 - 1672 × 941 纯净 Viewer 截图（`?capture=1`），实际 CesiumJS/WebGL 输出；
-- 1672 × 941 画布，约 10094 个颜色簇、59.7% 非暗像素；
+- 1672 × 941 画布，约 10126 个颜色簇、59.9% 非暗像素；
 - `t=0 / 2 / 5 / 10s` 时间序列截图存在可见变化；
 - 7 条三维金色弧线、7 个蓝色节点（分层全息能量光束）、中心环境波纹；飞线 3–5s，带金白色光点与连续 taper 拖尾；节点 3 圈连续波纹，中心 3 圈环境波纹 + 抵达双圈强脉冲；
 - 拖动旋转、滚轮缩放、颜色/透明度/亮度/拖尾/速度/弧高/光束高度/核心宽度/光晕宽度/光束亮度/呼吸速度参数、暂停/继续、手动触发中心脉冲与重置 Showcase 已实际检查；
@@ -339,8 +341,8 @@ Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
 - 未做内存泄漏分析；生命周期通过重新加载场景、画布数量、再次进入退出检查，不等于证明无泄漏；
 - 未对 Cesium 4.94 MB（gzip 1.36 MB）主 chunk 做进一步拆包或首屏优化；
 - 未建立自动实验发现、参数 Schema、通用 Runtime、Gallery 搜索/筛选；
-- 没有 npm 包、没有 npm scope / 许可证定案，禁止发布；
-- 项目代码许可证尚未正式决定，仓库当前不提供 `LICENSE` 文件；
+- 没有 npm 包、没有 npm scope；仓库已采用 MIT LICENSE，但 npm 发布仍未批准；
+- 项目代码采用 [MIT LICENSE](LICENSE)；npm 发布仍未批准；
 - Cesium ion 影像/地形依赖外部服务与网络；服务失败时场景回退本地网格，但不再显示真实影像/地形；
 - Cesium ion token 会进入前端 bundle，必须按公开客户端 token 管理并限制权限；`.env.local` 不提交 Git；
 - Smoke Test 页面会显示 Cesium / Cesium ion / Bing Maps 的 attribution；配置 ion 后使用真实影像与地形服务。

@@ -3,6 +3,7 @@
 **日期：2026-11-09**
 **状态：准备完成，等待用户公开部署批准。**
 **未部署、未触发 GitHub Actions、未发布 npm。**
+**GitHub：`lumizora/cesiumlab`（public，默认分支 `main`，MIT）**
 
 ## 1. 推荐托管平台
 
@@ -21,25 +22,28 @@
 - CDN 缓存与回滚依赖 GitHub Pages 部署历史，不能按文件精细控制；
 - 如果后续要求严格安全响应头或精细化缓存，应改用 **Cloudflare Pages**（自定义 headers）或 Vercel；当前不需要为此改造架构。
 
-## 2. 预计公开 URL
+## 2. 公开 URL 与仓库状态
 
-GitHub Pages 项目站点格式：
+**实际仓库：**<https://github.com/lumizora/cesiumlab>
+**Owner / repository：**`lumizora` / `cesiumlab`
+**默认分支：**`main`
+**可见性：**public
+**远程 HEAD：**`27e9ef9`（Initial commit，仅 `LICENSE`）
+**本地状态：**完整实现 + 证据 + MIT LICENSE 合并；尚未 push
+**MIT LICENSE：**已合并（远程 `27e9ef9`，本地 merge commit `33be77e`）
+**Actions variable：**`CESIUM_ION_TOKEN` 已配置（公开客户端 token；仅 workflow 使用）
+
+预计 Playground URL：
 
 ```text
-https://<owner>.github.io/<repository>/
+https://lumizora.github.io/cesiumlab/
 ```
 
-当前工作目录没有配置 Git remote，因此 **owner/repository 尚未确定**。如果仓库名为 `cesiumlab`，对应：
+目标 base path 为 `/cesiumlab/`；workflow 使用 `github.event.repository.name` 自动生成 `/<repository>/`，不把 owner/repo 硬编码进源码。
 
-```text
-https://<owner>.github.io/cesiumlab/
-```
-
-目标 base path 为 `/cesiumlab/`；实际部署使用 workflow 中的 `github.event.repository.name` 自动生成 `/<repository>/`，不把 owner/repo 硬编码进源码。若仓库改名，不需要改代码。
+**重要阻塞：**本地源码尚未 push 到 `origin/main`。在推送前，公开仓库只有 LICENSE；workflow、应用源码与证据都不在默认分支，无法触发 Pages 部署。
 
 ## 3. 实际部署配置
-
-新增/修改：
 
 - `.github/workflows/deploy-pages.yml`
   - 仅 `workflow_dispatch`，**没有 push-to-production**；
@@ -82,22 +86,38 @@ https://<owner>.github.io/cesiumlab/
 
 ### Cesium ion Token
 
-- `.env.local` 不提交 Git；
-- token 是 **公开客户端 token**，构建时会进入浏览器 bundle，不能当成秘密；
-- GitHub Actions 默认不注入 token；部署时若配置 repository variable `CESIUM_ION_TOKEN`，则构建注入；没有时运行本地 grid/ellipsoid 回退；
-- 建议为公开部署创建单独的低权限公开 token，并按来源/资产限制；
-- 公开部署前必须复核该 token 的资产权限与计费影响。
+- 已在本地 `.env.local` 使用本次提供的 token 验证；`.env.local` 不提交 Git；
+- token 是**公开客户端 token**，构建时会进入浏览器 bundle，不能当成秘密；
+- 已验证 ion assets `1`、`2`、`3` 的 endpoint 均返回 HTTP 200；Stage 2 实际加载 `terrain=world-terrain`，未退化为椭球；
+- 已设置仓库 Actions variable `CESIUM_ION_TOKEN`，workflow 构建时注入；`.env.local` 仅本地使用，不提交；
+- 需在 ion 账户侧限制允许来源和资产；本仓库无法从 JWT 本身证明完整 scope，**公开部署前必须人工复核该 token 不是管理 token**；
+- 公开部署前必须复核资产权限与计费影响。
 
 ## 5. 部署尚需完成的操作
 
-1. 配置 Git remote，创建/确认 GitHub 仓库名与 owner；
-2. 在仓库 Settings → Pages 选择 **GitHub Actions** 作为 source；
-3. 在 `github-pages` environment 配置 Required reviewers（建议至少本人）；
-4. 如需 ion 地形/影像，在 Actions Variables 设置 `CESIUM_ION_TOKEN`（公开客户端 token，不是 secret 优先级）；
-5. 手动运行 `Deploy Playground to GitHub Pages`，输入目标 ref 和 `DEPLOY`；
-6. 在公网 URL 进行人工冒烟：Gallery、直达 URL、刷新、S2-001 加载、Cesium 资源 200；
-7. 记录首次部署 revision 与 URL；
-8. 若平台无法满足安全头/CSP 要求，切换到 Cloudflare Pages/Vercel 再验证。
+**当前阻塞：**
+
+1. 本地完整源码尚未 push 到公开 `origin/main`；workflow 不在默认分支，GitHub 无法手动触发；
+2. GitHub Pages 尚未启用（API `has_pages=false`）；
+3. 仓库没有 `github-pages` environment，因此没有 Required reviewers；
+4. 远程仓库目前只有 `LICENSE`，push 后整个源码、证据截图、视觉基准与 `night-earth.jpg` 等已授权资产会公开，需要用户确认公开范围。
+
+**已准备：**
+
+- `CESIUM_ION_TOKEN` Actions variable 已配置，token 的 assets 1/2/3 endpoint 已验证；
+- workflow、base path、artifact 检查、rollback ref 已准备；
+- 本地 `pnpm check`、Stage 4 e2e、base e2e、`check-dist` 与视觉回归通过。
+
+**需要用户确认/执行：**
+
+1. 确认公开范围：推送后整个源码、证据截图、视觉基准与 `night-earth.jpg` 等已授权资产会公开；
+2. 执行 `git push origin main`（需要用户明确批准）；
+3. 在 Settings → Pages 选择 **GitHub Actions**；
+4. 在 Environments 创建 `github-pages` 并配置 Required reviewers；
+5. 手动运行 `Deploy Playground to GitHub Pages`，`ref` 使用最终准备 Commit SHA，输入 `DEPLOY`；
+6. 在公网 URL 人工冒烟：Gallery、直达 URL、刷新、S2-001、Cesium Workers/Assets/Widgets、ion 地形；
+7. 记录首次部署 revision/URL；
+8. 若要求严格 CSP/安全头，改用 Cloudflare Pages/Vercel 并重新验证。
 
 ## 6. 回滚方法
 
@@ -121,8 +141,8 @@ https://<owner>.github.io/cesiumlab/
 
 ## 8. 结论
 
-**建议在完成 GitHub 仓库/Pages/environment reviewer 配置后批准公开部署。**
+**建议在完成公开范围确认、push、Pages/environment 配置后批准首次部署。**
 
 GitHub Pages 对当前静态、Hash Router、无后端的 Playground 足够；主要未验证项是真实 Pages 环境下的 MIME/缓存/CSP、ion 端点与公网人工冒烟。若必须使用严格安全响应头，优先 Cloudflare Pages。
 
-当前仍停留在 **Awaiting Public Deployment Approval**。
+当前仍停留在 **Awaiting Public Deployment Approval**，未 push、未启用 Pages、未触发 workflow。

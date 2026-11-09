@@ -37,7 +37,7 @@ Stage 5 / `packages/effects` 通用化尚未开始；需要用户明确指示后
 - `.gitignore`、`.editorconfig`、`.npmrc`（save-exact、engine-strict）；
 - 保留并接入原有 `docs/01`–`docs/04` 和 `AGENTS.md`；
 - 重写根 README，说明启动、构建、检查、资源策略、限制与证据位置；
-- 项目代码许可证仍未定案，未添加 `LICENSE`，禁止 npm 发布。
+- 项目代码已采用 MIT LICENSE；npm 发布仍未批准。
 
 ## 3. Gate S1：最小 Web + CesiumJS 实验环境
 
@@ -187,7 +187,7 @@ GitHub Pages + GitHub Actions 就绪方案已完成，未触发部署。
 - **性能**：未建立 FPS/显存/首屏基准；Cesium 主 chunk 约 4.94 MB（gzip 1.36 MB），未做进一步拆包。
 - **内存泄漏**：未做 heap/profile 级分析；只验证了重新加载、路由离开和退出后画布数量与再次进入。
 - **自动发现/通用 Runtime**：按计划暂不实现。
-- **npm 发布**：未创建包、未配置 scope、未定许可证、未发布。
+- **npm 发布**：未创建包、未配置 scope；MIT LICENSE 已有，未发布。
 - **Cesium ion 服务**：已验证当前 token 的 World Imagery/Terrain 加载；未验证其他 ion 资产、配额耗尽、离线或代理环境。前端 token 会暴露在 bundle 中，必须按公开客户端凭据管理。
 
 ## 10. 下一步条件

@@ -4,7 +4,7 @@
 **状态：**Visual Approved（用户批准：2026-11-08；批准基线 `e5da645`）
 **实现提交：**`e5da645`
 **批准记录：**`9f49d39`
-**Stage 4 / 证据提交：**`f328f29`
+**Stage 4.5 验证：** 新公开 ion token + 本地生产构建
 **参考：**`docs/stage2/cesiumlab-stage2-task-package/references/S2-001-earth-network/target.png`（内部研发使用，不公开部署原图）
 
 ## 视觉批准记录
@@ -47,7 +47,7 @@
 
 `stage2-report.json` 记录浏览器、画幅、场景状态、渲染统计、ion 请求、console/page error 与失败请求。命令输出见 `logs/stage2.txt`，revision 见 `logs/revision.txt`。
 
-实测无 console error、page error、失败请求；重进实验后画布数量为 1。渲染统计：约 10094 个颜色簇、59.7% 非暗像素。自动场景状态记录到 `hubPulseCount=2`，说明光点抵达事件已实际触发过中心脉冲。
+实测无 console error、page error、失败请求；重进实验后画布数量为 1。渲染统计：约 10126 个颜色簇、59.9% 非暗像素。自动场景状态记录到 `hubPulseCount=2`，说明光点抵达事件已实际触发过中心脉冲。
 
 ## VA-01～VA-12 自检
 
