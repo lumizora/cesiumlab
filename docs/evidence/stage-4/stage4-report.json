@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-09T01:50:33.543Z",
+  "capturedAt": "2026-11-09T02:19:35.164Z",
   "status": "Stage 4 / public Playground verification",
   "viewport": {
     "width": 1672,
@@ -55,12 +55,12 @@
   "networkNoise": [],
   "pageErrors": [],
   "failedRequests": [],
-  "revision": "f328f29",
+  "revision": "a273d23",
   "visualComparison": {
     "baseline": "docs/visual-baselines/S2-001/control-paused-1672x941.png",
     "current": "docs/evidence/stage-4/s2-001-regression.png",
     "metric": "ImageMagick RMSE",
-    "normalizedRmse": 0.00936466,
+    "normalizedRmse": 0.00928814,
     "note": "Differences concentrated in star-field/anti-aliasing pixels; scene structure and color hierarchy unchanged."
   }
 }

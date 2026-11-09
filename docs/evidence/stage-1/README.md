@@ -67,7 +67,7 @@ pnpm test:e2e:dev
 | `logs/e2e-dev.txt`        | `pnpm test:e2e:dev`              |
 | `logs/revision.txt`       | 本次证据对应的实现提交           |
 
-截图页眉 / 页脚中的 `rev f328f29` 对应视觉批准记录提交；根路径 Gallery/Smoke Test 证据在批准后重跑，base/dev 证据保留此前运行。Gallery 已显示 S2-001 为 Visual Approved。
+截图页眉 / 页脚中的 `rev a273d23` 对应视觉批准记录提交；根路径 Gallery/Smoke Test 证据在批准后重跑，base/dev 证据保留此前运行。Gallery 已显示 S2-001 为 Visual Approved。
 
 ## 关键结果
 

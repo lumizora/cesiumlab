@@ -78,9 +78,9 @@
     "command": "pnpm test:e2e:stage4",
     "screenshot": "docs/evidence/stage-4/s2-001-regression.png",
     "compare": "magick compare -metric RMSE docs/visual-baselines/S2-001/control-paused-1672x941.png docs/evidence/stage-4/s2-001-regression.png null:",
-    "measuredRmse": 0.00936466,
+    "measuredRmse": 0.00928814,
     "measuredAt": "2026-11-09",
-    "notes": "The deterministic control is paused at t=0 with ellipsoid terrain. A later run measured normalized RMSE 0.0094; differences are concentrated in star-field/anti-aliasing pixels, while scene structure and color hierarchy remain aligned. The approved live screenshots remain the human-facing baseline."
+    "notes": "The deterministic control is paused at t=0 with ellipsoid terrain. A later run measured normalized RMSE 0.0093; differences are concentrated in star-field/anti-aliasing pixels, while scene structure and color hierarchy remain aligned. The approved live screenshots remain the human-facing baseline."
   },
   "knownLimitations": [
     "Dynamic flight points, trails, node ripples, hub pulse and breathing are intentionally frozen in the deterministic control image.",
