@@ -60,6 +60,7 @@ const visualApprovedCount = computed(() => catalogStats.visualApproved);
           class="experiment-card"
           data-testid="experiment-card"
           :data-runtime="entry.metadata.runtimeStatus"
+          :data-maturity="entry.metadata.maturity"
         >
           <div class="card-badges">
             <StatusBadge :label="KIND_LABELS[entry.metadata.kind]" tone="info" />
@@ -83,7 +84,10 @@ const visualApprovedCount = computed(() => catalogStats.visualApproved);
               :href="experimentHref(entry.metadata.id)"
               :aria-label="`查看 ${entry.metadata.title} 详情`"
             >
-              查看详情 <span aria-hidden="true">→</span>
+              {{
+                entry.metadata.maturity === 'visual-approved' ? '查看已批准 Showcase' : '查看详情'
+              }}
+              <span aria-hidden="true">→</span>
             </a>
           </div>
         </article>

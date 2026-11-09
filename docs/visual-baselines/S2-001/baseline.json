@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "experiment": "earth-network-convergence",
+  "title": "S2-001 Earth Network Convergence",
+  "status": "Visual Approved",
+  "approval": {
+    "approvedAt": "2026-11-08",
+    "approvedBy": "user",
+    "approvalRecord": "docs/evidence/stage-2/visual-approval.md"
+  },
+  "commits": {
+    "visualImplementation": "e5da645",
+    "approvalRecord": "9f49d39",
+    "evidenceArchive": "8e86bf5",
+    "baselineCreatedAt": "2026-11-09"
+  },
+  "viewport": {
+    "width": 1672,
+    "height": 941,
+    "deviceScaleFactor": 1
+  },
+  "capture": {
+    "approved": "/?capture=1#/experiments/earth-network-convergence",
+    "deterministicControl": "/?capture=1&paused=1&terrain-off#/experiments/earth-network-convergence",
+    "mode": "capture hides Playground chrome; paused=1 freezes animation at t=0; terrain-off forces ellipsoid"
+  },
+  "camera": {
+    "targetLngLat": [108, 26],
+    "headingDegrees": 338,
+    "pitchDegrees": -55,
+    "rangeMeters": 5900000,
+    "minimumZoomDistance": 600000,
+    "maximumZoomDistance": 24000000
+  },
+  "defaultState": {
+    "routeColor": "#ffa31a",
+    "nodeColor": "#00a8ff",
+    "routeSpeed": 1,
+    "pulseSpeed": 1,
+    "glowIntensity": 1,
+    "showBorders": true,
+    "baseArcOpacity": 0.55,
+    "pointBrightness": 1,
+    "trailLength": 0.18,
+    "arcHeightScale": 1,
+    "beamHeight": 1,
+    "beamCoreWidth": 1,
+    "beamGlowWidth": 1,
+    "beamIntensity": 1,
+    "beamBreathingSpeed": 1
+  },
+  "scene": {
+    "routeCount": 7,
+    "nodeCount": 7,
+    "imagery": "night-lights-4096",
+    "terrain": "world-terrain or ellipsoid fallback",
+    "center": [121.4737, 31.2304]
+  },
+  "screenshots": {
+    "approvedMain": {
+      "path": "approved-main-1672x941.png",
+      "sha256": "30aa002c0aac49dcc09411a6797c45f6e7bb5cc151f2fda74f049919a30ee143"
+    },
+    "approvedAngle": {
+      "path": "approved-angle.png",
+      "sha256": "cd64ed53ee8d016f3ec138919b782a8fa6dcd44b2f021b0ee16281e6794735dc"
+    },
+    "approvedNodeCloseup": {
+      "path": "approved-node-closeup.png",
+      "sha256": "61d95d98ceb0af6c54a64883eca984746497d65777462a697f2ba20eeb15e878"
+    },
+    "deterministicControl": {
+      "path": "control-paused-1672x941.png",
+      "sha256": "39819e9c4cdd26c10d943a68a7c14e21c9c4fd1043d64d8b18886e7fc7ebfc92"
+    }
+  },
+  "regression": {
+    "command": "pnpm test:e2e:stage4",
+    "screenshot": "docs/evidence/stage-4/s2-001-regression.png",
+    "compare": "magick compare -metric RMSE docs/visual-baselines/S2-001/control-paused-1672x941.png docs/evidence/stage-4/s2-001-regression.png null:",
+    "notes": "The deterministic control is paused at t=0 with ellipsoid terrain. Compare it for visual structure/color; the approved live screenshots remain the human-facing baseline."
+  },
+  "knownLimitations": [
+    "Dynamic flight points, trails, node ripples, hub pulse and breathing are intentionally frozen in the deterministic control image.",
+    "Terrain may fall back to ellipsoid when ion is unavailable; approved live evidence records both states.",
+    "The reference PNG is internal and is not part of the public build."
+  ]
+}

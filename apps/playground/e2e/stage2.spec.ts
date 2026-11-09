@@ -88,6 +88,7 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
     return { ...element?.dataset };
   });
   expect(sceneData.experiment).toBe('earth-network-convergence');
+  expect(sceneData.stage2State).toBe('visual-approved');
   expect(sceneData.routeCount).toBe('7');
   expect(sceneData.nodeCount).toBe('7');
   expect(Number(sceneData.borderLines)).toBeGreaterThan(0);

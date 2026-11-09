@@ -9,11 +9,13 @@
 - Agent 规范：[docs/03-agent-specification.md](docs/03-agent-specification.md)
 - 实施计划：[docs/04-implementation-plan.md](docs/04-implementation-plan.md)
 - 实施状态：[docs/05-implementation-status.md](docs/05-implementation-status.md)
+- 公开部署说明：[docs/06-public-deployment.md](docs/06-public-deployment.md)
+- S2-001 视觉基准：[docs/visual-baselines/S2-001/](docs/visual-baselines/S2-001/)
 - Agent 工作入口：[AGENTS.md](AGENTS.md)
 
 ## 当前状态
 
-**Stage 0（仓库与工程基础）、Stage 1（最小 Web + CesiumJS 环境）已完成；Stage 2 首个视觉参考实验 S2-001 已于 2026-11-08 通过用户视觉验收（Visual Approved）。**
+**Stage 0–3 已完成；Stage 4 公开 Playground 已完成并通过本地生产预览验证，当前等待公开部署批准。Stage 2 的 S2-001 已于 2026-11-08 通过用户视觉验收（Visual Approved）。**
 
 已具备：
 
@@ -118,6 +120,7 @@ VITE_CESIUM_ION_TOKEN=<public client token>
 | `pnpm test:e2e:base`   | 构建后运行非根路径浏览器检查                        |
 | `pnpm test:e2e:dev`    | 启动 Vite dev server 并运行开发模式浏览器检查       |
 | `pnpm test:e2e:stage2` | Stage 2 构建、纯净 Viewer 截图、时间序列与参数检查  |
+| `pnpm test:e2e:stage4` | Stage 4 公开 Playground 路由、刷新、切换与回归检查  |
 | `pnpm check`           | format check + lint + typecheck + unit test + build |
 
 带 Cesium ion 断言运行（需要 `.env.local`）：
@@ -200,9 +203,13 @@ cesiumlab/
 │   ├── 03-agent-specification.md
 │   ├── 04-implementation-plan.md
 │   ├── 05-implementation-status.md
+│   ├── 06-public-deployment.md
+│   ├── visual-baselines/
+│   │   └── S2-001/                  # 已批准视觉基准、控制帧、相机/参数
 │   └── evidence/
 │       ├── stage-1/
-│       └── stage-2/             # 截图、报告、命令结果
+│       ├── stage-2/
+│       └── stage-4/                 # 公开 Playground 截图与报告
 └── tests/                            # 跨包测试按需加入（当前未创建）
 ```
 
@@ -276,6 +283,7 @@ interface ExperimentModule {
 | 非根路径   | `pnpm test:e2e:base`                           | 1 个 Playwright 测试通过                               |
 | 开发模式   | `pnpm test:e2e:dev`                            | 1 个 Playwright 测试通过                               |
 | Stage 2    | `pnpm test:e2e:stage2`                         | 1 个 Playwright 测试通过（截图/时间序列/参数）         |
+| Stage 4    | `pnpm test:e2e:stage4`                         | 1 个 Playwright 测试通过（Gallery/路由/切换/回归）     |
 | Cesium ion | `$env:CESIUMLAB_EXPECT_ION="1"; pnpm test:e2e` | 通过：`ionStatus=ready`、World Imagery + World Terrain |
 
 浏览器证据：
@@ -298,6 +306,17 @@ Stage 2（`earth-network-convergence`）证据：
 - 7 条三维金色弧线、7 个蓝色节点（分层全息能量光束）、中心环境波纹；飞线 3–5s，带金白色光点与连续 taper 拖尾；节点 3 圈连续波纹，中心 3 圈环境波纹 + 抵达双圈强脉冲；
 - 拖动旋转、滚轮缩放、颜色/透明度/亮度/拖尾/速度/弧高/光束高度/核心宽度/光晕宽度/光束亮度/呼吸速度参数、暂停/继续、手动触发中心脉冲与重置 Showcase 已实际检查；
 - Stage 2 证据：[docs/evidence/stage-2/](docs/evidence/stage-2/)。
+- Stage 4 证据：[docs/evidence/stage-4/](docs/evidence/stage-4/)。
+
+Stage 4 已实现：
+
+- 全部登记实验的公开 Gallery、成熟度/运行状态分离、Visual Approved 统计；
+- 每个实验的独立 hash URL、直接访问与刷新；
+- S2-001 默认加载已批准 Showcase，保留调参、暂停与重置；
+- 详情页简介、技术路线、局限、revision 与验证记录；
+- 归档/不可运行实验保留安全详情，未知实验仅局部 404；
+- 实验切换与重复创建后的 canvas 清理；
+- 根路径与 `/cesiumlab/` 子路径生产构建验证。
 
 Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
 
@@ -322,4 +341,12 @@ Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
 
 ## 下一步
 
-S2-001 已通过用户视觉验收，批准基线为 revision `e5da645`。当前**不自动进入** `packages/effects` 通用化或 npm 发布；需要用户明确指示“封装/通用化”后，才进入候选评估。后续修改应重新对照已批准基线检查视觉退化。
+S2-001 已通过用户视觉验收，批准基线为 revision `e5da645`；Stage 4 公开 Playground 已完成本地生产预览验证，当前**等待公开部署批准**。
+
+在获得部署批准前：
+
+- 不部署到公网，不发布 npm，不进入 `packages/effects` 通用化；
+- 部署平台、CSP、缓存与回滚方案仍待选择/验证；
+- 后续修改需对照 [`docs/visual-baselines/S2-001/`](docs/visual-baselines/S2-001/) 检查视觉退化。
+
+详见 [`docs/06-public-deployment.md`](docs/06-public-deployment.md)。

@@ -6,16 +6,16 @@
 
 ## 1. 范围
 
-已完成 Stage 0、Stage 1，并完成 Stage 2 首个视觉参考实验 S2-001；该实验已于 2026-11-08 通过用户视觉验收：
+已完成 Stage 0、Stage 1、Stage 2 S2-001（用户 Visual Approved）、Stage 3 视觉基准固化，以及 Stage 4 公开 Playground 的本地实现与生产预览验证。当前等待公开部署批准。
 
 ```text
-S0 仓库基础  →  S1 最小 Web / Cesium 环境  →  S2 earth-network-convergence
-                                                        │
-                                                        ▼
-                                             Visual Approved（已批准）
+S0 仓库基础 → S1 最小 Web/Cesium → S2 S2-001 → S3 视觉基准固化 → S4 公开 Playground
+                                                                        │
+                                                                        ▼
+                                                          Awaiting Deployment Approval
 ```
 
-Stage 3 / `packages/effects` 通用化尚未开始；需要用户明确指示后才能进入封装评估。当前没有正式包，没有 npm 发布或公开部署。
+Stage 5 / `packages/effects` 通用化尚未开始；需要用户明确指示后才能进入封装评估。当前没有正式包，没有 npm 发布或公开部署。
 
 ## 2. Gate S0：仓库与执行规范
 
@@ -129,24 +129,57 @@ Stage 2 动画假设与实际周期：
 - 金色中心持续 3 圈环境波纹：约 1.07s 生成一圈、单圈 3.2s；飞线抵达时额外触发约 1.3s 的双圈强脉冲，环境波纹不中断；
 - 以上均为本次设计假设，不是参考静态图可证明的事实。
 
-## 6. 未验证 / 未执行
+## 6. Stage 3：视觉基准固化
+
+S2-001 已建立可追溯的后续回归基准：
+
+| 项目     | 结果                                                            |
+| -------- | --------------------------------------------------------------- |
+| 批准基线 | 实现 revision `e5da645`；批准记录 `9f49d39`；证据归档 `8e86bf5` |
+| 基准目录 | `docs/visual-baselines/S2-001/`                                 |
+| 已保存   | 主截图、侧视角、节点近景、确定性暂停控制帧、`baseline.json`     |
+| 记录内容 | 默认相机、7 节点/7 弧线、默认参数、场景配置、截图 SHA256、限制  |
+| 回归方式 | `pnpm test:e2e:stage4` + ImageMagick RMSE 对比                  |
+| 控制帧   | `?capture=1&paused=1&terrain-off`，t=0、椭球地形                |
+| 视觉改动 | 未改变已批准的默认 Showcase 视觉；新增 query 仅用于回归         |
+
+## 7. Stage 4：公开 Web Playground
+
+已完成 Stage 4 的本地实现与生产预览验证，等待公开部署批准。
+
+| 项目     | 结果                                                                            |
+| -------- | ------------------------------------------------------------------------------- |
+| Gallery  | 全部 3 个登记档案公开；成熟度/运行状态分离；Visual Approved 统计为 1            |
+| 独立 URL | `#/experiments/<id>`；直接访问、刷新保持                                        |
+| Showcase | S2-001 默认加载已批准场景、参数面板、暂停/重置                                  |
+| 说明     | 详情页展示简介、技术路线、局限、revision、验证记录                              |
+| 隔离     | 归档/未运行实验保留详情；未知实验仅局部 404；运行异常由 ViewerHost 隔离         |
+| 资源     | Cesium Workers/Assets/Widgets 进入生产构建；根路径与 `/cesiumlab/` 子路径验证   |
+| 清理     | 实验切换/刷新后 canvas 数 1；路由离开/重新加载释放 Viewer                       |
+| 证据     | `docs/evidence/stage-4/`、`docs/visual-baselines/S2-001/`、`stage4-report.json` |
+| 部署说明 | `docs/06-public-deployment.md`                                                  |
+| 部署状态 | **未部署、未发布 npm、未获得公开部署批准**                                      |
+
+## 8. 未验证 / 未执行
 
 - **视觉验收**：S2-001 已获用户 Visual Approved（2026-11-08）；未重新验证后续修改是否保持基线。
 - **浏览器覆盖**：未测试 Firefox、Safari、移动端浏览器；本轮只用 Edge/Chromium headless。
 - **真实桌面窗口/录屏**：未进行人工桌面观察或视频录制；截图来自 headless Edge 的真实 WebGL 输出；Stage 2 使用 1672×941 时间序列代替录屏。
-- **公开部署**：未选择托管平台，未部署；只验证本地 `vite preview` 的根路径与 `/cesiumlab/` 子路径。
+- **公开部署**：未选择托管平台，未部署；只验证本地 `vite preview` 的根路径与 `/cesiumlab/` 子路径。CSP、CDN 缓存、跨域、HTTPS 与回滚均未在真实平台验证。
 - **性能**：未建立 FPS/显存/首屏基准；Cesium 主 chunk 约 4.94 MB（gzip 1.36 MB），未做进一步拆包。
 - **内存泄漏**：未做 heap/profile 级分析；只验证了重新加载、路由离开和退出后画布数量与再次进入。
 - **自动发现/通用 Runtime**：按计划暂不实现。
 - **npm 发布**：未创建包、未配置 scope、未定许可证、未发布。
 - **Cesium ion 服务**：已验证当前 token 的 World Imagery/Terrain 加载；未验证其他 ion 资产、配额耗尽、离线或代理环境。前端 token 会暴露在 bundle 中，必须按公开客户端凭据管理。
 
-## 7. 下一步条件
+## 9. 下一步条件
 
-S2-001 已通过用户视觉验收，批准基线为 revision `e5da645`。当前**不自动进入** Stage 3 或 `packages/effects` 通用化；需要用户明确指示“封装/通用化”后，才进入候选评估。
+S2-001 视觉已批准（基线 `e5da645`），Stage 4 公开 Playground 已完成本地生产预览验证。当前**等待用户公开部署批准**；批准前不部署公网、不发布 npm、不进入 `packages/effects` 通用化。
 
-在获得该指示前：
+部署前仍需用户/后续工作确认：
 
-1. 保持现有实验可运行、可回看证据；
-2. 不发布 npm 包，不做破坏性公开 API 变更；
-3. 后续修改需对照已批准基线重新检查，出现视觉退化时回到用户验收关口。
+1. 选择托管平台（GitHub Pages / Cloudflare Pages / Vercel 等）与真实 base path；
+2. 在目标平台验证 CSP、缓存、MIME、Workers/Assets 与 HTTPS；
+3. 执行公网冒烟与回滚方案；
+4. 公开素材、ion token 权限与参考图不公开边界复核；
+5. 部署批准后，保持已批准 S2-001 基线不变；后续修改需重新视觉回归。

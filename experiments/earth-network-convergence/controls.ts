@@ -15,7 +15,7 @@ const PANEL_HTML = `
   <div class="earth-controls__header">
     <span class="earth-controls__eyebrow">S2-001</span>
     <strong>Earth Network</strong>
-    <span class="earth-controls__state">Awaiting Review</span>
+    <span class="earth-controls__state">Visual Approved</span>
   </div>
   <label class="earth-controls__row">
     <span>金色飞线</span>

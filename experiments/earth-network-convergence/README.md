@@ -86,6 +86,12 @@ http://127.0.0.1:5273/?capture=1#/experiments/earth-network-convergence
 http://127.0.0.1:5273/?capture=1&focus=node#/experiments/earth-network-convergence
 ```
 
+确定性视觉回归预设（暂停 t=0、强制椭球地形；不改变默认 Showcase）：
+
+```text
+http://127.0.0.1:5273/?capture=1&paused=1&terrain-off#/experiments/earth-network-convergence
+```
+
 生产预览：
 
 ```powershell

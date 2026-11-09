@@ -17,7 +17,8 @@
     "test:e2e": "pnpm run build && playwright test",
     "test:e2e:base": "pnpm run build:base && playwright test -c playwright.base.config.ts",
     "test:e2e:dev": "playwright test -c playwright.dev.config.ts",
-    "test:e2e:stage2": "pnpm run build && playwright test -c playwright.stage2.config.ts"
+    "test:e2e:stage2": "pnpm run build && playwright test -c playwright.stage2.config.ts",
+    "test:e2e:stage4": "pnpm run build && playwright test -c playwright.stage4.config.ts"
   },
   "dependencies": {
     "cesium": "catalog:",

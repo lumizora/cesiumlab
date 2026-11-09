@@ -123,7 +123,10 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
     nightLayer.gamma = 1.08;
     nightLayer.hue = 0.01;
 
-    if (window.CESIUM_ION_TOKEN) {
+    if (
+      window.CESIUM_ION_TOKEN &&
+      !new URLSearchParams(window.location.search).has('terrain-off')
+    ) {
       try {
         const terrain = await withTimeout(
           Cesium.createWorldTerrainAsync({
@@ -218,12 +221,20 @@ export async function mount(context: ExperimentMountContext): Promise<Experiment
       onTriggerPulse: () => network.triggerHubPulse(),
     });
 
+    // Deterministic visual-regression control state. Query-only; default
+    // Showcase remains fully animated.
+    if (new URLSearchParams(window.location.search).get('paused') === '1') {
+      network.setPaused(true);
+      network.restart();
+      controls.sync();
+    }
+
     const canvas = scene.canvas;
     canvas.tabIndex = 0;
     canvas.setAttribute('aria-label', 'Earth Network Convergence 3D scene');
 
     container.dataset.experiment = 'earth-network-convergence';
-    container.dataset.stage2State = 'awaiting-visual-review';
+    container.dataset.stage2State = 'visual-approved';
     container.dataset.routeCount = String(network.counts.routes);
     container.dataset.nodeCount = String(network.counts.nodes);
     container.dataset.borderLines = String(network.counts.borderLines);
