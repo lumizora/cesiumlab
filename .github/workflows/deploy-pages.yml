@@ -1,0 +1,101 @@
+name: Deploy Playground to GitHub Pages
+
+# Manual only. There is intentionally no push-to-production trigger.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref or commit to deploy (use a previous stable commit for rollback)
+        required: true
+        default: main
+        type: string
+      confirm:
+        description: Type DEPLOY to confirm a public deployment
+        required: true
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit DEPLOY confirmation
+        if: ${{ inputs.confirm != 'DEPLOY' }}
+        run: |
+          echo "Refusing to deploy: type DEPLOY in the confirm input." >&2
+          exit 1
+      - name: Confirmed
+        run: echo "Manual deployment confirmed."
+
+  build:
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout selected ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check project
+        run: pnpm check
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build for repository Pages base path
+        run: pnpm build:base
+        env:
+          # GitHub Pages project sites live at /<repository>/.
+          DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
+          # Public client token only. If this repository variable is absent,
+          # the Playground falls back to local grid/ellipsoid imagery.
+          VITE_CESIUM_ION_TOKEN: ${{ vars.CESIUM_ION_TOKEN }}
+
+      - name: Verify public build artifact
+        working-directory: apps/playground
+        run: node scripts/check-dist.mjs dist-base "$DEPLOY_BASE_PATH"
+        env:
+          DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/playground/dist-base
+          retention-days: 30
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

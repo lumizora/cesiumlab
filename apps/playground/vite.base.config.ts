@@ -1,11 +1,15 @@
 import { createPlaygroundConfig } from './vite.shared.ts';
 
 /**
- * Build used to verify Cesium Workers/Assets under a non-root deployment path.
- * Kept separate from the default build so both outputs can coexist.
+ * Build used for GitHub Pages / non-root deployment. The default keeps the
+ * historical `/cesiumlab/` target; CI overrides this with the actual repository
+ * name so project Pages work for a renamed repository.
  */
+const requestedBase = process.env.DEPLOY_BASE_PATH?.trim() || '/cesiumlab/';
+const base = requestedBase.endsWith('/') ? requestedBase : `${requestedBase}/`;
+
 export default createPlaygroundConfig({
-  base: '/cesiumlab/',
+  base,
   outDir: 'dist-base',
   previewPort: 4274,
 });

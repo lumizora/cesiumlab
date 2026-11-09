@@ -13,6 +13,7 @@
     "dev": "pnpm --filter @cesiumlab/playground dev",
     "build": "pnpm --filter @cesiumlab/playground build",
     "build:base": "pnpm --filter @cesiumlab/playground build:base",
+    "check:dist": "pnpm --filter @cesiumlab/playground check:dist",
     "preview": "pnpm --filter @cesiumlab/playground preview",
     "preview:base": "pnpm --filter @cesiumlab/playground preview:base",
     "typecheck": "pnpm --filter @cesiumlab/playground typecheck",

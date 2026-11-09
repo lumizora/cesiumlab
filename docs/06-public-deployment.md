@@ -2,6 +2,8 @@
 
 **结论：具备静态 Web 公开部署的技术条件；尚未选择托管平台，未执行部署，未获得公开部署批准。**
 
+Stage 4.5 的 GitHub Pages 方案、workflow、产物安全检查、回滚与未验证项见 [`07-public-deployment-readiness.md`](./07-public-deployment-readiness.md)。
+
 ## 构建产物
 
 ```powershell

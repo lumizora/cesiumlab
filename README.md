@@ -10,12 +10,13 @@
 - 实施计划：[docs/04-implementation-plan.md](docs/04-implementation-plan.md)
 - 实施状态：[docs/05-implementation-status.md](docs/05-implementation-status.md)
 - 公开部署说明：[docs/06-public-deployment.md](docs/06-public-deployment.md)
+- 部署就绪报告：[docs/07-public-deployment-readiness.md](docs/07-public-deployment-readiness.md)
 - S2-001 视觉基准：[docs/visual-baselines/S2-001/](docs/visual-baselines/S2-001/)
 - Agent 工作入口：[AGENTS.md](AGENTS.md)
 
 ## 当前状态
 
-**Stage 0–3 已完成；Stage 4 公开 Playground 已完成并通过本地生产预览验证，当前等待公开部署批准。Stage 2 的 S2-001 已于 2026-11-08 通过用户视觉验收（Visual Approved）。**
+**Stage 0–3 已完成；Stage 4 公开 Playground 与 Stage 4.5 部署准备已完成并通过本地生产预览/产物检查，当前等待公开部署批准。Stage 2 的 S2-001 已于 2026-11-08 通过用户视觉验收（Visual Approved）。**
 
 已具备：
 
@@ -33,7 +34,7 @@
 **尚未完成 / 未开始：**
 
 - `packages/effects` API 与 npm 发布：S2-001 尚未通用化，也没有发布批准；
-- 公开部署：未选择托管平台，未执行部署；
+- 公开部署：GitHub Pages + 手动 Actions workflow 已准备；未选择 owner/repo、未部署；严格安全响应头需改用 Cloudflare Pages/Vercel。
 - 后续修改仍需对照已批准的 S2-001 基线检查视觉退化。
 
 ## 环境要求
@@ -80,10 +81,14 @@ pnpm preview
 
 ```bash
 pnpm build:base
+pnpm check:dist
 pnpm preview:base
 ```
 
 预览地址：<http://127.0.0.1:4274/cesiumlab/>
+
+GitHub Pages workflow 使用实际仓库名自动注入 base path；配置与回滚说明见
+[docs/07-public-deployment-readiness.md](docs/07-public-deployment-readiness.md)。
 
 > 启动与预览端口刻意使用 5273 / 4273 / 4274，避免与本机其他项目的 5173 / 4173 / 4174 服务冲突。
 
@@ -204,6 +209,7 @@ cesiumlab/
 │   ├── 04-implementation-plan.md
 │   ├── 05-implementation-status.md
 │   ├── 06-public-deployment.md
+│   ├── 07-public-deployment-readiness.md
 │   ├── visual-baselines/
 │   │   └── S2-001/                  # 已批准视觉基准、控制帧、相机/参数
 │   └── evidence/
@@ -341,12 +347,13 @@ Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
 
 ## 下一步
 
-S2-001 已通过用户视觉验收，批准基线为 revision `e5da645`；Stage 4 公开 Playground 已完成本地生产预览验证，当前**等待公开部署批准**。
+S2-001 已通过用户视觉验收，批准基线为 revision `e5da645`；Stage 4 公开 Playground 与 Stage 4.5 部署准备已完成，当前**等待公开部署批准**。
 
 在获得部署批准前：
 
-- 不部署到公网，不发布 npm，不进入 `packages/effects` 通用化；
-- 部署平台、CSP、缓存与回滚方案仍待选择/验证；
+- 不触发 `.github/workflows/deploy-pages.yml`，不部署公网，不发布 npm，不进入 `packages/effects` 通用化；
+- 需先配置 GitHub Pages source、`github-pages` environment reviewer 与可选公开 ion token；
+- 真实 Pages 的 MIME/CSP/缓存与公网冒烟仍未验证；
 - 后续修改需对照 [`docs/visual-baselines/S2-001/`](docs/visual-baselines/S2-001/) 检查视觉退化。
 
 详见 [`docs/06-public-deployment.md`](docs/06-public-deployment.md)。

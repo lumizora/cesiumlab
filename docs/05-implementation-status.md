@@ -6,13 +6,13 @@
 
 ## 1. 范围
 
-已完成 Stage 0、Stage 1、Stage 2 S2-001（用户 Visual Approved）、Stage 3 视觉基准固化，以及 Stage 4 公开 Playground 的本地实现与生产预览验证。当前等待公开部署批准。
+已完成 Stage 0、Stage 1、Stage 2 S2-001（用户 Visual Approved）、Stage 3 视觉基准固化、Stage 4 公开 Playground，以及 Stage 4.5 公开部署准备。当前等待公开部署批准。
 
 ```text
 S0 仓库基础 → S1 最小 Web/Cesium → S2 S2-001 → S3 视觉基准固化 → S4 公开 Playground
                                                                         │
                                                                         ▼
-                                                          Awaiting Deployment Approval
+                                                          S4.5 部署准备 → Awaiting Deployment Approval
 ```
 
 Stage 5 / `packages/effects` 通用化尚未开始；需要用户明确指示后才能进入封装评估。当前没有正式包，没有 npm 发布或公开部署。
@@ -160,7 +160,25 @@ S2-001 已建立可追溯的后续回归基准：
 | 部署说明 | `docs/06-public-deployment.md`                                                  |
 | 部署状态 | **未部署、未发布 npm、未获得公开部署批准**                                      |
 
-## 8. 未验证 / 未执行
+## 8. Stage 4.5：公开部署准备
+
+GitHub Pages + GitHub Actions 就绪方案已完成，未触发部署。
+
+| 项目      | 结果                                                                               |
+| --------- | ---------------------------------------------------------------------------------- |
+| 平台      | GitHub Pages（首选）；严格安全响应头需要 Cloudflare Pages/Vercel                   |
+| Base path | workflow 按 `/<repository>/` 注入；本地默认 `/cesiumlab/`                          |
+| Workflow  | `.github/workflows/deploy-pages.yml`，仅 `workflow_dispatch` + `DEPLOY` 确认       |
+| 发布门    | `pnpm check` → `build:base` → `check-dist` → Pages artifact → environment approval |
+| 回滚      | 手动 dispatch 上一稳定 commit/tag；GitHub Pages deployment history；artifact 30 天 |
+| 产物检查  | 无 `target.png`、`docs/stage2`、`.env*`、source map；Cesium 四类静态资源齐全       |
+| 本地验证  | `pnpm check`、Stage 4 e2e、base e2e、`pnpm check:dist`、S2-001 RMSE 0.94%          |
+| 未验证    | 真实 GitHub Pages MIME/CSP/缓存、公网冒烟、owner/repo/Pages 设置                   |
+| 状态      | **Awaiting Public Deployment Approval**；未部署                                    |
+
+详细报告：[`07-public-deployment-readiness.md`](./07-public-deployment-readiness.md)。
+
+## 9. 未验证 / 未执行
 
 - **视觉验收**：S2-001 已获用户 Visual Approved（2026-11-08）；未重新验证后续修改是否保持基线。
 - **浏览器覆盖**：未测试 Firefox、Safari、移动端浏览器；本轮只用 Edge/Chromium headless。
@@ -172,7 +190,7 @@ S2-001 已建立可追溯的后续回归基准：
 - **npm 发布**：未创建包、未配置 scope、未定许可证、未发布。
 - **Cesium ion 服务**：已验证当前 token 的 World Imagery/Terrain 加载；未验证其他 ion 资产、配额耗尽、离线或代理环境。前端 token 会暴露在 bundle 中，必须按公开客户端凭据管理。
 
-## 9. 下一步条件
+## 10. 下一步条件
 
 S2-001 视觉已批准（基线 `e5da645`），Stage 4 公开 Playground 已完成本地生产预览验证。当前**等待用户公开部署批准**；批准前不部署公网、不发布 npm、不进入 `packages/effects` 通用化。
 

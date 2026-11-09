@@ -22,6 +22,9 @@ apps/playground/public/cesium/
 !.env.example
 *.local
 
+# Private task packages / reference inputs; never auto-publish.
+docs/stage2/
+
 # Editors / OS
 .vscode/*
 !.vscode/extensions.json
