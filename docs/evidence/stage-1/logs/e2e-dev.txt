@@ -1,18 +1,10 @@
 $ pnpm --filter @cesiumlab/playground test:e2e:dev
 $ playwright test -c playwright.dev.config.ts
-[WebServer] (node:44720) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
-[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
-[WebServer] $ pnpm run prepare:cesium && vite
-[WebServer] (node:40008) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
-[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
-[WebServer] $ node scripts/sync-cesium.mjs
-[WebServer] (node:7092) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
-[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
 Running 1 test using 1 worker
 
-(node:26564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:31724) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ok 1 e2e\dev-mode.spec.ts:15:1 › Vite dev server renders the Cesium smoke test (13.2s)
+  ok 1 e2e\dev-mode.spec.ts:15:1 › Vite dev server renders the Cesium smoke test (9.5s)
 
-  1 passed (17.3s)
+  1 passed (11.0s)

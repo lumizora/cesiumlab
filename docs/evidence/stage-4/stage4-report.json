@@ -1,0 +1,66 @@
+{
+  "capturedAt": "2026-11-09T01:50:33.543Z",
+  "status": "Stage 4 / public Playground verification",
+  "viewport": {
+    "width": 1672,
+    "height": 941
+  },
+  "browserVersion": "157.0.4341.42",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+  "galleryCards": 3,
+  "approvedShowcase": {
+    "url": "/?capture=1&paused=1&terrain-off#/experiments/earth-network-convergence",
+    "status": "Visual Approved",
+    "baseline": "docs/visual-baselines/S2-001",
+    "sceneData": {
+      "terrain": "ellipsoid",
+      "imagery": "night-lights-4096",
+      "routeColor": "#ffa31a",
+      "routeSpeed": "1.00",
+      "baseArcOpacity": "0.55",
+      "pointBrightness": "1.00",
+      "trailLength": "0.18",
+      "arcHeightScale": "1.00",
+      "beamHeight": "1.00",
+      "beamCoreWidth": "1.00",
+      "beamGlowWidth": "1.00",
+      "beamIntensity": "1.00",
+      "beamBreathingSpeed": "1.00",
+      "nodeColor": "#00a8ff",
+      "glowIntensity": "1.00",
+      "pulseSpeed": "1.00",
+      "showBorders": "true",
+      "paused": "true",
+      "experiment": "earth-network-convergence",
+      "stage2State": "visual-approved",
+      "routeCount": "7",
+      "nodeCount": "7",
+      "borderLines": "19",
+      "provinceLines": "73",
+      "resetCount": "0",
+      "hubPulseCount": "0",
+      "hubPulseActive": "false",
+      "sceneReady": "true"
+    }
+  },
+  "checks": {
+    "directUrl": true,
+    "refresh": true,
+    "experimentSwitch": true,
+    "archivedDetail": true,
+    "unknownRouteIsolated": true,
+    "canvasCountAfterSwitch": 1
+  },
+  "consoleErrors": [],
+  "networkNoise": [],
+  "pageErrors": [],
+  "failedRequests": [],
+  "revision": "f328f29",
+  "visualComparison": {
+    "baseline": "docs/visual-baselines/S2-001/control-paused-1672x941.png",
+    "current": "docs/evidence/stage-4/s2-001-regression.png",
+    "metric": "ImageMagick RMSE",
+    "normalizedRmse": 0.00936466,
+    "note": "Differences concentrated in star-field/anti-aliasing pixels; scene structure and color hierarchy unchanged."
+  }
+}
