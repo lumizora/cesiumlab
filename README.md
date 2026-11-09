@@ -9,15 +9,17 @@
 - Agent 规范：[docs/03-agent-specification.md](docs/03-agent-specification.md)
 - 实施计划：[docs/04-implementation-plan.md](docs/04-implementation-plan.md)
 - 实施状态：[docs/05-implementation-status.md](docs/05-implementation-status.md)
+- 公开站点：<https://lumizora.github.io/cesiumlab/>
 - 公开部署说明：[docs/06-public-deployment.md](docs/06-public-deployment.md)
 - 部署就绪报告：[docs/07-public-deployment-readiness.md](docs/07-public-deployment-readiness.md)
+- 首次部署记录：[docs/evidence/deployment/](docs/evidence/deployment/)
 - S2-001 视觉基准：[docs/visual-baselines/S2-001/](docs/visual-baselines/S2-001/)
 - Agent 工作入口：[AGENTS.md](AGENTS.md)
 - License：[MIT](LICENSE)
 
 ## 当前状态
 
-**Stage 0–3 已完成；Stage 4 公开 Playground 与 Stage 4.5 部署准备已完成并通过本地生产预览/产物检查，当前等待公开部署批准。Stage 2 的 S2-001 已于 2026-11-08 通过用户视觉验收（Visual Approved）。**
+**Stage 0–3 已完成；Stage 4 公开 Playground 与 Stage 4.5 首次 GitHub Pages 部署已完成。公开站点：<https://lumizora.github.io/cesiumlab/>。Stage 2 的 S2-001 已于 2026-11-08 通过用户视觉验收（Visual Approved）。**
 
 已具备：
 
@@ -35,7 +37,7 @@
 **尚未完成 / 未开始：**
 
 - `packages/effects` API 与 npm 发布：S2-001 尚未通用化，也没有发布批准；
-- 公开部署：GitHub Pages + 手动 Actions workflow 已准备；未选择 owner/repo、未部署；严格安全响应头需改用 Cloudflare Pages/Vercel。
+- 公开部署：GitHub Pages 已上线（commit `0de165e`，run `42557732534`）；严格安全响应头仍需改用 Cloudflare Pages/Vercel。
 - 后续修改仍需对照已批准的 S2-001 基线检查视觉退化。
 
 ## 环境要求
@@ -337,25 +339,25 @@ Stage 1 工程证据：[docs/evidence/stage-1/](docs/evidence/stage-1/)。
 - Natural Earth 边界不是权威争议边界裁定；台湾按 Natural Earth 独立单元绘制，参考图轮廓与实际地理数据存在差异；
 - 金色弧线/光柱/拖尾的动画方向与周期是设计假设，不是参考 GIF/视频事实；
 - 未验证 Firefox、Safari、移动端浏览器、真实 GPU 桌面窗口截图；本轮只使用 Edge/Chromium headless；
-- 未做真实托管平台部署；`base` 路径验证只覆盖本地 `vite preview`；
+- GitHub Pages 已上线；公网冒烟覆盖 Edge headless，GitHub Pages 不提供自定义 CSP/安全响应头；
 - 未做内存泄漏分析；生命周期通过重新加载场景、画布数量、再次进入退出检查，不等于证明无泄漏；
 - 未对 Cesium 4.94 MB（gzip 1.36 MB）主 chunk 做进一步拆包或首屏优化；
 - 未建立自动实验发现、参数 Schema、通用 Runtime、Gallery 搜索/筛选；
 - 没有 npm 包、没有 npm scope；仓库已采用 MIT LICENSE，但 npm 发布仍未批准；
-- 项目代码采用 [MIT LICENSE](LICENSE)；npm 发布仍未批准；
 - Cesium ion 影像/地形依赖外部服务与网络；服务失败时场景回退本地网格，但不再显示真实影像/地形；
 - Cesium ion token 会进入前端 bundle，必须按公开客户端 token 管理并限制权限；`.env.local` 不提交 Git；
 - Smoke Test 页面会显示 Cesium / Cesium ion / Bing Maps 的 attribution；配置 ion 后使用真实影像与地形服务。
 
 ## 下一步
 
-S2-001 已通过用户视觉验收，批准基线为 revision `e5da645`；Stage 4 公开 Playground 与 Stage 4.5 部署准备已完成，当前**等待公开部署批准**。
+S2-001 已通过用户视觉验收，批准基线为 revision `e5da645`；首次 GitHub Pages 部署已完成（`0de165e`，run `42557732534`）。
 
-在获得部署批准前：
+当前边界：
 
-- 不触发 `.github/workflows/deploy-pages.yml`，不部署公网，不发布 npm，不进入 `packages/effects` 通用化；
-- 需先配置 GitHub Pages source、`github-pages` environment reviewer 与可选公开 ion token；
-- 真实 Pages 的 MIME/CSP/缓存与公网冒烟仍未验证；
-- 后续修改需对照 [`docs/visual-baselines/S2-001/`](docs/visual-baselines/S2-001/) 检查视觉退化。
+- 公开站点：<https://lumizora.github.io/cesiumlab/>；回滚 tag：`deploy-2026-11-09-0de165e`；
+- 不进入 `packages/effects` 通用化，不发布 npm；后续封装需用户明确批准；
+- 后续修改需对照 [`docs/visual-baselines/S2-001/`](docs/visual-baselines/S2-001/) 检查视觉退化；
+- GitHub Pages 不提供自定义安全响应头；若需要严格 CSP，应切换 Cloudflare Pages/Vercel；
+- Cesium ion token 仍需在控制台限制来源和资产。
 
-详见 [`docs/06-public-deployment.md`](docs/06-public-deployment.md)。
+部署记录见 [`docs/evidence/deployment/`](docs/evidence/deployment/)；平台说明见 [`docs/06-public-deployment.md`](docs/06-public-deployment.md)。

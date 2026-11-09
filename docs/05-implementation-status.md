@@ -1,4 +1,4 @@
-# cesiumlab 实施状态（Stage 0 / Stage 1 / Stage 2 S2-001）
+# cesiumlab 实施状态（Stage 0–4.5）
 
 > 更新时间：2026-11-08  
 > 对应计划：[`04-implementation-plan.md`](./04-implementation-plan.md)  
@@ -6,16 +6,16 @@
 
 ## 1. 范围
 
-已完成 Stage 0、Stage 1、Stage 2 S2-001（用户 Visual Approved）、Stage 3 视觉基准固化、Stage 4 公开 Playground，以及 Stage 4.5 公开部署准备。当前等待公开部署批准。
+已完成 Stage 0、Stage 1、Stage 2 S2-001（用户 Visual Approved）、Stage 3 视觉基准固化、Stage 4 公开 Playground，以及 Stage 4.5 首次 GitHub Pages 部署。公开站点：<https://lumizora.github.io/cesiumlab/>。
 
 ```text
 S0 仓库基础 → S1 最小 Web/Cesium → S2 S2-001 → S3 视觉基准固化 → S4 公开 Playground
                                                                         │
                                                                         ▼
-                                                          S4.5 部署准备 → Awaiting Deployment Approval
+                                                    S4.5 部署准备 → 首次 GitHub Pages 上线
 ```
 
-Stage 5 / `packages/effects` 通用化尚未开始；需要用户明确指示后才能进入封装评估。当前没有正式包，没有 npm 发布或公开部署。
+Stage 5 / `packages/effects` 通用化尚未开始；需要用户明确指示后才能进入封装评估。当前没有正式包，没有 npm 发布。
 
 ## 2. Gate S0：仓库与执行规范
 
@@ -145,7 +145,7 @@ S2-001 已建立可追溯的后续回归基准：
 
 ## 7. Stage 4：公开 Web Playground
 
-已完成 Stage 4 的本地实现与生产预览验证，等待公开部署批准。
+已完成 Stage 4 的本地实现与生产预览验证，并已上线 GitHub Pages。
 
 | 项目     | 结果                                                                            |
 | -------- | ------------------------------------------------------------------------------- |
@@ -158,32 +158,34 @@ S2-001 已建立可追溯的后续回归基准：
 | 清理     | 实验切换/刷新后 canvas 数 1；路由离开/重新加载释放 Viewer                       |
 | 证据     | `docs/evidence/stage-4/`、`docs/visual-baselines/S2-001/`、`stage4-report.json` |
 | 部署说明 | `docs/06-public-deployment.md`                                                  |
-| 部署状态 | **未部署、未发布 npm、未获得公开部署批准**                                      |
+| 部署状态 | **已上线**：<https://lumizora.github.io/cesiumlab/>；未发布 npm                 |
 
-## 8. Stage 4.5：公开部署准备
+## 8. Stage 4.5：首次 GitHub Pages 部署
 
-GitHub Pages + GitHub Actions 就绪方案已完成，未触发部署。
+GitHub Pages 首次部署已完成。
 
-| 项目      | 结果                                                                               |
-| --------- | ---------------------------------------------------------------------------------- |
-| 平台      | GitHub Pages（首选）；严格安全响应头需要 Cloudflare Pages/Vercel                   |
-| Base path | workflow 按 `/<repository>/` 注入；本地默认 `/cesiumlab/`                          |
-| Workflow  | `.github/workflows/deploy-pages.yml`，仅 `workflow_dispatch` + `DEPLOY` 确认       |
-| 发布门    | `pnpm check` → `build:base` → `check-dist` → Pages artifact → environment approval |
-| 回滚      | 手动 dispatch 上一稳定 commit/tag；GitHub Pages deployment history；artifact 30 天 |
-| 产物检查  | 无 `target.png`、`docs/stage2`、`.env*`、source map；Cesium 四类静态资源齐全       |
-| 本地验证  | `pnpm check`、Stage 4 e2e、base e2e、`pnpm check:dist`、S2-001 RMSE 0.94%          |
-| 未验证    | 真实 GitHub Pages MIME/CSP/缓存、公网冒烟、owner/repo/Pages 设置                   |
-| 状态      | **Awaiting Public Deployment Approval**；未部署                                    |
+| 项目        | 结果                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------- |
+| 平台        | GitHub Pages（`build_type=workflow`，HTTPS enforced）                                       |
+| URL         | <https://lumizora.github.io/cesiumlab/>                                                     |
+| 部署 Commit | `0de165e5d4013090307643a2b99895c61d19e334`                                                  |
+| Workflow    | run `42557732534`，build/deploy success                                                     |
+| Base path   | `/cesiumlab/`；artifact 357 files / 12.57 MiB                                               |
+| Environment | `github-pages`，required reviewer `lumizora`，branch policy `main`                          |
+| 公网冒烟    | Gallery 3 / Visual Approved 1；World Terrain；0 console/page/failed requests                |
+| 视觉回归    | 公网控制帧 RMSE `0.0103965`（约 1.04%），差异集中在星空/AA 高频像素                         |
+| 回滚        | tag `deploy-2026-11-09-0de165e`；GitHub Pages deployment history；artifact 30 天            |
+| 未验证      | Firefox/Safari/mobile；GitHub Pages 不支持自定义 CSP/安全响应头；ion 来源限制仍需控制台复核 |
+| 状态        | **已上线**                                                                                  |
 
-详细报告：[`07-public-deployment-readiness.md`](./07-public-deployment-readiness.md)。
+部署记录：[`docs/evidence/deployment/`](./evidence/deployment/)。
 
 ## 9. 未验证 / 未执行
 
 - **视觉验收**：S2-001 已获用户 Visual Approved（2026-11-08）；未重新验证后续修改是否保持基线。
 - **浏览器覆盖**：未测试 Firefox、Safari、移动端浏览器；本轮只用 Edge/Chromium headless。
 - **真实桌面窗口/录屏**：未进行人工桌面观察或视频录制；截图来自 headless Edge 的真实 WebGL 输出；Stage 2 使用 1672×941 时间序列代替录屏。
-- **公开部署**：未选择托管平台，未部署；只验证本地 `vite preview` 的根路径与 `/cesiumlab/` 子路径。CSP、CDN 缓存、跨域、HTTPS 与回滚均未在真实平台验证。
+- **公开部署**：GitHub Pages 已上线；公网冒烟覆盖 Edge headless、HTML/JS/CSS、Cesium Workers/Assets/Widgets/ThirdParty、World Terrain 与 S2-001。GitHub Pages 不提供自定义 CSP/安全响应头；Firefox/Safari/mobile 未验证。
 - **性能**：未建立 FPS/显存/首屏基准；Cesium 主 chunk 约 4.94 MB（gzip 1.36 MB），未做进一步拆包。
 - **内存泄漏**：未做 heap/profile 级分析；只验证了重新加载、路由离开和退出后画布数量与再次进入。
 - **自动发现/通用 Runtime**：按计划暂不实现。
@@ -192,12 +194,11 @@ GitHub Pages + GitHub Actions 就绪方案已完成，未触发部署。
 
 ## 10. 下一步条件
 
-S2-001 视觉已批准（基线 `e5da645`），Stage 4 公开 Playground 已完成本地生产预览验证。当前**等待用户公开部署批准**；批准前不部署公网、不发布 npm、不进入 `packages/effects` 通用化。
+S2-001 视觉已批准（基线 `e5da645`），Stage 4 公开 Playground 与 Stage 4.5 首次 GitHub Pages 部署已完成。当前不发布 npm、不进入 `packages/effects` 通用化。
 
-部署前仍需用户/后续工作确认：
+后续工作：
 
-1. 选择托管平台（GitHub Pages / Cloudflare Pages / Vercel 等）与真实 base path；
-2. 在目标平台验证 CSP、缓存、MIME、Workers/Assets 与 HTTPS；
-3. 执行公网冒烟与回滚方案；
-4. 公开素材、ion token 权限与参考图不公开边界复核；
-5. 部署批准后，保持已批准 S2-001 基线不变；后续修改需重新视觉回归。
+1. 在 Cesium ion 控制台复核 token 来源/资产限制；
+2. 如需严格 CSP/安全响应头，评估 Cloudflare Pages/Vercel；
+3. 后续视觉修改继续对照 `docs/visual-baselines/S2-001/` 检查退化；
+4. 进入封装评估或 npm 发布前，等待用户明确批准。

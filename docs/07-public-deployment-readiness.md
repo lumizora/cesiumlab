@@ -1,8 +1,10 @@
 # Stage 4.5 · Public Deployment Readiness Report
 
 **日期：2026-11-09**
-**状态：准备完成，等待用户公开部署批准。**
-**未部署、未触发 GitHub Actions、未发布 npm。**
+**状态：首次 GitHub Pages 部署完成。**
+**公开站点：<https://lumizora.github.io/cesiumlab/>**
+**部署 Commit：`0de165e5d4013090307643a2b99895c61d19e334`**
+**Workflow run：`42557732534`（success）**
 **GitHub：`lumizora/cesiumlab`（public，默认分支 `main`，MIT）**
 
 ## 1. 推荐托管平台
@@ -28,20 +30,21 @@
 **Owner / repository：**`lumizora` / `cesiumlab`
 **默认分支：**`main`
 **可见性：**public
-**远程 HEAD：**`27e9ef9`（Initial commit，仅 `LICENSE`）
-**本地状态：**完整实现 + 证据 + MIT LICENSE 合并；尚未 push
-**MIT LICENSE：**已合并（远程 `27e9ef9`，本地 merge commit `33be77e`）
-**Actions variable：**`CESIUM_ION_TOKEN` 已配置（公开客户端 token；仅 workflow 使用）
+**远程 HEAD：**`0de165e`（已推送）
+**MIT LICENSE：**已合并并推送（merge commit `33be77e`）
+**Actions variable：**`CESIUM_ION_TOKEN` 已配置
+**Pages：**`build_type=workflow`，HTTPS enforced
+**Environment：**`github-pages`，required reviewer `lumizora`，branch policy `main`
 
-预计 Playground URL：
+公开 Playground URL：
 
 ```text
 https://lumizora.github.io/cesiumlab/
 ```
 
-目标 base path 为 `/cesiumlab/`；workflow 使用 `github.event.repository.name` 自动生成 `/<repository>/`，不把 owner/repo 硬编码进源码。
+目标 base path 为 `/cesiumlab/`；workflow 使用 `github.event.repository.name` 自动生成 `/<repository>/`。
 
-**重要阻塞：**本地源码尚未 push 到 `origin/main`。在推送前，公开仓库只有 LICENSE；workflow、应用源码与证据都不在默认分支，无法触发 Pages 部署。
+首次部署详情见 [`docs/evidence/deployment/`](./evidence/deployment/)。
 
 ## 3. 实际部署配置
 
@@ -93,39 +96,31 @@ https://lumizora.github.io/cesiumlab/
 - 需在 ion 账户侧限制允许来源和资产；本仓库无法从 JWT 本身证明完整 scope，**公开部署前必须人工复核该 token 不是管理 token**；
 - 公开部署前必须复核资产权限与计费影响。
 
-## 5. 部署尚需完成的操作
+## 5. 首次部署执行记录
 
-**当前阻塞：**
+| 步骤              | 结果                                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| Push              | `27e9ef9..0de165e`，非强制，成功                                                         |
+| Pages source      | GitHub Actions (`build_type=workflow`)                                                   |
+| Environment       | `github-pages`，required reviewer `lumizora`，`prevent_self_review=false`，branch `main` |
+| Workflow          | run `42557732534`，build 与 deploy 均 success                                            |
+| Checkout          | 首次使用短 SHA 失败（被视为 branch）；改用完整 40 位 SHA 成功                            |
+| 实际构建 revision | `0de165e`（artifact JS 与页面 header 均可验证）                                          |
+| Artifact          | 357 files / 12.57 MiB，base `/cesiumlab/`                                                |
+| 部署时间          | 2026-11-09T03:47:30Z                                                                     |
+| 公网冒烟          | HTTP 200；Gallery 3 / Visual Approved 1；World Terrain；0 console/page/failed requests   |
+| 视觉回归          | 公网控制帧 RMSE `0.0103965`（约 1.04%），差异集中在星空/AA 高频像素                      |
+| 回滚 tag          | `deploy-2026-11-09-0de165e`                                                              |
 
-1. 本地完整源码尚未 push 到公开 `origin/main`；workflow 不在默认分支，GitHub 无法手动触发；
-2. GitHub Pages 尚未启用（API `has_pages=false`）；
-3. 仓库没有 `github-pages` environment，因此没有 Required reviewers；
-4. 远程仓库目前只有 `LICENSE`，push 后整个源码、证据截图、视觉基准与 `night-earth.jpg` 等已授权资产会公开，需要用户确认公开范围。
-
-**已准备：**
-
-- `CESIUM_ION_TOKEN` Actions variable 已配置，token 的 assets 1/2/3 endpoint 已验证；
-- workflow、base path、artifact 检查、rollback ref 已准备；
-- 本地 `pnpm check`、Stage 4 e2e、base e2e、`check-dist` 与视觉回归通过。
-
-**需要用户确认/执行：**
-
-1. 确认公开范围：推送后整个源码、证据截图、视觉基准与 `night-earth.jpg` 等已授权资产会公开；
-2. 执行 `git push origin main`（需要用户明确批准）；
-3. 在 Settings → Pages 选择 **GitHub Actions**；
-4. 在 Environments 创建 `github-pages` 并配置 Required reviewers；
-5. 手动运行 `Deploy Playground to GitHub Pages`，`ref` 使用最终准备 Commit SHA，输入 `DEPLOY`；
-6. 在公网 URL 人工冒烟：Gallery、直达 URL、刷新、S2-001、Cesium Workers/Assets/Widgets、ion 地形；
-7. 记录首次部署 revision/URL；
-8. 若要求严格 CSP/安全头，改用 Cloudflare Pages/Vercel 并重新验证。
+**当前没有阻塞部署的工程项。**ion token 的来源/资产限制仍需在 Cesium ion 控制台复核；GitHub Pages 不支持自定义安全响应头。
 
 ## 6. 回滚方法
 
+- 稳定 tag：`deploy-2026-11-09-0de165e`；
 - workflow 的 `ref` 输入支持历史 commit/tag；rollback 时手动 dispatch 该稳定 ref，并再次输入 `DEPLOY`；
 - GitHub Pages environment 保留部署历史，可在 GitHub UI 重新部署上一稳定版本；
 - artifact retention 30 天；超过期限必须用同一 ref/lockfile 重新构建；
-- 风险：GitHub Pages CDN 可能有短时缓存延迟；不能像自定义服务器一样即时按文件回滚；
-- 发布前应保留上一稳定 commit/tag，并避免在同一 commit 上做不兼容资源变更。
+- 风险：GitHub Pages CDN 可能有短时缓存延迟；不能像自定义服务器一样即时按文件回滚。
 
 ## 7. `docs/stage2` 处理
 
@@ -141,8 +136,13 @@ https://lumizora.github.io/cesiumlab/
 
 ## 8. 结论
 
-**建议在完成公开范围确认、push、Pages/environment 配置后批准首次部署。**
+**首次 GitHub Pages 部署已完成并通过公网冒烟。**
 
-GitHub Pages 对当前静态、Hash Router、无后端的 Playground 足够；主要未验证项是真实 Pages 环境下的 MIME/缓存/CSP、ion 端点与公网人工冒烟。若必须使用严格安全响应头，优先 Cloudflare Pages。
+- 公开 URL：<https://lumizora.github.io/cesiumlab/>；
+- 部署 Commit：`0de165e`；
+- Workflow run：`42557732534`；
+- 回滚 tag：`deploy-2026-11-09-0de165e`；
+- S2-001 公网 Showcase 加载 World Terrain，控制帧 RMSE 约 1.04%，无 console/page/failed request；
+- GitHub Pages 不提供自定义 CSP/安全响应头；严格 CSP 需求应改用 Cloudflare Pages/Vercel。
 
-当前仍停留在 **Awaiting Public Deployment Approval**，未 push、未启用 Pages、未触发 workflow。
+公开部署已完成；未发布 npm，未进入 `packages/effects` 通用化。

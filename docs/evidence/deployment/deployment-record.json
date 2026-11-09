@@ -1,0 +1,44 @@
+{
+  "deployment": {
+    "platform": "GitHub Pages",
+    "url": "https://lumizora.github.io/cesiumlab/",
+    "repository": "https://github.com/lumizora/cesiumlab",
+    "commit": "0de165e5d4013090307643a2b99895c61d19e334",
+    "commitShort": "0de165e",
+    "runId": 42557732534,
+    "deploymentId": 7646461731,
+    "deployedAt": "2026-11-09T03:47:30Z",
+    "status": "success",
+    "buildType": "workflow",
+    "httpsEnforced": true,
+    "artifact": {
+      "files": 357,
+      "sizeMiB": 12.57,
+      "basePath": "/cesiumlab/",
+      "verifiedRevision": "0de165e"
+    }
+  },
+  "smoke": {
+    "capturedAt": "2026-11-09T03:52:44.899Z",
+    "browser": "Microsoft Edge 157.0.4341.42 headless",
+    "galleryCards": 3,
+    "visualApproved": 1,
+    "showcaseTerrain": "world-terrain",
+    "showcaseImagery": "night-lights-4096",
+    "stage2State": "visual-approved",
+    "controlPaused": true,
+    "controlTerrain": "ellipsoid",
+    "controlRmse": 0.0103965,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "failedRequests": 0,
+    "networkNoiseCount": 0,
+    "httpStatus": 200,
+    "screenshots": ["gallery-public.png", "s2-001-public-showcase.png", "s2-001-public-control.png"]
+  },
+  "rollback": {
+    "tag": "deploy-2026-11-09-0de165e",
+    "method": "gh workflow run deploy-pages.yml -f ref=<stable-sha-or-tag> -f confirm=DEPLOY",
+    "artifactRetentionDays": 30
+  }
+}

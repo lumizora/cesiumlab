@@ -1,0 +1,6 @@
+200	text/html; charset=utf-8	https://lumizora.github.io/cesiumlab/
+200	application/javascript; charset=utf-8	https://lumizora.github.io/cesiumlab/cesium/Workers/createGeometry.js
+200	application/json; charset=utf-8	https://lumizora.github.io/cesiumlab/cesium/Assets/approximateTerrainHeights.json
+200	text/css; charset=utf-8	https://lumizora.github.io/cesiumlab/cesium/Widgets/widgets.css
+200	application/javascript; charset=utf-8	https://lumizora.github.io/cesiumlab/cesium/ThirdParty/Workers/zip-web-worker.js
+200	application/wasm	https://lumizora.github.io/cesiumlab/cesium/ThirdParty/basis_transcoder.wasm
