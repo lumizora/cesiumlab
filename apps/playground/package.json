@@ -2,7 +2,7 @@
   "name": "@cesiumlab/playground",
   "version": "0.0.0",
   "private": true,
-  "description": "Minimal Vue + Vite + CesiumJS playground for cesiumlab experiments.",
+  "description": "React 19 + StyleX + Astryx Y2K CesiumJS visual playground.",
   "type": "module",
   "scripts": {
     "prepare:cesium": "node scripts/sync-cesium.mjs",
@@ -12,7 +12,7 @@
     "check:dist": "node scripts/check-dist.mjs dist-base /cesiumlab/",
     "preview": "vite preview",
     "preview:base": "vite preview -c vite.base.config.ts",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "pnpm run build && playwright test",
@@ -22,16 +22,22 @@
     "test:e2e:stage4": "pnpm run build && playwright test -c playwright.stage4.config.ts"
   },
   "dependencies": {
+    "@astryxdesign/core": "catalog:",
+    "@astryxdesign/theme-y2k": "catalog:",
+    "@stylexjs/stylex": "catalog:",
     "cesium": "catalog:",
-    "vue": "catalog:"
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@playwright/test": "catalog:",
+    "@stylexjs/unplugin": "catalog:",
     "@types/node": "catalog:",
-    "@vitejs/plugin-vue": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vitest": "catalog:",
-    "vue-tsc": "catalog:"
+    "vitest": "catalog:"
   }
 }

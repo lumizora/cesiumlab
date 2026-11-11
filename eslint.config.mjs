@@ -1,15 +1,9 @@
-import skipFormatting from '@vue/eslint-config-prettier/skip-formatting';
-import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript';
-import pluginVue from 'eslint-plugin-vue';
+import js from '@eslint/js';
 import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
-export default defineConfigWithVueTs(
+export default tseslint.config(
   {
-    name: 'cesiumlab/lint-targets',
-    files: ['**/*.{js,mjs,cjs,ts,mts,tsx,vue}'],
-  },
-  {
-    name: 'cesiumlab/ignores',
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
@@ -20,30 +14,22 @@ export default defineConfigWithVueTs(
       'apps/playground/public/cesium/**',
     ],
   },
-  pluginVue.configs['flat/essential'],
-  vueTsConfigs.recommended,
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
-    name: 'cesiumlab/browser-globals',
-    files: ['apps/playground/src/**/*.{ts,vue}', 'experiments/**/*.ts'],
-    languageOptions: {
-      globals: globals.browser,
-    },
+    files: ['apps/playground/src/**/*.{ts,tsx}', 'experiments/**/*.ts'],
+    languageOptions: { globals: globals.browser },
   },
   {
-    name: 'cesiumlab/node-globals',
     files: [
       '**/*.config.{js,mjs,ts}',
       'apps/playground/e2e/**/*.ts',
       'apps/playground/scripts/**/*.{js,mjs}',
     ],
-    languageOptions: {
-      globals: globals.node,
-    },
+    languageOptions: { globals: globals.node },
   },
   {
-    name: 'cesiumlab/rules',
     rules: {
-      'vue/multi-word-component-names': 'off',
       '@typescript-eslint/consistent-type-imports': [
         'error',
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
@@ -51,5 +37,4 @@ export default defineConfigWithVueTs(
       '@typescript-eslint/no-explicit-any': 'error',
     },
   },
-  skipFormatting,
 );

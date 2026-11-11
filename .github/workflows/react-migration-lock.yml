@@ -1,0 +1,38 @@
+name: React migration dependency refresh (temporary)
+
+# Only the migration branch; never deploys the public site.
+on:
+  push:
+    branches: [feat/astryx-y2k-react]
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-and-check:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Regenerate exact frozen lockfile
+        run: pnpm install --no-frozen-lockfile
+      - name: Format migration files
+        run: pnpm exec prettier --write apps/playground/src apps/playground/index.html apps/playground/package.json apps/playground/vite.shared.ts apps/playground/tsconfig.app.json eslint.config.mjs package.json pnpm-workspace.yaml
+      - name: Commit deterministic lockfile and formatting
+        run: |
+          if ! git diff --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add pnpm-lock.yaml apps/playground/src apps/playground/index.html apps/playground/package.json apps/playground/vite.shared.ts apps/playground/tsconfig.app.json eslint.config.mjs package.json pnpm-workspace.yaml
+            git commit -m "chore: lock React Astryx StyleX dependencies and format migration"
+            git push
+          fi
+      - name: Validate migration
+        run: pnpm check
