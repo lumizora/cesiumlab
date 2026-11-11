@@ -24,13 +24,13 @@ jobs:
       - name: Regenerate exact frozen lockfile
         run: pnpm install --no-frozen-lockfile
       - name: Format migration files
-        run: pnpm exec prettier --write apps/playground/src apps/playground/index.html apps/playground/package.json apps/playground/vite.shared.ts apps/playground/tsconfig.app.json eslint.config.mjs package.json pnpm-workspace.yaml
+        run: pnpm exec prettier --write apps/playground/src apps/playground/index.html apps/playground/package.json apps/playground/vite.shared.ts apps/playground/tsconfig.app.json eslint.config.mjs package.json pnpm-workspace.yaml docs/09-astryx-y2k-react-migration.md
       - name: Commit deterministic lockfile and formatting
         run: |
           if ! git diff --quiet; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add pnpm-lock.yaml apps/playground/src apps/playground/index.html apps/playground/package.json apps/playground/vite.shared.ts apps/playground/tsconfig.app.json eslint.config.mjs package.json pnpm-workspace.yaml
+            git add pnpm-lock.yaml apps/playground/src apps/playground/index.html apps/playground/package.json apps/playground/vite.shared.ts apps/playground/tsconfig.app.json eslint.config.mjs package.json pnpm-workspace.yaml docs/09-astryx-y2k-react-migration.md
             git commit -m "chore: lock React Astryx StyleX dependencies and format migration"
             git push
           fi
