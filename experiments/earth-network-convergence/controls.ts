@@ -16,7 +16,9 @@ const PANEL_HTML = `
     <span class="earth-controls__eyebrow">S2-001</span>
     <strong>Earth Network</strong>
     <span class="earth-controls__state">Visual Approved</span>
+    <button type="button" class="earth-controls__toggle" data-action="toggle" aria-expanded="false" aria-controls="earth-controls-body">调整参数</button>
   </div>
+  <div class="earth-controls__body" id="earth-controls-body">
   <label class="earth-controls__row">
     <span>金色飞线</span>
     <input type="color" data-control="routeColor" aria-label="金色飞线颜色" />
@@ -83,6 +85,7 @@ const PANEL_HTML = `
   <button type="button" class="earth-controls__pause" data-action="pause">暂停动画</button>
   <button type="button" class="earth-controls__pulse" data-action="pulse">触发中心脉冲</button>
   <button type="button" class="earth-controls__reset" data-action="reset">重置 Showcase</button>
+  </div>
 `;
 
 export function createControls(
@@ -123,6 +126,24 @@ export function createControls(
   const resetButton = panel.querySelector<HTMLButtonElement>('[data-action="reset"]');
   const pulseButton = panel.querySelector<HTMLButtonElement>('[data-action="pulse"]');
   const pauseButton = panel.querySelector<HTMLButtonElement>('[data-action="pause"]');
+  const toggleButton = panel.querySelector<HTMLButtonElement>('[data-action="toggle"]');
+  const mobileQuery = window.matchMedia('(max-width: 720px)');
+  let expanded = false;
+
+  const syncPanel = () => {
+    const mobile = mobileQuery.matches;
+    panel.dataset.expanded = String(!mobile || expanded);
+    if (toggleButton) {
+      toggleButton.setAttribute('aria-expanded', String(!mobile || expanded));
+      toggleButton.textContent = expanded ? '收起参数' : '调整参数';
+    }
+  };
+  toggleButton?.addEventListener('click', () => {
+    expanded = !expanded;
+    syncPanel();
+  });
+  mobileQuery.addEventListener('change', syncPanel);
+  syncPanel();
 
   const updateDataset = () => {
     host.dataset.routeColor = state.routeColor;
@@ -260,6 +281,7 @@ export function createControls(
 
   return {
     destroy: () => {
+      mobileQuery.removeEventListener('change', syncPanel);
       panel.remove();
     },
     sync,
