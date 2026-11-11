@@ -304,10 +304,8 @@ test('Earth Network Convergence clean capture and animation sequence', async ({
     if (!(element instanceof HTMLButtonElement)) throw new Error('Pulse control not a button');
     element.click();
   });
-  await expect.poll(async () =>
-    Number(await sceneHost.getAttribute('data-hub-pulse-count')),
-    { timeout: 30_000 },
-  ).toBeGreaterThan(pulseCountBefore);
+  const readPulseCount = () => sceneHost.getAttribute('data-hub-pulse-count');
+  await expect.poll(async () => Number(await readPulseCount())).toBeGreaterThan(pulseCountBefore);
   // Locally, keep the strict active-window assertion for fast hardware.
   if (!process.env.CI) {
     await expect(sceneHost).toHaveAttribute('data-hub-pulse-active', 'true');
