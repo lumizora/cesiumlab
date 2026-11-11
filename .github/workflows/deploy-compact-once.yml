@@ -1,0 +1,63 @@
+name: Publish compact Chinese homepage (one-time)
+
+# One-time release requested for PR #2. It only runs on the known merge
+# of the compact homepage changes, not on later main pushes.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/playground/src/features/gallery/GalleryView.tsx'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  verify-and-build:
+    if: github.event.before == '139b086ecd2f73916c8721aa384d1db941ede1a6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Verify frozen dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Validate production source
+        run: pnpm check
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Build for repository Pages
+        run: pnpm build:base
+        env:
+          DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_CESIUM_ION_TOKEN: ${{ vars.CESIUM_ION_TOKEN }}
+      - name: Verify deployed asset paths
+        working-directory: apps/playground
+        run: node scripts/check-dist.mjs dist-base "$DEPLOY_BASE_PATH"
+        env:
+          DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/playground/dist-base
+          retention-days: 30
+
+  deploy:
+    needs: verify-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy approved build
+        id: deployment
+        uses: actions/deploy-pages@v4
