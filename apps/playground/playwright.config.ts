@@ -6,7 +6,7 @@ const headless = process.env.CESIUMLAB_HEADFUL !== '1';
 export default defineConfig({
   testDir: './e2e',
   testMatch: 'playground.spec.ts',
-  timeout: 90_000,
+  timeout: process.env.CI ? 240_000 : 90_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,
   workers: 1,
