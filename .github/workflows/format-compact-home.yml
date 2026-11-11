@@ -1,0 +1,29 @@
+name: Format compact Chinese homepage (temporary)
+on:
+  push:
+    branches: [feat/compact-chinese-homepage]
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: pnpm install --frozen-lockfile
+      - name: Format changed files
+        run: pnpm exec prettier --write apps/playground/src/features/gallery/GalleryView.tsx apps/playground/src/app/AppHeader.tsx apps/playground/src/app/AppFooter.tsx apps/playground/src/styles/main.css apps/playground/e2e/stage4.spec.ts
+      - name: Commit formatting
+        run: |
+          if ! git diff --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add apps/playground/src/features/gallery/GalleryView.tsx apps/playground/src/app/AppHeader.tsx apps/playground/src/app/AppFooter.tsx apps/playground/src/styles/main.css apps/playground/e2e/stage4.spec.ts
+            git commit -m "style: format compact Chinese homepage"
+            git push
+          fi

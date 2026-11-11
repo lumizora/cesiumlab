@@ -66,9 +66,7 @@ test('public Playground gallery, direct URLs, switching and approved showcase', 
   await expect(page.getByRole('heading', { level: 1, name: 'CesiumJS 视觉实验库' })).toBeVisible();
   await expect(page.getByTestId('experiment-card')).toHaveCount(3);
   await expect(page.getByText('S2-001 已通过用户视觉验收。')).toBeVisible();
-  await expect(
-    page.locator('.stat').filter({ hasText: 'Visual Approved' }).getByText('1'),
-  ).toBeVisible();
+  await expect(page.getByTestId('experiment-card').filter({ hasText: 'Visual Approved' })).toHaveCount(1);
   await page.screenshot({ path: path.join(EVIDENCE_DIR, 'gallery.png'), fullPage: true });
 
   // Independent experiment URL and approved default showcase.
