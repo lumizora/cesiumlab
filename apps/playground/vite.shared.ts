@@ -27,10 +27,7 @@ export function createPlaygroundConfig(options: PlaygroundConfigOptions): UserCo
   return defineConfig({
     base: options.base,
     envDir: fileURLToPath(new URL('../..', import.meta.url)),
-    plugins: [
-      stylex.vite({ useCSSLayers: true }),
-      react(),
-    ],
+    plugins: [stylex.vite({ useCSSLayers: true }), react()],
     define: {
       __APP_VERSION__: JSON.stringify('0.0.0'),
       __GIT_REVISION__: JSON.stringify(readGitRevision()),

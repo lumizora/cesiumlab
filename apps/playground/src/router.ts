@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 
 export type Route =
-  | { name: 'gallery' }
-  | { name: 'experiment'; id: string }
-  | { name: 'not-found'; path: string };
+  { name: 'gallery' } | { name: 'experiment'; id: string } | { name: 'not-found'; path: string };
 
 export function parseRoute(hash: string): Route {
   const raw = hash.startsWith('#') ? hash.slice(1) : hash;
