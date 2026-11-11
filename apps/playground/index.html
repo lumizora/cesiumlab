@@ -1,23 +1,29 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light" data-astryx-theme="y2k">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#070b10" />
+    <meta name="theme-color" content="#CCCFFA" />
     <meta
       name="description"
-      content="cesiumlab — 视觉优先的 CesiumJS 实验库。查看已登记实验、视觉基准与实时 CesiumJS Showcase。"
+      content="cesiumlab — Visual-first CesiumJS experiments, live demos and creative WebGL effects."
     />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>cesiumlab · CesiumJS 视觉实验库</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800;900&display=swap"
+    />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <title>cesiumlab · Visual CesiumJS Lab</title>
   </head>
   <body>
     <div id="app"></div>
-    <noscript>
-      <p style="padding: 24px; color: #e6edf5; font-family: sans-serif">
-        cesiumlab 需要启用 JavaScript 才能创建 CesiumJS 场景。
-      </p>
-    </noscript>
-    <script type="module" src="/src/main.ts"></script>
+    <noscript
+      ><p style="padding: 24px; font-family: sans-serif">
+        cesiumlab requires JavaScript to run the CesiumJS playground.
+      </p></noscript
+    >
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -5,10 +5,21 @@ packages:
 catalog:
   '@playwright/test': 1.65.0
   '@types/node': 24.19.2
-  '@vitejs/plugin-vue': 6.0.10
+  '@types/react': 19.2.0
+  '@types/react-dom': 19.2.0
+  '@vitejs/plugin-react': 6.3.0
+  '@astryxdesign/core': 0.7.11
+  '@astryxdesign/theme-y2k': 0.7.11
+  '@stylexjs/stylex': 0.19.1
+  '@stylexjs/unplugin': 0.19.1
   cesium: 1.147.0
+  react: 19.2.0
+  react-dom: 19.2.0
   typescript: 5.9.3
   vite: 8.3.6
   vitest: 5.1.0
-  vue: 3.5.45
-  vue-tsc: 3.3.14
+
+# The official Astryx package ships prebuilt CSS/JS; no dependency install
+# scripts are required to consume its published React components.
+allowBuilds:
+  '@astryxdesign/core': false

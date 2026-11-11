@@ -18,6 +18,10 @@
 - Agent 工作入口：[AGENTS.md](AGENTS.md)
 - License：[MIT](LICENSE)
 
+## 当前技术栈（React Y2K 首页重构）
+
+Playground 的 UI 采用 React 19、Meta Astryx React 组件、官方 Y2K Theme 和 StyleX；Vite/TypeScript/CesiumJS 继续负责实验加载与渲染。首页展示状态来自真实 Catalog，S2-001 的 Viewer/基准没有改动。参见 [React 与 Astryx 迁移说明](docs/09-astryx-y2k-react-migration.md)。
+
 ## 当前状态
 
 **Stage 0–3 已完成；Stage 4 公开 Playground 与 Stage 4.5 首次 GitHub Pages 部署已完成；Stage 5A 特效通用化评估完成，等待实施批准。公开站点：<https://lumizora.github.io/cesiumlab/>。Stage 2 的 S2-001 已于 2026-11-08 通过用户视觉验收（Visual Approved）。**
@@ -25,7 +29,7 @@
 已具备：
 
 - pnpm Monorepo，可继续添加 `packages/*`，无需重做根工程布局；
-- `apps/playground`：Vue 3 + TypeScript + Vite + CesiumJS；
+- `apps/playground`：React 19 + Astryx Y2K + StyleX + TypeScript + Vite + CesiumJS；
 - 真实 CesiumJS Viewer；配置 Cesium ion 时加载 World Imagery + World Terrain，未配置或服务失败时回退本地网格；
 - Cesium Workers / ThirdParty / Assets / Widgets 静态资源复制与 `CESIUM_BASE_URL` 配置；
 - Gallery / Detail，手工登记三个实验档案；
@@ -271,7 +275,7 @@ interface ExperimentModule {
 | Vite               | 8.3.6   | 开发 / 构建                                                                 |
 | @vitejs/plugin-vue | 6.0.10  | Vue SFC                                                                     |
 | TypeScript         | 5.9.3   | 固定在 5.9.x：typescript-eslint 8.72 声明支持 `<6.1.0`，未采用 TypeScript 7 |
-| vue-tsc            | 3.3.14  | `.vue` 类型检查                                                             |
+| vue-tsc            | 3.3.14  | `.tsx` 类型检查                                                             |
 | CesiumJS           | 1.147.0 | 唯一三维渲染引擎                                                            |
 | Vitest             | 5.1.0   | 单元测试                                                                    |
 | @playwright/test   | 1.65.0  | 真实浏览器检查                                                              |
