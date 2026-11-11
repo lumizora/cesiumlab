@@ -1,0 +1,62 @@
+name: Playground React and Cesium Regression
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install exact dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint, typecheck, tests and build
+        run: pnpm check
+
+  browser:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CESIUMLAB_BROWSER_CHANNEL: chromium
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install exact dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install browser dependencies
+        run: pnpm --filter @cesiumlab/playground exec playwright install --with-deps chromium
+      - name: Verify production gallery, Viewer and fallback
+        run: pnpm test:e2e
+      - name: Verify approved showcase and scene lifecycle
+        run: pnpm test:e2e:stage4
+      - name: Verify repository base path
+        run: pnpm test:e2e:base
+      - name: Verify Stage 2 capture contract
+        run: pnpm test:e2e:stage2
+      - name: Upload browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-react-y2k-regression
+          path: |
+            apps/playground/playwright-report*/
+            apps/playground/test-results*/
+          if-no-files-found: ignore
