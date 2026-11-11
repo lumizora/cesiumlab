@@ -22,7 +22,7 @@ The page layout draws its visual language from the real Astryx Y2K theme: periwi
 - Hash routes remain `#/` and `#/experiments/:id`, working under both root and `/cesiumlab/` base URLs.
 - CESIUM_BASE_URL is set **before** the dynamic Cesium import. Viewer cleans up on unmount, reload, pagehide and BFCache restoration.
 - Screenshot capture URL remains `/?capture=1&paused=1&terrain-off#/experiments/earth-network-convergence`; its full-viewport canvas remains isolated from UI.
-- The homepage SVG globe is a *concept illustration*, visibly labelled as such. Its action links to the real Cesium Viewer. Private visual-reference assets are not redistributed.
+- The homepage SVG globe is a _concept illustration_, visibly labelled as such. Its action links to the real Cesium Viewer. Private visual-reference assets are not redistributed.
 - Gallery reflects real metadata: 3 registered archives, 2 runnable entries and 1 visual-approved experiment (at time of implementation). No fake effects are introduced.
 
 ## Review / regression checklist
