@@ -1289,3 +1289,197 @@ code {
     scroll-behavior: auto !important;
   }
 }
+
+/* 精简中文版首页：视觉示意 + 实验列表，不重复堆叠口号、统计或介绍。 */
+.gallery-page--compact .hero {
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  padding-top: clamp(44px, 5vw, 78px);
+  padding-bottom: clamp(48px, 5vw, 78px);
+  gap: clamp(26px, 4vw, 56px);
+}
+.gallery-page--compact .hero-copy h1 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.gallery-page--compact .hero-title {
+  font-size: clamp(52px, 5.9vw, 88px);
+  letter-spacing: -0.065em;
+  line-height: 1.17;
+  margin: 20px 0 18px;
+}
+.gallery-page--compact .hero-title span {
+  display: block;
+  color: #6752bd;
+}
+.gallery-page--compact .hero-description {
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 27px;
+}
+.gallery-page--compact .window-scene {
+  height: clamp(290px, 27vw, 380px);
+  min-height: 290px;
+}
+.gallery-page--compact .window-top {
+  min-height: 45px;
+}
+.gallery-page--compact .window-bottom {
+  gap: 16px;
+  padding: 14px 17px;
+  font-size: 12px;
+}
+.gallery-page--compact .window-bottom strong {
+  font-family: var(--lab-sans);
+  font-size: 14px;
+  font-weight: 800;
+}
+.gallery-page--compact .scene-top {
+  font-size: 10px;
+  top: 16px;
+  left: 16px;
+}
+.gallery-page--compact .lab-section {
+  padding-top: 50px;
+  padding-bottom: 85px;
+  border-top: 2px solid var(--lab-ink);
+}
+.gallery-page--compact .section-heading {
+  margin-bottom: 22px;
+  align-items: center;
+}
+.gallery-page--compact .section-heading h2 {
+  margin: 0 0 8px;
+  font-size: clamp(29px, 3vw, 43px);
+  letter-spacing: -0.045em;
+}
+.gallery-page--compact .section-heading p {
+  font-size: 12px;
+}
+.gallery-page--compact .filters {
+  margin: 0;
+}
+.gallery-page--compact .experiment-grid {
+  gap: 17px;
+}
+.gallery-page--compact .card-cover {
+  display: block;
+  height: clamp(155px, 17vw, 215px);
+}
+.gallery-page--compact .card-body {
+  padding: 17px 17px 18px;
+  min-height: 180px;
+}
+.gallery-page--compact .card-body h3 {
+  font-size: 18px;
+  line-height: 1.35;
+  margin: 12px 0 8px;
+}
+.gallery-page--compact .card-summary {
+  line-height: 1.7;
+  font-size: 12px;
+}
+.gallery-page--compact .card-approved-note {
+  margin-top: 12px;
+  font-size: 11px;
+  color: #60564c;
+}
+.gallery-page--compact .card-link {
+  align-self: flex-start;
+  margin-top: 14px;
+  font-size: 12px;
+  font-weight: 800;
+  border-bottom: 1px solid var(--lab-ink);
+}
+.gallery-page--compact .archive-folder {
+  font-size: 23px;
+  text-align: center;
+  align-items: center;
+}
+.gallery-page--compact .site-footer {
+  padding: 22px 0;
+}
+.site-header {
+  height: 76px;
+}
+.site-nav {
+  display: flex;
+  gap: 25px;
+}
+.site-nav a {
+  font-size: 13px;
+}
+.header-cta {
+  gap: 8px;
+  padding: 12px 15px;
+  font-size: 12px;
+}
+.site-footer {
+  padding: 30px 0;
+}
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+}
+.footer-logo {
+  font-size: 29px;
+}
+.footer-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 11px;
+}
+.footer-links span {
+  opacity: 0.6;
+}
+@media (max-width: 850px) {
+  .gallery-page--compact .hero {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 38px;
+  }
+  .gallery-page--compact .hero-title {
+    font-size: clamp(54px, 10vw, 80px);
+  }
+  .gallery-page--compact .window-scene {
+    height: 320px;
+  }
+}
+@media (max-width: 580px) {
+  .site-header {
+    height: 66px;
+  }
+  .site-nav {
+    display: flex;
+    gap: 12px;
+  }
+  .site-nav a {
+    font-size: 11px;
+  }
+  .header-cta {
+    padding: 9px 10px;
+    font-size: 10px;
+  }
+  .gallery-page--compact .hero-title {
+    font-size: clamp(50px, 13vw, 68px);
+  }
+  .gallery-page--compact .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 15px;
+  }
+  .gallery-page--compact .card-cover {
+    height: 190px;
+  }
+  .gallery-page--compact .window-scene {
+    height: 260px;
+    min-height: 260px;
+  }
+  .footer-inner {
+    flex-wrap: wrap;
+  }
+}
