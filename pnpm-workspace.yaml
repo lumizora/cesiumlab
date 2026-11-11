@@ -18,3 +18,8 @@ catalog:
   typescript: 5.9.3
   vite: 8.3.6
   vitest: 5.1.0
+
+# The official Astryx package ships prebuilt CSS/JS; no dependency install
+# scripts are required to consume its published React components.
+allowBuilds:
+  '@astryxdesign/core': false
