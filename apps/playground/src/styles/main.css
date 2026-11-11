@@ -1290,7 +1290,6 @@ code {
   }
 }
 
-
 /* 精简中文版首页：视觉示意 + 实验列表，不重复堆叠口号、统计或介绍。 */
 .gallery-page--compact .hero {
   grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);

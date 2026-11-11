@@ -24,7 +24,11 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 function Cover({ id }: { id: string }) {
   if (id === 'earth-network-convergence') {
-    return <div className="cover-scene"><FeaturedGlobe small /></div>;
+    return (
+      <div className="cover-scene">
+        <FeaturedGlobe small />
+      </div>
+    );
   }
   if (id === 'cesium-smoke-test') {
     return (
@@ -37,7 +41,11 @@ function Cover({ id }: { id: string }) {
   }
   return (
     <div className="archive-art">
-      <div className="archive-folder">视觉<br />参考</div>
+      <div className="archive-folder">
+        视觉
+        <br />
+        参考
+      </div>
     </div>
   );
 }
@@ -45,11 +53,14 @@ function Cover({ id }: { id: string }) {
 export default function GalleryView() {
   const [filter, setFilter] = useState<Filter>('all');
   const filtered = useMemo(
-    () => catalog.filter(({ metadata }) =>
-      filter === 'all' ? true :
-      filter === 'runnable' ? metadata.runtimeStatus === 'runnable' :
-      metadata.runtimeStatus !== 'runnable',
-    ),
+    () =>
+      catalog.filter(({ metadata }) =>
+        filter === 'all'
+          ? true
+          : filter === 'runnable'
+            ? metadata.runtimeStatus === 'runnable'
+            : metadata.runtimeStatus !== 'runnable',
+      ),
     [filter],
   );
 
@@ -58,7 +69,9 @@ export default function GalleryView() {
       <section className="hero page-shell" aria-labelledby="home-heading">
         <div className="hero-copy">
           <h1 id="home-heading">CesiumJS 视觉实验库</h1>
-          <p className="hero-title">让地球<span>动起来。</span></p>
+          <p className="hero-title">
+            让地球<span>动起来。</span>
+          </p>
           <p className="hero-description">探索基于 CesiumJS 的空间视觉特效。</p>
           <a
             className="y2k-action y2k-action--dark"
@@ -73,7 +86,10 @@ export default function GalleryView() {
         </div>
         <div className="hero-visual">
           <div className="featured-window">
-            <div className="window-top"><span>精选实验 · S2-001</span><span>✳</span></div>
+            <div className="window-top">
+              <span>精选实验 · S2-001</span>
+              <span>✳</span>
+            </div>
             <div className="window-scene">
               <FeaturedGlobe />
               <span className="scene-top">效果示意 · 非实时画面</span>
@@ -116,13 +132,22 @@ export default function GalleryView() {
             >
               <Card padding={0} elevation="none">
                 <div {...stylex.props(sx.cardInner)}>
-                  <a className="card-cover" href={experimentHref(m.id)} aria-label={'查看 ' + m.title + ' 详情'}>
+                  <a
+                    className="card-cover"
+                    href={experimentHref(m.id)}
+                    aria-label={'查看 ' + m.title + ' 详情'}
+                  >
                     <Cover id={m.id} />
-                    <span className="card-arrow" aria-hidden="true">↗</span>
+                    <span className="card-arrow" aria-hidden="true">
+                      ↗
+                    </span>
                   </a>
                   <div className="card-body">
                     <div {...stylex.props(sx.statuses)}>
-                      <StatusBadge label={RUNTIME_LABELS[m.runtimeStatus]} tone={runtimeTone(m.runtimeStatus)} />
+                      <StatusBadge
+                        label={RUNTIME_LABELS[m.runtimeStatus]}
+                        tone={runtimeTone(m.runtimeStatus)}
+                      />
                       {m.maturity === 'visual-approved' && (
                         <StatusBadge label={MATURITY_LABELS[m.maturity]} tone="ok" />
                       )}
@@ -132,7 +157,9 @@ export default function GalleryView() {
                     {m.maturity === 'visual-approved' && (
                       <p className="card-approved-note">S2-001 已通过用户视觉验收。</p>
                     )}
-                    <a className="card-link" href={experimentHref(m.id)}>查看详情 ↗</a>
+                    <a className="card-link" href={experimentHref(m.id)}>
+                      查看详情 ↗
+                    </a>
                   </div>
                 </div>
               </Card>
