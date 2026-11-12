@@ -173,3 +173,36 @@ test('public Playground gallery, direct URLs, switching and approved showcase', 
   expect(pageErrors).toEqual([]);
   expect(failedRequests).toEqual([]);
 });
+
+test('mobile S2-001 controls start collapsed and leave the Cesium map usable', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/?terrain-off#/experiments/earth-network-convergence');
+  await waitForScene(page);
+
+  const panel = page.getByTestId('earth-controls');
+  const toggle = panel.getByRole('button', { name: '调整参数' });
+  await expect(panel).toHaveAttribute('data-expanded', 'false');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(panel.locator('[data-control="routeSpeed"]')).toBeHidden();
+
+  const map = page.locator('.viewer-canvas');
+  const panelBounds = await panel.boundingBox();
+  const mapBounds = await map.boundingBox();
+  expect(panelBounds).not.toBeNull();
+  expect(mapBounds).not.toBeNull();
+  expect(panelBounds!.height).toBeLessThan(75);
+  expect(panelBounds!.width).toBeLessThanOrEqual(mapBounds!.width);
+
+  await toggle.click();
+  await expect(panel).toHaveAttribute('data-expanded', 'true');
+  await expect(panel.getByRole('button', { name: '收起参数' })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
+  await expect(panel.locator('[data-control="routeSpeed"]')).toBeVisible();
+
+  await panel.getByRole('button', { name: '收起参数' }).click();
+  await expect(panel).toHaveAttribute('data-expanded', 'false');
+  await expect(panel.locator('[data-control="routeSpeed"]')).toBeHidden();
+  await expect(page.locator('.viewer-canvas canvas')).toHaveCount(1);
+});
