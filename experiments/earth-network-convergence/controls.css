@@ -16,6 +16,26 @@
   max-height: calc(100% - 72px);
   overflow-y: auto;
   scrollbar-width: thin;
+  scrollbar-color: rgba(94, 234, 212, 0.35) transparent;
+}
+
+/* Soft 4px thumb, without the browser's bright scrollbar track. */
+.earth-controls::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.earth-controls::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.earth-controls::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(94, 234, 212, 0.35);
+}
+
+.earth-controls::-webkit-scrollbar-thumb:hover {
+  background: rgba(94, 234, 212, 0.65);
 }
 
 .earth-controls__header {
@@ -185,6 +205,15 @@
     overflow-y: auto;
     padding: 10px 12px;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  /* Keep touch scrolling, hide the native iOS/Android scrollbar. */
+  .earth-controls::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   .earth-controls[data-expanded='false'] {
