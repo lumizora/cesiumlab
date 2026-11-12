@@ -1,0 +1,63 @@
+name: Publish refined controls scrollbar (one-time)
+
+# User-approved PR #4 release. Only runs on the push that adds this file
+# immediately after the confirmed PR merge. Never deploys future pushes.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-scrollbar-once.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  verify-and-build:
+    if: github.event.before == '5c62349998eedf3c0146c210ac6549b55ef3f275'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install frozen dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Validate project
+        run: pnpm check
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Build for repository Pages
+        run: pnpm build:base
+        env:
+          DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_CESIUM_ION_TOKEN: ${{ vars.CESIUM_ION_TOKEN }}
+      - name: Verify public asset paths
+        working-directory: apps/playground
+        run: node scripts/check-dist.mjs dist-base "$DEPLOY_BASE_PATH"
+        env:
+          DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/playground/dist-base
+          retention-days: 30
+
+  deploy:
+    needs: verify-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy approved Pages build
+        id: deployment
+        uses: actions/deploy-pages@v4
