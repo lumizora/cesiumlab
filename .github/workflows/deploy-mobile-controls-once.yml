@@ -1,0 +1,64 @@
+name: Publish S2-001 mobile control fix (one-time)
+
+# Explicit release requested for merged PR #3.
+# This workflow triggers only when the file is added after the exact PR merge.
+# A subsequent removal or unrelated commit cannot redeploy the site.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-mobile-controls-once.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  verify-and-build:
+    if: github.event.before == 'db4579c9349740d21ef2b5983b5c55c90c83c237'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install frozen dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check project
+        run: pnpm check
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Build for repository Pages path
+        run: pnpm build:base
+        env:
+          DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_CESIUM_ION_TOKEN: ${{ vars.CESIUM_ION_TOKEN }}
+      - name: Verify public asset paths
+        working-directory: apps/playground
+        run: node scripts/check-dist.mjs dist-base "$DEPLOY_BASE_PATH"
+        env:
+          DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/playground/dist-base
+          retention-days: 30
+
+  deploy:
+    needs: verify-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy approved Pages build
+        id: deployment
+        uses: actions/deploy-pages@v4
