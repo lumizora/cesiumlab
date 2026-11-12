@@ -200,6 +200,18 @@ test('mobile S2-001 controls start collapsed and leave the Cesium map usable', a
     'true',
   );
   await expect(panel.locator('[data-control="routeSpeed"]')).toBeVisible();
+  expect(await panel.evaluate((element) => getComputedStyle(element).scrollbarWidth)).toBe('none');
+
+  const scrollState = await panel.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+    return {
+      scrollTop: element.scrollTop,
+      scrollHeight: element.scrollHeight,
+      clientHeight: element.clientHeight,
+    };
+  });
+  expect(scrollState.scrollHeight).toBeGreaterThan(scrollState.clientHeight);
+  expect(scrollState.scrollTop).toBeGreaterThan(0);
 
   await panel.getByRole('button', { name: '收起参数' }).click();
   await expect(panel).toHaveAttribute('data-expanded', 'false');
