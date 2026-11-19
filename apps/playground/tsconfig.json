@@ -1,22 +1,16 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "noEmit": true,
-    "types": ["vite/client", "node"]
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "types": [
+      "vite/client"
+    ]
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.vue",
-    "vite.config.ts",
-    "vite.base.config.ts",
-    "vite.shared.ts",
-    "vitest.config.ts",
-    "playwright.config.ts",
-    "playwright.base.config.ts",
-    "playwright.dev.config.ts",
-    "playwright.stage2.config.ts",
-    "playwright.stage4.config.ts",
-    "e2e/**/*.ts"
+    "src"
   ]
 }

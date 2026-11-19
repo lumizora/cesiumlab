@@ -1,43 +1,18 @@
 {
   "name": "@cesiumlab/playground",
-  "version": "0.0.0",
   "private": true,
-  "description": "React 19 + StyleX + Astryx Y2K CesiumJS visual playground.",
   "type": "module",
   "scripts": {
-    "prepare:cesium": "node scripts/sync-cesium.mjs",
-    "dev": "pnpm run prepare:cesium && vite",
-    "build": "pnpm run prepare:cesium && pnpm run typecheck && vite build",
-    "build:base": "pnpm run prepare:cesium && pnpm run typecheck && vite build -c vite.base.config.ts",
-    "check:dist": "node scripts/check-dist.mjs dist-base /cesiumlab/",
-    "preview": "vite preview",
-    "preview:base": "vite preview -c vite.base.config.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:e2e": "pnpm run build && playwright test",
-    "test:e2e:base": "pnpm run build:base && playwright test -c playwright.base.config.ts",
-    "test:e2e:dev": "playwright test -c playwright.dev.config.ts",
-    "test:e2e:stage2": "pnpm run build && playwright test -c playwright.stage2.config.ts",
-    "test:e2e:stage4": "pnpm run build && playwright test -c playwright.stage4.config.ts"
+    "dev": "node prepare-assets.mjs && vite --host 127.0.0.1 --port 5175 --strictPort",
+    "build": "node prepare-assets.mjs && tsc --noEmit && vite build --base ./",
+    "preview": "vite preview --host 127.0.0.1 --port 4175 --strictPort"
   },
   "dependencies": {
-    "@astryxdesign/core": "catalog:",
-    "@astryxdesign/theme-y2k": "catalog:",
-    "@stylexjs/stylex": "catalog:",
-    "cesium": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:"
+    "@cesiumlab/effects": "workspace:*",
+    "cesium": "1.147.0"
   },
   "devDependencies": {
-    "@playwright/test": "catalog:",
-    "@stylexjs/unplugin": "catalog:",
-    "@types/node": "catalog:",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "@vitejs/plugin-react": "catalog:",
-    "typescript": "catalog:",
-    "vite": "catalog:",
-    "vitest": "catalog:"
+    "typescript": "5.9.3",
+    "vite": "8.3.6"
   }
 }

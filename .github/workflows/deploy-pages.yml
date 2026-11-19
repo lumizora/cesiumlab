@@ -59,30 +59,24 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check project
-        run: pnpm check
+        run: pnpm test
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Build for repository Pages base path
-        run: pnpm build:base
-        env:
-          # GitHub Pages project sites live at /<repository>/.
-          DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
-          # Public client token only. If this repository variable is absent,
-          # the Playground falls back to local grid/ellipsoid imagery.
-          VITE_CESIUM_ION_TOKEN: ${{ vars.CESIUM_ION_TOKEN }}
+      - name: Build Playground
+        run: pnpm build
 
       - name: Verify public build artifact
         working-directory: apps/playground
-        run: node scripts/check-dist.mjs dist-base "$DEPLOY_BASE_PATH"
+        run: node scripts/check-dist.mjs dist "$DEPLOY_BASE_PATH"
         env:
           DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/playground/dist-base
+          path: apps/playground/dist
           retention-days: 30
 
   deploy:

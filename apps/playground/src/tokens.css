@@ -1,0 +1,26 @@
+/* Hallmark · scope: app · genre: modern-minimal · theme: console / graphite · v2.0.0 */
+/* Critique: Reserve amber for the play control and cool blue for code and the trace. */
+:root {
+  --paper: oklch(17% 0.008 250);
+  --panel: oklch(21% 0.009 250);
+  --code: oklch(13.5% 0.007 250);
+  --ink: oklch(95% 0.005 250);
+  --muted: oklch(74% 0.01 250);
+  --rule: oklch(32% 0.012 250);
+  --rule-strong: oklch(47% 0.015 250);
+  --accent: oklch(82% 0.15 80);
+  --accent-hover: oklch(88% 0.12 80);
+  --accent-ink: oklch(18% 0.04 75);
+  --cool: oklch(79% 0.12 245);
+  --scene: #080e16;
+  --font-body: system-ui, "Microsoft YaHei", sans-serif;
+  --font-code: ui-monospace, Consolas, monospace;
+  --space-1: 0.375rem;
+  --space-2: 0.625rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.25rem;
+  --gutter: clamp(1rem, 3vw, 3rem);
+  --radius: 0.625rem;
+  --radius-control: 0.375rem;
+}

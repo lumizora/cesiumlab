@@ -1,29 +1,63 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="light" data-astryx-theme="y2k">
+<html lang="zh-CN">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#CCCFFA" />
-    <meta
-      name="description"
-      content="cesiumlab — Visual-first CesiumJS experiments, live demos and creative WebGL effects."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800;900&display=swap"
-    />
-    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
-    <title>cesiumlab · Visual CesiumJS Lab</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="CesiumJS 飞线效果的实时演示与 npm API 用法。" />
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./src/style.css" />
+    <title>地球飞线 · Cesiumlab</title>
+    <script>window.CESIUM_BASE_URL = new URL('cesium-assets/', document.baseURI).href;</script>
   </head>
   <body>
-    <div id="app"></div>
-    <noscript
-      ><p style="padding: 24px; font-family: sans-serif">
-        cesiumlab requires JavaScript to run the CesiumJS playground.
-      </p></noscript
-    >
-    <script type="module" src="/src/main.tsx"></script>
+    <header class="masthead">
+      <div class="frame masthead-inner">
+        <span class="wordmark">Cesiumlab <span>Playground</span></span>
+        <a href="#api">使用示例</a>
+      </div>
+    </header>
+    <main class="frame">
+      <section class="intro" aria-labelledby="title">
+        <div>
+          <h1 id="title">地球飞线</h1>
+          <p>沿测地线抬升一条弧线，让光点在两地之间循环移动。</p>
+        </div>
+        <div class="actions">
+          <button id="play" class="primary" type="button" disabled>播放动画</button>
+          <button id="reset" type="button" disabled>复位视角</button>
+        </div>
+      </section>
+      <div class="workbench">
+        <figure class="map">
+          <div class="map-shell">
+            <div id="globe" role="region" aria-label="新加坡至东京的 CesiumJS 飞线场景"></div>
+            <p id="scene-status" class="scene-status" role="status" hidden>正在加载地球…</p>
+            <noscript><p class="scene-status">启用 JavaScript 后即可运行实时地球。</p></noscript>
+          </div>
+          <figcaption>
+            <strong>新加坡至东京</strong>
+            <span>拖动旋转，滚动缩放</span>
+          </figcaption>
+        </figure>
+        <section class="api" id="api" aria-labelledby="api-title">
+          <h2 id="api-title">使用示例</h2>
+          <p class="api-package"><code>@cesiumlab/effects</code></p>
+          <pre tabindex="0" aria-label="TypeScript 使用示例"><code><span class="keyword">import</span> { createFlowingArc }
+  <span class="keyword">from</span> '@cesiumlab/effects';
+
+<span class="keyword">const</span> arc = createFlowingArc(viewer, {
+  from: [103.82, 1.35],
+  to: [139.69, 35.68],
+  height: 430_000,
+  duration: 4,
+});
+
+// 离开场景时
+arc.destroy();</code></pre>
+          <p>传入已有的 <code>Viewer</code>。调用 <code>destroy()</code> 可移除飞线及光点。</p>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
