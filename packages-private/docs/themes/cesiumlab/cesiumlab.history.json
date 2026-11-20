@@ -1,0 +1,4 @@
+[
+  "{\n  \"name\": \"cesiumlab\",\n  \"like\": \"neutral\",\n  \"mode\": \"both\",\n  \"settings\": [],\n  \"lifted\": []\n}\n",
+  "{\n  \"name\": \"cesiumlab\",\n  \"like\": \"neutral\",\n  \"mode\": \"both\",\n  \"settings\": [\n    {\n      \"thing\": \"--color-background-body\",\n      \"value\": \"#ffffff\",\n      \"source\": \"token\",\n      \"mode\": \"light\"\n    }\n  ],\n  \"lifted\": []\n}\n"
+]

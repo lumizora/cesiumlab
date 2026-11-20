@@ -1,0 +1,20 @@
+{
+  "name": "cesiumlab",
+  "like": "neutral",
+  "mode": "both",
+  "settings": [
+    {
+      "thing": "--color-background-body",
+      "value": "#ffffff",
+      "source": "token",
+      "mode": "light"
+    },
+    {
+      "thing": "--color-background-body",
+      "value": "#0a0a0a",
+      "source": "token",
+      "mode": "dark"
+    }
+  ],
+  "lifted": []
+}
