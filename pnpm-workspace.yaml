@@ -1,3 +1,37 @@
 packages:
   - 'packages/*'
-  - 'apps/*'
+  - 'packages-private/*'
+
+catalogMode: prefer
+
+catalog:
+  '@astryxdesign/core': 0.7.16
+  '@astryxdesign/theme-neutral': 0.7.16
+  '@stylexjs/stylex': 0.19.2
+  '@tailwindcss/vite': 4.3.5
+  '@types/node': 24.19.2
+  '@types/react': 19.3.0
+  '@types/react-dom': 19.3.0
+  '@vitejs/plugin-react': 6.3.0
+  cesium: 1.147.0
+  react: 19.3.1
+  react-dom: 19.3.1
+  tailwindcss: 4.3.5
+  typescript: 5.9.3
+  vite: npm:@voidzero-dev/vite-plus-core@1.6.0
+  vite-plus: 1.6.0
+
+overrides:
+  'vite@*': npm:@voidzero-dev/vite-plus-core@1.6.0
+  'vitest@*': 5.1.0
+
+peerDependencyRules:
+  allowedVersions:
+    # Vite+ core uses its own version number for the bundled Vite 8.
+    'vitest>vite': 1.6.0
+    '@tailwindcss/vite>vite': 1.6.0
+    '@vitejs/plugin-react>vite': 1.6.0
+
+allowBuilds:
+  # The package ships prebuilt CSS and JS. Its postinstall only prints a CLI setup hint.
+  '@astryxdesign/core': false

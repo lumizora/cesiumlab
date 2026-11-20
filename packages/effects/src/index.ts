@@ -1,1 +1,1 @@
-export { createFlowingArc, type FlowingArcOptions } from './flowing-arc.js';
+export { createFlowingArc, type FlowingArcOptions } from './flowing-arc/index.ts';

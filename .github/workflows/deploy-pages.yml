@@ -1,4 +1,4 @@
-name: Deploy Playground to GitHub Pages
+name: Deploy API Docs to GitHub Pages
 
 # Manual only. There is intentionally no push-to-production trigger.
 on:
@@ -59,24 +59,21 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check project
+        run: pnpm check
+
+      - name: Test effects
         run: pnpm test
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Build Playground
+      - name: Build API docs
         run: pnpm build
-
-      - name: Verify public build artifact
-        working-directory: apps/playground
-        run: node scripts/check-dist.mjs dist "$DEPLOY_BASE_PATH"
-        env:
-          DEPLOY_BASE_PATH: /${{ github.event.repository.name }}/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/playground/dist
+          path: packages-private/docs/dist
           retention-days: 30
 
   deploy:

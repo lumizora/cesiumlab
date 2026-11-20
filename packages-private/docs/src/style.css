@@ -1,0 +1,85 @@
+@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import '@astryxdesign/core/reset.css';
+@import '@astryxdesign/core/astryx.css';
+@import '@astryxdesign/theme-neutral/theme.css';
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@theme {
+  --color-page: #fdfefe;
+  --color-panel: #fff;
+  --color-control: #eaf0f1;
+  --color-scene: #080e16;
+  --color-line: #e0e6e8;
+  --color-ink: #162226;
+  --color-muted: #52636a;
+  --color-accent: #176357;
+  --font-sans: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-mono: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-3 outline-accent;
+  }
+
+  ::selection {
+    @apply bg-accent text-page;
+  }
+
+  [id] {
+    scroll-margin-top: 2rem;
+  }
+
+  th,
+  td {
+    @apply px-4 py-3 align-top;
+  }
+
+  tbody td {
+    @apply text-muted;
+  }
+}
+
+@utility doc-link {
+  @apply text-muted underline-offset-4 hover:text-ink hover:underline;
+}
+
+@utility nav-link {
+  @apply block rounded-lg px-3 py-2 text-sm text-muted hover:bg-control hover:text-ink aria-[current=location]:bg-control aria-[current=location]:font-medium aria-[current=location]:text-ink;
+}
+
+@utility section-heading {
+  @apply mb-3 text-xl font-semibold tracking-tight sm:text-2xl;
+}
+
+@utility section-space {
+  @apply mt-10 border-t border-line pt-7 sm:mt-12 sm:pt-8;
+}
+
+@utility doc-prose {
+  @apply max-w-[70ch] text-sm leading-6 text-muted sm:text-base sm:leading-7;
+
+  code {
+    @apply rounded bg-panel px-1.5 py-0.5 text-[0.86em] text-ink;
+  }
+}
+
+.skip-link {
+  @apply sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:text-page;
+}
+
+.brand-mark {
+  @apply relative inline-block size-6 shrink-0 rounded-full border border-accent;
+}
+
+.brand-mark::after {
+  @apply absolute left-1/2 top-1/2 h-px w-7 -translate-x-1/2 -translate-y-1/2 -rotate-40 bg-accent;
+  content: '';
+}

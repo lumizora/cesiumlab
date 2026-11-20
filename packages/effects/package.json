@@ -2,6 +2,9 @@
   "name": "@cesiumlab/effects",
   "version": "0.1.0",
   "description": "Small CesiumJS effects.",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -9,18 +12,15 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "tsc",
-    "test": "pnpm build && node --test test/*.test.mjs"
+    "build": "vp build && tsc"
+  },
+  "devDependencies": {
+    "cesium": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
   },
   "peerDependencies": {
     "cesium": "~1.147.0"
-  },
-  "devDependencies": {
-    "cesium": "1.147.0",
-    "typescript": "5.9.3"
   }
 }

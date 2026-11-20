@@ -1,3 +1,5 @@
+import 'cesium/Build/Cesium/Widgets/widgets.css';
+
 import {
   buildModuleUrl,
   Cartesian3,
@@ -8,10 +10,15 @@ import {
 } from 'cesium';
 import { createFlowingArc } from '@cesiumlab/effects';
 
-export async function mountFlowingArc(container: HTMLElement, playing: boolean) {
+export async function mountFlowingArc(
+  container: HTMLElement,
+  playing: boolean,
+  signal: AbortSignal,
+) {
   const imagery = await TileMapServiceImageryProvider.fromUrl(
     buildModuleUrl('Assets/Textures/NaturalEarthII'),
   );
+  signal.throwIfAborted();
   const viewer = new Viewer(container, {
     animation: false,
     timeline: false,
@@ -40,7 +47,7 @@ export async function mountFlowingArc(container: HTMLElement, playing: boolean) 
     const resetCamera = () => {
       viewer.camera.setView({
         destination: Cartesian3.fromDegrees(138, 13, 6_700_000),
-        orientation: { heading: -Math.PI / 3, pitch: -Math.PI * 5 / 12, roll: 0 },
+        orientation: { heading: -Math.PI / 3, pitch: (-Math.PI * 5) / 12, roll: 0 },
       });
     };
     resetCamera();

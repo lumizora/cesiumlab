@@ -1,0 +1,29 @@
+{
+  "name": "@cesiumlab/docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev --host 127.0.0.1 --port 5175 --strictPort",
+    "build": "vp build",
+    "preview": "vp preview --host 127.0.0.1 --port 4175 --strictPort"
+  },
+  "dependencies": {
+    "@astryxdesign/core": "catalog:",
+    "@astryxdesign/theme-neutral": "catalog:",
+    "@cesiumlab/effects": "workspace:*",
+    "@stylexjs/stylex": "catalog:",
+    "cesium": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "tailwindcss": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}
