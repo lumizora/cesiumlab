@@ -1,15 +1,7 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "strict": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "rewriteRelativeImportExtensions": true,
-    "rootDir": "src",
-    "outDir": "dist",
-    "verbatimModuleSyntax": true,
-    "skipLibCheck": true
-  },
-  "include": ["src"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.build.json" },
+    { "path": "../../packages-private/docs/tsconfig.json" }
+  ]
 }

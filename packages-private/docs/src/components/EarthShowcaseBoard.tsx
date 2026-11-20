@@ -17,20 +17,21 @@ import { CodeBlock } from '@astryxdesign/core/CodeBlock';
 import { StatusDot } from '@astryxdesign/core/StatusDot';
 import { Play, Pause, Box } from 'lucide-react';
 import { themes, defaultThemeSlug } from '../astryx-themes';
+import { DEFAULT_DOC_PATH } from '../data/components';
 
 interface EarthShowcaseBoardProps {
-  onNavigateDocs: (docName?: string) => void;
+  onNavigateDocs: (path?: string) => void;
 }
 
 type WeatherMode = 'rain' | 'snow' | 'fog';
 
 const FEATURED_COMPONENTS = [
-  { label: 'Measurement 3D', doc: 'Volumetric Clouds' },
-  { label: 'Weather Effects', doc: 'Weather System' },
-  { label: 'Terrain Clip', doc: 'Atmospheric Scattering' },
-  { label: 'Camera Path', doc: 'Ocean Water' },
-  { label: 'Timeline Pro', doc: 'Sci-Fi Scanline' },
-  { label: 'Dynamic Path', doc: 'Bloom' },
+  { label: 'Measurement 3D', doc: DEFAULT_DOC_PATH },
+  { label: 'Weather Effects', doc: DEFAULT_DOC_PATH },
+  { label: 'Terrain Clip', doc: DEFAULT_DOC_PATH },
+  { label: 'Camera Path', doc: DEFAULT_DOC_PATH },
+  { label: 'Timeline Pro', doc: DEFAULT_DOC_PATH },
+  { label: 'Dynamic Path', doc: DEFAULT_DOC_PATH },
 ];
 
 export function EarthShowcaseBoard({ onNavigateDocs }: EarthShowcaseBoardProps) {

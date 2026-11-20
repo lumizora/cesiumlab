@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router';
 import { AppShell } from '@astryxdesign/core/AppShell';
 import { TopNav, TopNavHeading, TopNavItem } from '@astryxdesign/core/TopNav';
 import { Section } from '@astryxdesign/core/Section';
@@ -11,15 +12,20 @@ import { Icon } from '@astryxdesign/core/Icon';
 import { Sun, Moon, Github, ArrowRight } from 'lucide-react';
 import { CesiumLogo } from './CesiumLogo';
 import { EarthShowcaseBoard } from './EarthShowcaseBoard';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { DEFAULT_DOC_PATH } from '../data/components';
+import { useI18n } from '../lib/i18n';
 
 interface HomeViewProps {
   isDark: boolean;
   onToggleTheme: () => void;
   onOpenSearch: () => void;
-  onNavigateDocs: (docName?: string) => void;
 }
 
-export function HomeView({ isDark, onToggleTheme, onOpenSearch, onNavigateDocs }: HomeViewProps) {
+export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps) {
+  const { isZh } = useI18n();
+  const navigate = useNavigate();
+
   return (
     <AppShell
       height="auto"
@@ -32,20 +38,20 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch, onNavigateDocs }
             <TopNavHeading
               logo={<CesiumLogo size={28} />}
               heading="Cesiumlab"
-              headingHref="#home"
+              headingHref="/"
             />
           }
           centerContent={
             <HStack gap={1} vAlign="center">
               <TopNavItem
-                label="Docs"
-                href="#docs"
+                label={isZh ? '文档' : 'Docs'}
+                href="/docs/introduction"
                 as={({ children, className }) => (
                   <Button
-                    label="Docs"
+                    label={isZh ? '文档' : 'Docs'}
                     variant="ghost"
                     size="sm"
-                    onClick={() => onNavigateDocs('Introduction')}
+                    onClick={() => navigate('/docs/introduction')}
                     className={className}
                   >
                     {children}
@@ -53,14 +59,14 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch, onNavigateDocs }
                 )}
               />
               <TopNavItem
-                label="Components"
-                href="#components"
+                label={isZh ? '模块' : 'Modules'}
+                href={DEFAULT_DOC_PATH}
                 as={({ children, className }) => (
                   <Button
-                    label="Components"
+                    label={isZh ? '模块' : 'Modules'}
                     variant="ghost"
                     size="sm"
-                    onClick={() => onNavigateDocs('Volumetric Clouds')}
+                    onClick={() => navigate(DEFAULT_DOC_PATH)}
                     className={className}
                   >
                     {children}
@@ -72,16 +78,30 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch, onNavigateDocs }
           endContent={
             <HStack gap={1} vAlign="center">
               <IconButton
-                label="Search components"
-                tooltip="Search (Ctrl+K)"
+                label={isZh ? '搜索文档' : 'Search components'}
+                tooltip={isZh ? '搜索 (Ctrl+K)' : 'Search (Ctrl+K)'}
                 variant="ghost"
                 size="sm"
                 icon={<Icon icon="search" />}
-                onClick={onOpenSearch}
+                onClick={(e) => {
+                  if (e.detail > 0) e.currentTarget.blur();
+                  onOpenSearch();
+                }}
               />
+              <LanguageSwitcher />
               <IconButton
-                label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                tooltip={isDark ? 'Light mode' : 'Dark mode'}
+                label={
+                  isZh
+                    ? isDark
+                      ? '切换到浅色模式'
+                      : '切换到深色模式'
+                    : isDark
+                      ? 'Switch to light mode'
+                      : 'Switch to dark mode'
+                }
+                tooltip={
+                  isZh ? (isDark ? '浅色模式' : '深色模式') : isDark ? 'Light mode' : 'Dark mode'
+                }
                 variant="ghost"
                 size="sm"
                 icon={<Icon icon={isDark ? Sun : Moon} />}
@@ -92,7 +112,7 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch, onNavigateDocs }
                 variant="ghost"
                 size="sm"
                 icon={<Icon icon={Github} />}
-                onClick={() => onNavigateDocs('Volumetric Clouds')}
+                onClick={() => navigate(DEFAULT_DOC_PATH)}
               />
             </HStack>
           }
@@ -104,30 +124,33 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch, onNavigateDocs }
           <VStack gap={8} hAlign="center">
             <VStack gap={4} hAlign="center" maxWidth={760}>
               <Heading level={1} type="display-1" justify="center" textWrap="balance">
-                Interactive 3D geospatial components, in a new dimension.
+                {isZh
+                  ? '面向 CesiumJS 的模块化三维地理空间能力库'
+                  : 'Modular 3D geospatial packages for CesiumJS.'}
               </Heading>
               <Text type="large" color="secondary" justify="center" textWrap="pretty">
-                An open source library of rich, customizable UI overlays and visual effects for
-                CesiumJS. Framework agnostic, performant, and ready to deploy.
+                {isZh
+                  ? '面向 CesiumJS 的开源模块化工具与能力集合，涵盖视觉特效、空间分析与交互扩展。框架无关、类型完备、按需引入。'
+                  : 'An open-source collection of framework-agnostic packages for CesiumJS — from visual effects to spatial utilities and interactive modules. Typed, composable, and ready to ship.'}
               </Text>
               <HStack gap={3} hAlign="center" paddingBlockStart={2}>
                 <Button
-                  label="Get started"
+                  label={isZh ? '快速开始' : 'Get started'}
                   variant="primary"
                   size="lg"
                   endContent={<Icon icon={ArrowRight} />}
-                  onClick={() => onNavigateDocs('Volumetric Clouds')}
+                  onClick={() => navigate('/docs/introduction')}
                 />
                 <Button
-                  label="Browse components"
+                  label={isZh ? '浏览模块' : 'Explore modules'}
                   variant="secondary"
                   size="lg"
-                  onClick={() => onNavigateDocs('Volumetric Clouds')}
+                  onClick={() => navigate(DEFAULT_DOC_PATH)}
                 />
               </HStack>
             </VStack>
 
-            <EarthShowcaseBoard onNavigateDocs={onNavigateDocs} />
+            <EarthShowcaseBoard onNavigateDocs={(path) => navigate(path ?? DEFAULT_DOC_PATH)} />
           </VStack>
         </Section>
       </VStack>

@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useState, type AnchorHTMLAttributes } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { AppShell } from '@astryxdesign/core/AppShell';
 import { TopNav } from '@astryxdesign/core/TopNav';
 import {
@@ -13,41 +14,39 @@ import { Section } from '@astryxdesign/core/Section';
 import { VStack } from '@astryxdesign/core/VStack';
 import { HStack } from '@astryxdesign/core/HStack';
 import { StackItem } from '@astryxdesign/core/Stack';
-import { Card } from '@astryxdesign/core/Card';
-import { Heading } from '@astryxdesign/core/Heading';
 import { Text } from '@astryxdesign/core/Text';
 import { Button } from '@astryxdesign/core/Button';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Icon } from '@astryxdesign/core/Icon';
-import { CodeBlock } from '@astryxdesign/core/CodeBlock';
-import { Code } from '@astryxdesign/core/Code';
 import { Divider } from '@astryxdesign/core/Divider';
 import { StatusDot } from '@astryxdesign/core/StatusDot';
-import { useClipboard } from '@astryxdesign/core/hooks';
 import { Sun, Moon, Github, PanelLeft } from 'lucide-react';
-import { NAV_ITEMS, getComponentDoc } from '../data/components';
+import { NAV_ITEMS } from '../data/components';
+import { useI18n } from '../lib/i18n';
 import { CesiumLogo } from './CesiumLogo';
-import { VolumetricCloudStage } from './VolumetricCloudStage';
+import { LanguageSwitcher } from './LanguageSwitcher';
+
+const SECTION_LABELS_ZH: Record<string, string> = {
+  'Getting Started': '快速开始',
+  'Visual Effects': '视觉特效',
+};
+
+const DOC_LABELS_ZH: Record<string, string> = {
+  Introduction: '介绍',
+  Installation: '安装',
+  'Flowing Arc': '飞线 (Flowing Arc)',
+};
 
 interface DocsViewProps {
   isDark: boolean;
-  activeDoc: string;
-  onSelectDoc: (docName: string) => void;
   onToggleTheme: () => void;
   onOpenSearch: () => void;
-  onNavigateHome: () => void;
 }
 
-export function DocsView({
-  isDark,
-  activeDoc,
-  onSelectDoc,
-  onToggleTheme,
-  onOpenSearch,
-  onNavigateHome,
-}: DocsViewProps) {
-  const doc = getComponentDoc(activeDoc);
-  const { isCopied: copiedAi, copy: copyAi } = useClipboard();
+export function DocsView({ isDark, onToggleTheme, onOpenSearch }: DocsViewProps) {
+  const { isZh } = useI18n();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isSideNavCollapsed, setIsSideNavCollapsed] = useState(false);
   const [isCollapsedBrandHovered, setIsCollapsedBrandHovered] = useState(false);
 
@@ -74,7 +73,7 @@ export function DocsView({
             onClick={(e) => {
               if (href === '#home') {
                 e.preventDefault();
-                onNavigateHome();
+                void navigate('/');
               } else if (href === '#expand') {
                 e.preventDefault();
                 setIsCollapsedBrandHovered(false);
@@ -88,13 +87,8 @@ export function DocsView({
           </a>
         );
       },
-    [onNavigateHome],
+    [navigate],
   );
-
-  const handleCopyForAi = () => {
-    const markdown = `# ${doc.title}\n\n${doc.description}\n\n## Install\n\`\`\`bash\n${doc.installCmd}\n\`\`\`\n\n## Code\n\`\`\`tsx\n${doc.codeSnippet}\n\`\`\``;
-    void copyAi(markdown);
-  };
 
   return (
     <AppShell
@@ -107,16 +101,30 @@ export function DocsView({
           endContent={
             <HStack gap={1} vAlign="center">
               <IconButton
-                label="Search documentation"
-                tooltip="Search (Ctrl+K)"
+                label={isZh ? '搜索文档' : 'Search documentation'}
+                tooltip={isZh ? '搜索 (Ctrl+K)' : 'Search (Ctrl+K)'}
                 variant="ghost"
                 size="sm"
                 icon={<Icon icon="search" />}
-                onClick={onOpenSearch}
+                onClick={(e) => {
+                  if (e.detail > 0) e.currentTarget.blur();
+                  onOpenSearch();
+                }}
               />
+              <LanguageSwitcher />
               <IconButton
-                label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                tooltip={isDark ? 'Light mode' : 'Dark mode'}
+                label={
+                  isZh
+                    ? isDark
+                      ? '切换到浅色模式'
+                      : '切换到深色模式'
+                    : isDark
+                      ? 'Switch to light mode'
+                      : 'Switch to dark mode'
+                }
+                tooltip={
+                  isZh ? (isDark ? '浅色模式' : '深色模式') : isDark ? 'Light mode' : 'Dark mode'
+                }
                 variant="ghost"
                 size="sm"
                 icon={<Icon icon={isDark ? Sun : Moon} />}
@@ -127,7 +135,7 @@ export function DocsView({
                 variant="ghost"
                 size="sm"
                 icon={<Icon icon={Github} />}
-                onClick={onNavigateHome}
+                onClick={() => void navigate('/')}
               />
             </HStack>
           }
@@ -178,7 +186,7 @@ export function DocsView({
             <Fragment key={group.section}>
               {groupIdx > 0 && <Divider />}
               <SideNavSection
-                title={group.section}
+                title={isZh ? (SECTION_LABELS_ZH[group.section] ?? group.section) : group.section}
                 endContent={
                   group.count !== undefined ? (
                     <Text type="supporting" size="xsm" hasTabularNumbers>
@@ -189,11 +197,11 @@ export function DocsView({
               >
                 {group.items.map((item) => (
                   <SideNavItem
-                    key={item.name}
-                    label={item.name}
+                    key={item.path}
+                    label={isZh ? (DOC_LABELS_ZH[item.name] ?? item.name) : item.name}
                     size="sm"
-                    isSelected={activeDoc === item.name}
-                    onClick={() => onSelectDoc(item.name)}
+                    isSelected={location.pathname === item.path}
+                    onClick={() => void navigate(item.path)}
                     endContent={
                       item.isNew ? <StatusDot variant="accent" label="New component" /> : undefined
                     }
@@ -207,112 +215,7 @@ export function DocsView({
     >
       <VStack hAlign="center" width="100%" paddingBlock={6}>
         <Section maxWidth={896} width="100%" variant="transparent" padding={0}>
-          <VStack gap={8}>
-            {/* Header Section */}
-            <VStack gap={3}>
-              <HStack hAlign="between" vAlign="start" gap={4} wrap="wrap">
-                <Heading level={1} textWrap="balance">
-                  {doc.title}
-                </Heading>
-                <Button
-                  label={copiedAi ? 'Copied' : 'Copy page'}
-                  variant="secondary"
-                  size="sm"
-                  icon={copiedAi ? <Icon icon="check" /> : undefined}
-                  onClick={handleCopyForAi}
-                />
-              </HStack>
-              <Text type="body" color="secondary">
-                {doc.description}
-              </Text>
-            </VStack>
-
-            {/* 核心演示舞台 (Hero Stage) */}
-            <VolumetricCloudStage title={doc.title} />
-
-            {/* 安装配置区 (Install) */}
-            <VStack gap={4}>
-              <Heading level={2}>Install</Heading>
-              <Text type="body" color="secondary">
-                Add the component to your project using the CLI. It will automatically handle
-                dependencies and shader files.
-              </Text>
-              <CodeBlock code={doc.installCmd} language="bash" width="100%" />
-
-              <VStack gap={3} paddingBlockStart={4}>
-                <Heading level={3}>Dependencies</Heading>
-                <Text type="body" color="secondary">
-                  The install command above adds these automatically. If you copy the source by
-                  hand, install them yourself.
-                </Text>
-                <CodeBlock
-                  code={doc.dependencies.join('\n')}
-                  language="bash"
-                  hasLanguageLabel={false}
-                  width="100%"
-                />
-              </VStack>
-            </VStack>
-
-            {/* Code Section */}
-            <VStack gap={4}>
-              <Heading level={2}>Code</Heading>
-              <CodeBlock code={doc.codeSnippet} language="tsx" width="100%" />
-            </VStack>
-
-            {/* API Reference Section */}
-            <VStack gap={2} paddingBlockEnd={8}>
-              <Heading level={2}>API reference</Heading>
-
-              {/* 表头行（无下划线） */}
-              <HStack paddingInline={4} paddingBlock={2} gap={4} vAlign="center">
-                <StackItem size="fill">
-                  <Text type="label" color="secondary">
-                    Property
-                  </Text>
-                </StackItem>
-                <HStack width={120} vAlign="center">
-                  <Text type="label" color="secondary">
-                    Type
-                  </Text>
-                </HStack>
-                <HStack width={100} vAlign="center">
-                  <Text type="label" color="secondary">
-                    Default
-                  </Text>
-                </HStack>
-              </HStack>
-
-              {/* 属性列表卡片 */}
-              <Card padding={0} width="100%">
-                <VStack gap={0}>
-                  {doc.apiReference.map((prop, idx) => (
-                    <Fragment key={prop.property}>
-                      {idx > 0 && <Divider />}
-                      <VStack gap={2} padding={4}>
-                        <HStack gap={4} vAlign="center">
-                          <StackItem size="fill">
-                            <Text type="code" weight="semibold">
-                              {prop.property}
-                            </Text>
-                          </StackItem>
-                          <HStack width={120} vAlign="center">
-                            <Code color="secondary">{prop.type}</Code>
-                          </HStack>
-                          <HStack width={100} vAlign="center">
-                            <Code color="secondary">{prop.defaultValue}</Code>
-                          </HStack>
-                        </HStack>
-                        <Text type="body" color="secondary">
-                          {prop.description}
-                        </Text>
-                      </VStack>
-                    </Fragment>
-                  ))}
-                </VStack>
-              </Card>
-            </VStack>
-          </VStack>
+          <Outlet />
         </Section>
       </VStack>
     </AppShell>

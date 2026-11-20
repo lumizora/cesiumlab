@@ -74,8 +74,48 @@ function cesiumAssets(): Plugin {
   };
 }
 
+const DOCS_ROOT = fileURLToPath(new URL('./src', import.meta.url));
+const DOCS_ENTRY = fileURLToPath(new URL('./src/main.tsx', import.meta.url));
+const EFFECTS_ENTRY = fileURLToPath(
+  new URL('../../packages/effects/src/index.ts', import.meta.url),
+);
+const PACKAGES_MARKER = '/packages/';
+
+function resolveEffectDemoImports(): Plugin {
+  return {
+    name: 'resolve-effect-demo-imports',
+    async resolveId(source, importer, options) {
+      if (
+        !importer ||
+        source.startsWith('.') ||
+        source.startsWith('/') ||
+        source.startsWith('\0') ||
+        source.startsWith('@docs/') ||
+        source.startsWith('@cesiumlab/')
+      ) {
+        return null;
+      }
+      const normalizedImporter = importer.replaceAll('\\', '/');
+      if (
+        !normalizedImporter.includes(PACKAGES_MARKER) ||
+        !normalizedImporter.includes('/src/') ||
+        !normalizedImporter.includes('/demos/')
+      ) {
+        return null;
+      }
+      return this.resolve(source, DOCS_ENTRY, { ...options, skipSelf: true });
+    },
+  };
+}
+
 export default defineConfig(({ command }) => ({
-  base: './',
-  plugins: [react(), tailwindcss(), cesiumAssets()],
-  resolve: { tsconfigPaths: command === 'serve' },
+  base: '/',
+  envPrefix: ['VITE_', 'CESIUM_'],
+  plugins: [resolveEffectDemoImports(), react(), tailwindcss(), cesiumAssets()],
+  resolve: {
+    alias: {
+      '@docs': DOCS_ROOT,
+      ...(command === 'serve' ? { '@cesiumlab/effects': EFFECTS_ENTRY } : {}),
+    },
+  },
 }));

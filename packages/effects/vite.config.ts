@@ -1,16 +1,16 @@
 import { defineConfig } from 'vite-plus';
 
 export default defineConfig({
-  build: {
+  pack: {
+    entry: ['src/index.ts'],
+    format: ['esm'],
     target: 'es2022',
-    minify: false,
-    lib: {
-      entry: 'src/index.ts',
-      formats: ['es'],
-      fileName: 'index',
-    },
-    rolldownOptions: {
-      external: ['cesium'],
+    platform: 'browser',
+    dts: true,
+    clean: true,
+    tsconfig: './tsconfig.build.json',
+    deps: {
+      neverBundle: ['cesium'],
     },
   },
 });

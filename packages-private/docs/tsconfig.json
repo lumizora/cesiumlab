@@ -11,8 +11,13 @@
     "skipLibCheck": true,
     "types": ["vite/client", "node"],
     "paths": {
-      "@cesiumlab/effects": ["../../packages/effects/src/index.ts"]
+      "@cesiumlab/effects": ["../../packages/effects/src/index.ts"],
+      "@docs/*": ["./src/*"],
+      "react": ["./node_modules/@types/react/index.d.ts"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "@astryxdesign/core": ["./node_modules/@astryxdesign/core/dist/index.d.ts"],
+      "lucide-react": ["./node_modules/lucide-react/dist/lucide-react.d.ts"]
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts", "../../packages/*/src/**/demos/**/*"]
 }
