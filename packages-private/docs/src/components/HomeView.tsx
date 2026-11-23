@@ -153,9 +153,7 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps)
                 label={isZh ? '快速开始' : 'Get started'}
                 variant="primary"
                 size="lg"
-                endContent={
-                  <Icon icon={ArrowRight} size="sm" />
-                }
+                endContent={<Icon icon={ArrowRight} size="sm" />}
                 onClick={() => void navigate('/docs/introduction')}
               />
               <CodeBlock code={INSTALL_CMD} language="bash" size="sm" hasLanguageLabel={false} />

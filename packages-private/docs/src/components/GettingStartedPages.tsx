@@ -9,7 +9,18 @@ import { Button } from '@astryxdesign/core/Button';
 import { Icon } from '@astryxdesign/core/Icon';
 import { CodeBlock } from '@astryxdesign/core/CodeBlock';
 import { Code } from '@astryxdesign/core/Code';
-import { ArrowRight, Cpu, Layers, Package, Radio, Sparkles, Zap } from 'lucide-react';
+import {
+  ArrowRight,
+  Cpu,
+  Globe,
+  Layers,
+  Package,
+  Radar,
+  Radio,
+  Shield,
+  Sparkles,
+  Zap,
+} from 'lucide-react';
 import { MODULE_CATALOG } from '../data/catalog';
 import { useDocsPageMarkdown } from '../lib/docsPage';
 import { useI18n } from '../lib/i18n';
@@ -36,6 +47,9 @@ const MODULE_ICONS = {
   'comet-arc': Sparkles,
   'pulse-ring': Radio,
   'energy-beam': Zap,
+  'energy-wall': Shield,
+  'radar-scan': Radar,
+  'holo-dome': Globe,
 } as const;
 
 export function IntroductionPage() {

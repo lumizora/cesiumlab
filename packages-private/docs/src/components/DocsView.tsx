@@ -36,6 +36,9 @@ const DOC_LABELS_ZH: Record<string, string> = {
   'Comet Arc': '拖尾飞线 (Comet Arc)',
   'Pulse Ring': '扩散波纹 (Pulse Ring)',
   'Energy Beam': '全息光束 (Energy Beam)',
+  'Energy Wall': '流光电子围栏 (Energy Wall)',
+  'Radar Scan': '雷达扫描扇面 (Radar Scan)',
+  'Holo Dome': '全息能量穹顶 (Holo Dome)',
 };
 
 interface DocsViewProps {

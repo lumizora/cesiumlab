@@ -7,6 +7,9 @@
 - **`createCometArc`**：单 `Primitive` GPU 着色器驱动的三维测地线彗星飞线，融合双层底弧、横向收尖渐隐拖尾、无缝炽白光头、同轨多光流（`cometCount`）与 `onArrive` 抵达回调。
 - **`createPulseRing`**：单张 ENU 切平面 `Primitive` + 自定义 GLSL 雷达波纹着色器，具备锐利前沿与向内渐隐尾迹，支持循环（`mode: 'loop'`）与事件触发强脉冲（`mode: 'trigger'` + `trigger()`）。
 - **`createEnergyBeam`**：双层无封口锥形圆柱网格 + 自定义 GLSL 菲涅尔（Fresnel）体积着色器构建的连续三维全息光束，带上升能量波纹、顶部指数消散与镂空双环底座。
+- **`createEnergyWall`**：单 `Primitive` 立体流光电子围栏，支持任意多边形或折线路径（自动闭合 / 开放），带上升能量扫描波与底部高光边界。
+- **`createRadarScan`**：单张 ENU 切平面极坐标雷达扫描扇面，融合锐利前锋光束、指数衰减余晖、同心测距环与十字准星刻度。
+- **`createHoloDome`**：三维无底半球能量护盾，基于自定义 GLSL 菲涅尔边缘辉光、程序化六边形蜂巢网格与纬向能量扫描光带。
 
 ## 快速开始
 

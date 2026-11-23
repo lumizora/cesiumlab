@@ -43,6 +43,39 @@ export const MODULE_CATALOG: readonly ModuleCatalogItem[] = [
       'Dual open-ended cylinder shells with Fresnel edge falloff, rising energy bands, and a hollow ground ring.',
     summaryZh: '双层无封口锥形圆柱与菲涅尔体积着色器，带上升能量波纹与镂空双环底座。',
   },
+  {
+    id: 'energy-wall',
+    path: '/docs/energy-wall',
+    section: 'Visual Effects',
+    titleEn: 'Energy Wall',
+    titleZh: '流光电子围栏',
+    tag: 'Polygon Fence · GLSL',
+    summaryEn:
+      'Luminous vertical energy fence along any polygon or polyline with rising energy waves and grounded base glow.',
+    summaryZh: '沿任意多边形或折线路径伸展的立体流光围栏，带上升能量扫描波与底部高光边界。',
+  },
+  {
+    id: 'radar-scan',
+    path: '/docs/radar-scan',
+    section: 'Visual Effects',
+    titleEn: 'Radar Scan',
+    titleZh: '雷达扫描扇面',
+    tag: 'Polar Sweep · GLSL',
+    summaryEn:
+      'Rotating ENU radar sweep with a sharp leading beam, exponential afterglow sector, and concentric range rings.',
+    summaryZh: 'ENU 切平面旋转雷达扫描扇面，具备锐利前锋光束、指数余晖与同心测距刻度环。',
+  },
+  {
+    id: 'holo-dome',
+    path: '/docs/holo-dome',
+    section: 'Visual Effects',
+    titleEn: 'Holo Dome',
+    titleZh: '全息能量穹顶',
+    tag: '3D Hex Shield · GLSL',
+    summaryEn:
+      '3D hemisphere energy shield with Fresnel rim glow, procedural hexagonal honeycomb mesh, and latitude scan band.',
+    summaryZh: '三维半球能量护盾，融合菲涅尔轮廓辉光、程序化六边形蜂巢网格与纬向扫描光带。',
+  },
 ];
 
 export const DEFAULT_MODULE_PATH = MODULE_CATALOG[0]?.path ?? '/docs/introduction';
