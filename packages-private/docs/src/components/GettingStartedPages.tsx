@@ -17,6 +17,7 @@ import {
   Package,
   Radar,
   Radio,
+  Route,
   Shield,
   Sparkles,
   Zap,
@@ -50,6 +51,7 @@ const MODULE_ICONS = {
   'energy-wall': Shield,
   'radar-scan': Radar,
   'holo-dome': Globe,
+  'ground-flow-path': Route,
 } as const;
 
 export function IntroductionPage() {

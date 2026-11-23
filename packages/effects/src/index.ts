@@ -40,6 +40,12 @@ export {
   type HoloDomeOptions,
   type HoloDomeUpdateOptions,
 } from './holo-dome/index.ts';
+export {
+  createGroundFlowPath,
+  type GroundFlowPathHandle,
+  type GroundFlowPathOptions,
+  type GroundFlowPathUpdateOptions,
+} from './ground-flow-path/index.ts';
 
 export type { EffectBaseOptions, EffectHandle } from './shared/effect.ts';
 export type { ColorInput, LngLat } from './shared/geo.ts';

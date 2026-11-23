@@ -1,9 +1,11 @@
-import { Ellipsoid, type Primitive, type Viewer } from 'cesium';
+import * as Cesium from 'cesium';
+import { Ellipsoid, type GroundPolylinePrimitive, type Primitive, type Viewer } from 'cesium';
 import { describe, expect, it } from 'vite-plus/test';
 import {
   createCometArc,
   createEnergyBeam,
   createEnergyWall,
+  createGroundFlowPath,
   createHoloDome,
   createPulseRing,
   createRadarScan,
@@ -26,9 +28,20 @@ if (typeof globalThis.ImageBitmap === 'undefined') {
 if (typeof globalThis.OffscreenCanvas === 'undefined') {
   globalThis.OffscreenCanvas = class {} as unknown as typeof OffscreenCanvas;
 }
+// GroundPolylinePrimitive validates RenderState.lineWidth against WebGL ContextLimits.
+const contextLimits = (
+  Cesium as unknown as {
+    ContextLimits?: { _minimumAliasedLineWidth?: number; _maximumAliasedLineWidth?: number };
+  }
+).ContextLimits;
+if (contextLimits && (contextLimits._maximumAliasedLineWidth ?? 0) < 1) {
+  contextLimits._minimumAliasedLineWidth = 1;
+  contextLimits._maximumAliasedLineWidth = 1;
+}
 
 function createMockViewer() {
   const primitives: Primitive[] = [];
+  const groundPrimitives: GroundPolylinePrimitive[] = [];
   const preRenderListeners = new Set<() => void>();
   let destroyed = false;
 
@@ -49,6 +62,17 @@ function createMockViewer() {
           return index !== -1;
         },
       },
+      groundPrimitives: {
+        add(primitive: GroundPolylinePrimitive) {
+          groundPrimitives.push(primitive);
+          return primitive;
+        },
+        remove(primitive: GroundPolylinePrimitive) {
+          const index = groundPrimitives.indexOf(primitive);
+          if (index !== -1) groundPrimitives.splice(index, 1);
+          return index !== -1;
+        },
+      },
       preRender: {
         addEventListener(callback: () => void) {
           preRenderListeners.add(callback);
@@ -64,6 +88,7 @@ function createMockViewer() {
   return {
     viewer,
     primitives,
+    groundPrimitives,
     preRenderListeners,
     markDestroyed() {
       destroyed = true;
@@ -227,6 +252,12 @@ describe('createEnergyBeam', () => {
       }),
       createRadarScan(mock.viewer, { position: [121.47, 31.23] }),
       createHoloDome(mock.viewer, { position: [121.47, 31.23] }),
+      createGroundFlowPath(mock.viewer, {
+        positions: [
+          [103.62, 30.98],
+          [104.07, 30.66],
+        ],
+      }),
     ];
 
     for (const effect of effects) {
@@ -234,12 +265,14 @@ describe('createEnergyBeam', () => {
       expect(effect.isVisible()).toBe(false);
     }
     expect(mock.primitives.every((p) => p.show === false)).toBe(true);
+    expect(mock.groundPrimitives.every((p) => p.show === false)).toBe(true);
 
     for (const effect of effects) {
       effect.destroy();
       expect(effect.isDestroyed()).toBe(true);
     }
     expect(mock.primitives.length).toBe(0);
+    expect(mock.groundPrimitives.length).toBe(0);
   });
 });
 
@@ -377,5 +410,56 @@ describe('createHoloDome', () => {
     expect(mock.primitives.length).toBe(0);
     expect(mock.preRenderListeners.size).toBe(0);
     expect(() => dome.destroy()).not.toThrow();
+  });
+});
+
+describe('createGroundFlowPath', () => {
+  it('adds a GroundPolylinePrimitive to groundPrimitives, supports live updates, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const path = createGroundFlowPath(mock.viewer, {
+      positions: [
+        [103.62, 30.98],
+        [104.07, 30.66],
+        [104.62, 30.42],
+      ],
+      width: 12,
+      show: false,
+    });
+
+    expect(mock.groundPrimitives.length).toBe(1);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(path.isVisible()).toBe(false);
+    expect(mock.groundPrimitives[0]?.show).toBe(false);
+
+    path.show();
+    expect(path.isVisible()).toBe(true);
+    expect(mock.groundPrimitives[0]?.show).toBe(true);
+
+    path.update({
+      color: '#38bdf8',
+      speed: 1.8,
+      pulseCount: 5,
+      trailLength: 0.65,
+      baseOpacity: 0.5,
+      brightness: 1.3,
+      reverse: true,
+    });
+    mock.tick();
+    path.restart();
+    path.setPaused(true);
+    expect(path.isPaused()).toBe(true);
+
+    path.destroy();
+    expect(path.isDestroyed()).toBe(true);
+    expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => path.destroy()).not.toThrow();
+  });
+
+  it('rejects fewer than two path positions', () => {
+    const mock = createMockViewer();
+    expect(() => createGroundFlowPath(mock.viewer, { positions: [[104.07, 30.66]] })).toThrow(
+      RangeError,
+    );
   });
 });

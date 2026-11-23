@@ -10,6 +10,7 @@
 - **`createEnergyWall`**：单 `Primitive` 立体流光电子围栏，支持任意多边形或折线路径（自动闭合 / 开放），带上升能量扫描波与底部高光边界。
 - **`createRadarScan`**：单张 ENU 切平面极坐标雷达扫描扇面，融合锐利前锋光束、指数衰减余晖、同心测距环与十字准星刻度。
 - **`createHoloDome`**：三维无底半球能量护盾，基于自定义 GLSL 菲涅尔边缘辉光、程序化六边形蜂巢网格与纬向能量扫描光带。
+- **`createGroundFlowPath`**：基于 `GroundPolylinePrimitive` 与自定义 GLSL 的贴地流光路径，自动贴合起伏地形与 3D Tiles 表面，融合双层发光底路、错位脉冲与收尖渐隐拖尾。
 
 ## 快速开始
 

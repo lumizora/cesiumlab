@@ -39,6 +39,7 @@ const DOC_LABELS_ZH: Record<string, string> = {
   'Energy Wall': '流光电子围栏 (Energy Wall)',
   'Radar Scan': '雷达扫描扇面 (Radar Scan)',
   'Holo Dome': '全息能量穹顶 (Holo Dome)',
+  'Ground Flow Path': '贴地流光路径 (Ground Flow Path)',
 };
 
 interface DocsViewProps {

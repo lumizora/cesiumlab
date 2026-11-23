@@ -1,4 +1,4 @@
-import type { Primitive, Viewer } from 'cesium';
+import type { GroundPolylinePrimitive, Primitive, PrimitiveCollection, Viewer } from 'cesium';
 import type { AnimationClock } from './clock.ts';
 
 export interface EffectBaseOptions {
@@ -31,10 +31,13 @@ export interface EffectHandle<TUpdateOptions = Record<string, never>> {
   destroy(): void;
 }
 
+type ManagedPrimitive = Primitive | GroundPolylinePrimitive;
+
 interface PrimitiveEffectLifecycleConfig<TUpdateOptions> {
   viewer: Viewer;
   clock: AnimationClock;
-  getPrimitives: () => readonly Primitive[];
+  getPrimitives: () => readonly ManagedPrimitive[];
+  collection?: PrimitiveCollection;
   initialShow?: boolean;
   onUpdate: (options: TUpdateOptions) => void;
   onRestart?: () => void;
@@ -49,6 +52,7 @@ export function createPrimitiveEffectHandle<TUpdateOptions>(
   config: PrimitiveEffectLifecycleConfig<TUpdateOptions>,
 ): EffectHandle<TUpdateOptions> {
   const { viewer, clock, getPrimitives, onUpdate, onRestart, onDestroy } = config;
+  const collection = config.collection ?? viewer.scene.primitives;
   let visible = config.initialShow ?? true;
   let destroyed = false;
 
@@ -105,7 +109,7 @@ export function createPrimitiveEffectHandle<TUpdateOptions>(
       onDestroy?.();
       if (!viewer.isDestroyed()) {
         for (const primitive of getPrimitives()) {
-          viewer.scene.primitives.remove(primitive);
+          collection.remove(primitive);
         }
       }
     },

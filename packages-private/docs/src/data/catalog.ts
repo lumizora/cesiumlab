@@ -76,6 +76,17 @@ export const MODULE_CATALOG: readonly ModuleCatalogItem[] = [
       '3D hemisphere energy shield with Fresnel rim glow, procedural hexagonal honeycomb mesh, and latitude scan band.',
     summaryZh: '三维半球能量护盾，融合菲涅尔轮廓辉光、程序化六边形蜂巢网格与纬向扫描光带。',
   },
+  {
+    id: 'ground-flow-path',
+    path: '/docs/ground-flow-path',
+    section: 'Visual Effects',
+    titleEn: 'Ground Flow Path',
+    titleZh: '贴地流光路径',
+    tag: 'Terrain Clamped · GLSL',
+    summaryEn:
+      'Terrain- and 3D-Tiles-clamped flowing energy path with a glowing base track and tapered pulse streams.',
+    summaryZh: '自动贴合地形与 3D Tiles 的流光路径，具备发光底路、错位脉冲与收尖渐隐拖尾。',
+  },
 ];
 
 export const DEFAULT_MODULE_PATH = MODULE_CATALOG[0]?.path ?? '/docs/introduction';
