@@ -154,7 +154,7 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps)
                 variant="primary"
                 size="lg"
                 endContent={
-                  <Icon icon={ArrowRight} size="sm" style={{ transform: 'translateY(-1px)' }} />
+                  <Icon icon={ArrowRight} size="sm" />
                 }
                 onClick={() => void navigate('/docs/introduction')}
               />
