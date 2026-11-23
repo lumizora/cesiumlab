@@ -407,7 +407,7 @@ export default function HoloDomeDemoPage() {
           <>
             <Button
               label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
-              variant="secondary"
+              variant="ghost"
               size="sm"
               icon={<Icon icon={paused ? Play : Pause} />}
               onClick={() => setPaused((prev) => !prev)}

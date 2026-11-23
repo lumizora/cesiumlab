@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { Viewer } from 'cesium';
+import { Theme } from '@astryxdesign/core/theme';
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
-import { Divider } from '@astryxdesign/core/Divider';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Icon } from '@astryxdesign/core/Icon';
 import { IconButton } from '@astryxdesign/core/IconButton';
-import { StackItem } from '@astryxdesign/core/Stack';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { RotateCcw, SlidersHorizontal, X } from 'lucide-react';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
+import { themes, defaultThemeSlug } from '../astryx-themes';
 import { createDocsViewer, type CreateDocsViewerOptions } from '../lib/cesium';
 import { useI18n } from '../lib/i18n';
 import { EffectParamPanel, type ParamGroup } from './EffectParamPanel';
@@ -23,9 +23,9 @@ export interface CesiumStageProps extends CreateDocsViewerOptions {
     viewer: Viewer,
     signal: AbortSignal,
   ) => void | (() => void) | Promise<void | (() => void)>;
-  /** Always-visible primary action buttons rendered in the compact bottom bar. */
+  /** Always-visible primary action buttons rendered in the floating HUD toolbar. */
   actions?: ReactNode;
-  /** Declarative full-property parameter groups shown when the parameter panel is expanded. */
+  /** Declarative full-property parameter groups shown in the floating inspector panel. */
   paramGroups?: readonly ParamGroup[];
   /** Callback to restore all parameters to their initial defaults. */
   onResetParams?: () => void;
@@ -34,6 +34,16 @@ export interface CesiumStageProps extends CreateDocsViewerOptions {
   /** Optional custom toolbar rendered below the canvas when not using actions + paramGroups. */
   toolbar?: ReactNode;
 }
+
+const HUD_SURFACE_STYLE: CSSProperties = {
+  backgroundColor: 'rgba(8, 10, 14, 0.72)',
+  backdropFilter: 'blur(20px) saturate(160%)',
+  WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+  border: '1px solid rgba(255, 255, 255, 0.12)',
+  boxShadow: '0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+  borderRadius: 'var(--radius-container)',
+  pointerEvents: 'auto',
+};
 
 export function CesiumStage({
   label,
@@ -47,9 +57,8 @@ export function CesiumStage({
   terrain = true,
 }: CesiumStageProps) {
   const { isZh } = useI18n();
-  const isDesktop = useMediaQuery('(min-width: 960px)');
+  const isWideStage = useMediaQuery('(min-width: 640px)');
   const hostRef = useRef<HTMLDivElement>(null);
-  const viewerRef = useRef<Viewer | null>(null);
   const onMountRef = useRef(onMount);
   onMountRef.current = onMount;
 
@@ -57,8 +66,6 @@ export function CesiumStage({
   const [paramsOpen, setParamsOpen] = useState(false);
 
   const hasParams = Boolean(paramGroups && paramGroups.length > 0);
-  const showSidePanel = hasParams && paramsOpen && isDesktop;
-  const showMobilePanel = hasParams && paramsOpen && !isDesktop;
 
   useEffect(() => {
     const host = hostRef.current;
@@ -88,13 +95,11 @@ export function CesiumStage({
           viewer = null;
           return;
         }
-        viewerRef.current = viewer;
         cleanupEffect = await onMountRef.current(viewer, signal);
         if (signal.aborted) {
           cleanupEffect?.();
           if (!viewer.isDestroyed()) viewer.destroy();
           viewer = null;
-          viewerRef.current = null;
           return;
         }
         setStatus('ready');
@@ -115,7 +120,6 @@ export function CesiumStage({
         viewer.destroy();
       }
       viewer = null;
-      viewerRef.current = null;
     }
 
     function handlePageHide(event: PageTransitionEvent) {
@@ -131,168 +135,161 @@ export function CesiumStage({
     };
   }, [shouldAnimate, terrain]);
 
-  // Trigger an immediate Cesium resize when toggling the side inspector or compact mobile height.
-  useEffect(() => {
-    const viewer = viewerRef.current;
-    if (!viewer || viewer.isDestroyed()) return;
-    const frameId = requestAnimationFrame(() => {
-      if (!viewer.isDestroyed()) {
-        viewer.resize();
-      }
-    });
-    return () => cancelAnimationFrame(frameId);
-  }, [paramsOpen, isDesktop]);
-
-  const canvasHeight = showMobilePanel
-    ? 'clamp(15rem, 38svh, 22rem)'
-    : 'clamp(22rem, 52svh, 34rem)';
-
   return (
     <Card width="100%" padding={0}>
       <VStack gap={0} width="100%">
-        <HStack gap={0} vAlign="stretch" width="100%">
-          <StackItem size="fill" style={{ minWidth: 0 }}>
-            <VStack
-              width="100%"
-              style={{
-                position: 'relative',
-                height: canvasHeight,
-                overflow: 'hidden',
-                backgroundColor: '#060708',
-              }}
-            >
-              <div
-                ref={hostRef}
-                role="region"
-                aria-label={label}
-                style={{ width: '100%', height: '100%' }}
-              />
-              {status !== 'ready' && (
-                <HStack
-                  hAlign="center"
-                  vAlign="center"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    pointerEvents: 'none',
-                  }}
-                >
-                  <Text
-                    type="body"
-                    color="secondary"
-                    role={status === 'error' ? 'alert' : 'status'}
-                  >
-                    {status === 'error'
-                      ? isZh
-                        ? '无法初始化 CesiumJS WebGL 场景。'
-                        : 'Unable to initialize CesiumJS WebGL scene.'
-                      : isZh
-                        ? '正在加载 CesiumJS 影像与地形...'
-                        : 'Loading CesiumJS imagery & terrain...'}
-                  </Text>
-                </HStack>
-              )}
-            </VStack>
-          </StackItem>
+        <VStack
+          width="100%"
+          style={{
+            position: 'relative',
+            height: 'clamp(22rem, 54svh, 36rem)',
+            overflow: 'hidden',
+            backgroundColor: '#050608',
+          }}
+        >
+          <div
+            ref={hostRef}
+            role="region"
+            aria-label={label}
+            style={{ width: '100%', height: '100%' }}
+          />
 
-          {showSidePanel && paramGroups && (
-            <VStack
-              width="17.5rem"
-              gap={0}
-              style={{
-                height: canvasHeight,
-                borderInlineStart: '1px solid var(--color-border)',
-                flexShrink: 0,
-              }}
-            >
+          <Theme theme={themes[defaultThemeSlug]} mode="dark">
+            {status !== 'ready' && (
               <HStack
-                padding={3}
-                hAlign="between"
+                hAlign="center"
                 vAlign="center"
-                width="100%"
-                style={{ borderBottom: '1px solid var(--color-border)' }}
-              >
-                <Text type="supporting" size="xsm" weight="semibold">
-                  {isZh ? '参数配置' : 'Parameters'}
-                </Text>
-                <HStack gap={1} vAlign="center">
-                  {onResetParams && hasModifiedParams && (
-                    <Button
-                      label={isZh ? '重置' : 'Reset'}
-                      variant="ghost"
-                      size="sm"
-                      icon={<Icon icon={RotateCcw} />}
-                      onClick={onResetParams}
-                    />
-                  )}
-                  <IconButton
-                    label={isZh ? '收起参数面板' : 'Close parameter panel'}
-                    icon={<Icon icon={X} />}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setParamsOpen(false)}
-                  />
-                </HStack>
-              </HStack>
-
-              <VStack
-                padding={3}
-                gap={3}
-                width="100%"
                 style={{
-                  flex: 1,
-                  minHeight: 0,
-                  overflowY: 'auto',
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: 'var(--color-border-emphasized) transparent',
+                  position: 'absolute',
+                  inset: 0,
+                  pointerEvents: 'none',
                 }}
               >
-                <EffectParamPanel groups={paramGroups} layout="side" />
-              </VStack>
-            </VStack>
-          )}
-        </HStack>
-
-        {(actions || hasParams) && (
-          <>
-            <Divider />
-            <HStack padding={3} gap={2} hAlign="between" vAlign="center" wrap="wrap" width="100%">
-              <HStack gap={2} vAlign="center" wrap="wrap">
-                {actions}
+                <Text type="body" color="secondary" role={status === 'error' ? 'alert' : 'status'}>
+                  {status === 'error'
+                    ? isZh
+                      ? '无法初始化 CesiumJS WebGL 场景。'
+                      : 'Unable to initialize CesiumJS WebGL scene.'
+                    : isZh
+                      ? '正在加载 CesiumJS 影像与地形...'
+                      : 'Loading CesiumJS imagery & terrain...'}
+                </Text>
               </HStack>
+            )}
 
-              {hasParams && (
-                <HStack gap={1.5} vAlign="center">
-                  {showMobilePanel && onResetParams && hasModifiedParams && (
-                    <Button
-                      label={isZh ? '恢复默认' : 'Reset'}
-                      variant="ghost"
-                      size="sm"
-                      icon={<Icon icon={RotateCcw} />}
-                      onClick={onResetParams}
+            {(actions || hasParams) && (
+              <HStack
+                hAlign="end"
+                vAlign="start"
+                style={{
+                  position: 'absolute',
+                  top: 'var(--spacing-3)',
+                  left: 'var(--spacing-3)',
+                  right: 'var(--spacing-3)',
+                  pointerEvents: 'none',
+                  zIndex: 2,
+                }}
+              >
+                <HStack padding={1} gap={0.5} vAlign="center" wrap="wrap" style={HUD_SURFACE_STYLE}>
+                  {actions}
+                  {actions && hasParams && (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: '1px',
+                        height: '1rem',
+                        backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                        marginInline: 'var(--spacing-1)',
+                      }}
                     />
                   )}
-                  <Button
-                    label={isZh ? '参数' : 'Parameters'}
-                    variant={paramsOpen ? 'secondary' : 'ghost'}
-                    size="sm"
-                    icon={<Icon icon={SlidersHorizontal} />}
-                    onClick={() => setParamsOpen((prev) => !prev)}
-                  />
+                  {hasParams && (
+                    <Button
+                      label={isZh ? '参数' : 'Params'}
+                      variant="ghost"
+                      size="sm"
+                      icon={<Icon icon={SlidersHorizontal} />}
+                      onClick={() => setParamsOpen((prev) => !prev)}
+                      style={
+                        paramsOpen ? { backgroundColor: 'rgba(255, 255, 255, 0.12)' } : undefined
+                      }
+                    />
+                  )}
                 </HStack>
-              )}
-            </HStack>
-          </>
-        )}
+              </HStack>
+            )}
 
-        {showMobilePanel && paramGroups && (
-          <>
-            <Divider />
-            <VStack padding={3} gap={3} width="100%">
-              <EffectParamPanel groups={paramGroups} layout="tabs" />
-            </VStack>
-          </>
-        )}
+            {hasParams && paramsOpen && paramGroups && (
+              <VStack
+                gap={0}
+                style={{
+                  ...HUD_SURFACE_STYLE,
+                  position: 'absolute',
+                  zIndex: 3,
+                  overflow: 'hidden',
+                  ...(isWideStage
+                    ? {
+                        top: '3.5rem',
+                        right: 'var(--spacing-3)',
+                        width: '15.5rem',
+                        maxHeight: 'calc(100% - 4.25rem)',
+                      }
+                    : {
+                        left: 'var(--spacing-2)',
+                        right: 'var(--spacing-2)',
+                        bottom: 'var(--spacing-2)',
+                        maxHeight: '54%',
+                      }),
+                }}
+              >
+                <HStack
+                  paddingBlock={2}
+                  paddingInline={3}
+                  hAlign="between"
+                  vAlign="center"
+                  width="100%"
+                  style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
+                >
+                  <Text type="supporting" size="xsm" weight="semibold">
+                    {isZh ? '参数配置' : 'Parameters'}
+                  </Text>
+                  <HStack gap={1} vAlign="center">
+                    {onResetParams && hasModifiedParams && (
+                      <Button
+                        label={isZh ? '重置' : 'Reset'}
+                        variant="ghost"
+                        size="sm"
+                        icon={<Icon icon={RotateCcw} />}
+                        onClick={onResetParams}
+                      />
+                    )}
+                    <IconButton
+                      label={isZh ? '收起参数面板' : 'Close parameter panel'}
+                      icon={<Icon icon={X} />}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setParamsOpen(false)}
+                    />
+                  </HStack>
+                </HStack>
+
+                <VStack
+                  padding={3}
+                  gap={2}
+                  width="100%"
+                  style={{
+                    flex: 1,
+                    minHeight: 0,
+                    overflowY: 'auto',
+                    scrollbarWidth: 'none',
+                  }}
+                >
+                  <EffectParamPanel groups={paramGroups} layout={isWideStage ? 'side' : 'tabs'} />
+                </VStack>
+              </VStack>
+            )}
+          </Theme>
+        </VStack>
 
         {toolbar && (
           <VStack padding={3} gap={3} width="100%">

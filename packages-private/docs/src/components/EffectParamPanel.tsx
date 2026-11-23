@@ -72,12 +72,12 @@ function ColorControlField({ control }: { control: ParamColorOption }) {
           position: 'relative',
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 'var(--spacing-2)',
-          paddingBlock: 'var(--spacing-1)',
+          gap: 'var(--spacing-1-5)',
+          paddingBlock: 'var(--spacing-0-5)',
           paddingInline: 'var(--spacing-2)',
           borderRadius: 'var(--radius-element)',
-          border: '1px solid var(--color-border)',
-          backgroundColor: 'var(--color-background-muted)',
+          border: '1px solid rgba(255, 255, 255, 0.14)',
+          backgroundColor: 'rgba(255, 255, 255, 0.06)',
           cursor: 'pointer',
           overflow: 'hidden',
         }}
@@ -99,11 +99,11 @@ function ColorControlField({ control }: { control: ParamColorOption }) {
         <span
           aria-hidden="true"
           style={{
-            width: '0.875rem',
-            height: '0.875rem',
+            width: '0.75rem',
+            height: '0.75rem',
             borderRadius: 'var(--radius-inner)',
             backgroundColor: control.value,
-            border: '1px solid var(--color-border-emphasized)',
+            border: '1px solid rgba(255, 255, 255, 0.25)',
             flexShrink: 0,
           }}
         />
@@ -202,11 +202,11 @@ export function EffectParamPanel({ groups, layout }: EffectParamPanelProps) {
   }
 
   return (
-    <VStack gap={4} width="100%">
+    <VStack gap={3} width="100%">
       {groups.map((group, index) => (
         <Fragment key={group.id}>
           {index > 0 && <Divider />}
-          <VStack gap={3} width="100%">
+          <VStack gap={2} width="100%">
             <Text type="supporting" size="xsm" weight="semibold">
               {group.label}
             </Text>
