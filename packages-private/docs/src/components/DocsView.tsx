@@ -1,30 +1,29 @@
-import { Fragment, useMemo, useState, type AnchorHTMLAttributes } from 'react';
+import { Fragment, useMemo, useRef, useState, type AnchorHTMLAttributes } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { AppShell } from '@astryxdesign/core/AppShell';
-import { TopNav } from '@astryxdesign/core/TopNav';
-import {
-  SideNav,
-  SideNavHeading,
-  SideNavSection,
-  SideNavItem,
-  SideNavCollapseButton,
-} from '@astryxdesign/core/SideNav';
+import { TopNav, TopNavHeading } from '@astryxdesign/core/TopNav';
+import { SideNav, SideNavSection, SideNavItem } from '@astryxdesign/core/SideNav';
 import { LinkProvider } from '@astryxdesign/core/Link';
 import { Section } from '@astryxdesign/core/Section';
 import { VStack } from '@astryxdesign/core/VStack';
 import { HStack } from '@astryxdesign/core/HStack';
 import { StackItem } from '@astryxdesign/core/Stack';
+import { Grid } from '@astryxdesign/core/Grid';
+import { Card } from '@astryxdesign/core/Card';
 import { Text } from '@astryxdesign/core/Text';
 import { Button } from '@astryxdesign/core/Button';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Icon } from '@astryxdesign/core/Icon';
 import { Divider } from '@astryxdesign/core/Divider';
-import { StatusDot } from '@astryxdesign/core/StatusDot';
-import { Sun, Moon, Github, PanelLeft } from 'lucide-react';
+import { Kbd } from '@astryxdesign/core/Kbd';
+import { ArrowLeft, ArrowRight, Github, Moon, PanelLeft, Sun } from 'lucide-react';
 import { NAV_ITEMS } from '../data/components';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { DocsPageProvider } from '../lib/docsPage';
 import { useI18n } from '../lib/i18n';
 import { CesiumLogo } from './CesiumLogo';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { TableOfContents } from './TableOfContents';
 
 const SECTION_LABELS_ZH: Record<string, string> = {
   'Getting Started': '快速开始',
@@ -34,7 +33,9 @@ const SECTION_LABELS_ZH: Record<string, string> = {
 const DOC_LABELS_ZH: Record<string, string> = {
   Introduction: '介绍',
   Installation: '安装',
-  'Flowing Arc': '飞线 (Flowing Arc)',
+  'Comet Arc': '拖尾飞线 (Comet Arc)',
+  'Pulse Ring': '扩散波纹 (Pulse Ring)',
+  'Energy Beam': '全息光束 (Energy Beam)',
 };
 
 interface DocsViewProps {
@@ -48,7 +49,26 @@ export function DocsView({ isDark, onToggleTheme, onOpenSearch }: DocsViewProps)
   const location = useLocation();
   const navigate = useNavigate();
   const [isSideNavCollapsed, setIsSideNavCollapsed] = useState(false);
-  const [isCollapsedBrandHovered, setIsCollapsedBrandHovered] = useState(false);
+  const isDesktop = useMediaQuery('(min-width: 960px)');
+  const isCompactNav = !useMediaQuery('(min-width: 640px)');
+  const showToc = useMediaQuery('(min-width: 1180px)');
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const flatItems = useMemo(
+    () =>
+      NAV_ITEMS.flatMap((group) =>
+        group.items.map((item) => ({
+          ...item,
+          section: group.section,
+        })),
+      ),
+    [],
+  );
+
+  const currentIdx = flatItems.findIndex((item) => item.path === location.pathname);
+  const prevItem = currentIdx > 0 ? flatItems[currentIdx - 1] : undefined;
+  const nextItem =
+    currentIdx >= 0 && currentIdx < flatItems.length - 1 ? flatItems[currentIdx + 1] : undefined;
 
   const sideNavCollapsible = useMemo(
     () => ({
@@ -71,13 +91,9 @@ export function DocsView({ isDark, onToggleTheme, onOpenSearch }: DocsViewProps)
           <a
             href={href}
             onClick={(e) => {
-              if (href === '#home') {
+              if (href === '/') {
                 e.preventDefault();
                 void navigate('/');
-              } else if (href === '#expand') {
-                e.preventDefault();
-                setIsCollapsedBrandHovered(false);
-                setIsSideNavCollapsed(false);
               }
               onClick?.(e);
             }}
@@ -90,134 +106,217 @@ export function DocsView({ isDark, onToggleTheme, onOpenSearch }: DocsViewProps)
     [navigate],
   );
 
+  const formatDocLabel = (name: string) => (isZh ? (DOC_LABELS_ZH[name] ?? name) : name);
+  const formatSectionLabel = (section: string) =>
+    isZh ? (SECTION_LABELS_ZH[section] ?? section) : section;
+
   return (
-    <AppShell
-      height="auto"
-      variant="wash"
-      contentPadding={6}
-      topNav={
-        <TopNav
-          label="Documentation toolbar"
-          endContent={
-            <HStack gap={1} vAlign="center">
-              <IconButton
-                label={isZh ? '搜索文档' : 'Search documentation'}
-                tooltip={isZh ? '搜索 (Ctrl+K)' : 'Search (Ctrl+K)'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon="search" />}
-                onClick={(e) => {
-                  if (e.detail > 0) e.currentTarget.blur();
-                  onOpenSearch();
-                }}
-              />
-              <LanguageSwitcher />
-              <IconButton
-                label={
-                  isZh
-                    ? isDark
-                      ? '切换到浅色模式'
-                      : '切换到深色模式'
-                    : isDark
-                      ? 'Switch to light mode'
-                      : 'Switch to dark mode'
-                }
-                tooltip={
-                  isZh ? (isDark ? '浅色模式' : '深色模式') : isDark ? 'Light mode' : 'Dark mode'
-                }
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={isDark ? Sun : Moon} />}
-                onClick={onToggleTheme}
-              />
-              <Button
-                label="5.5k"
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={Github} />}
-                onClick={() => void navigate('/')}
-              />
-            </HStack>
-          }
-        />
-      }
-      sideNav={
-        <SideNav
-          aria-label="Component documentation navigation"
-          collapsible={sideNavCollapsible}
-          header={
-            <HStack
-              width="100%"
-              vAlign="center"
-              hAlign="between"
-              onMouseEnter={() => {
-                if (isSideNavCollapsed) setIsCollapsedBrandHovered(true);
-              }}
-              onMouseLeave={() => setIsCollapsedBrandHovered(false)}
-            >
-              <StackItem size="fill">
+    <DocsPageProvider>
+      <AppShell
+        height="auto"
+        variant="surface"
+        contentPadding={0}
+        topNav={
+          <TopNav
+            label="Documentation toolbar"
+            heading={
+              <HStack
+                width={isDesktop && !isSideNavCollapsed ? 250 : undefined}
+                gap={2}
+                hAlign={isDesktop && !isSideNavCollapsed ? 'between' : 'start'}
+                vAlign="center"
+              >
                 <LinkProvider component={HomeBrandLink}>
-                  <SideNavHeading
+                  <TopNavHeading
+                    logo={<CesiumLogo size={26} />}
                     heading="Cesiumlab"
-                    headingHref={isSideNavCollapsed ? '#expand' : '#home'}
-                    icon={
-                      isSideNavCollapsed ? (
-                        isCollapsedBrandHovered ? (
-                          <HStack width={26} height={26} hAlign="center" vAlign="center">
-                            <Icon icon={PanelLeft} size="sm" />
-                          </HStack>
-                        ) : (
-                          <CesiumLogo size={26} />
-                        )
-                      ) : undefined
-                    }
+                    headingHref="/"
                   />
                 </LinkProvider>
-              </StackItem>
-              {!isSideNavCollapsed && (
-                <SideNavCollapseButton size="sm">
-                  <Icon icon={PanelLeft} />
-                </SideNavCollapseButton>
-              )}
-            </HStack>
-          }
-        >
-          {NAV_ITEMS.map((group, groupIdx) => (
-            <Fragment key={group.section}>
-              {groupIdx > 0 && <Divider />}
-              <SideNavSection
-                title={isZh ? (SECTION_LABELS_ZH[group.section] ?? group.section) : group.section}
-                endContent={
-                  group.count !== undefined ? (
-                    <Text type="supporting" size="xsm" hasTabularNumbers>
-                      {group.count}
-                    </Text>
-                  ) : undefined
-                }
-              >
-                {group.items.map((item) => (
-                  <SideNavItem
-                    key={item.path}
-                    label={isZh ? (DOC_LABELS_ZH[item.name] ?? item.name) : item.name}
-                    size="sm"
-                    isSelected={location.pathname === item.path}
-                    onClick={() => void navigate(item.path)}
-                    endContent={
-                      item.isNew ? <StatusDot variant="accent" label="New component" /> : undefined
+                {isDesktop && (
+                  <IconButton
+                    label={
+                      isZh
+                        ? isSideNavCollapsed
+                          ? '展开侧边栏'
+                          : '收起侧边栏'
+                        : isSideNavCollapsed
+                          ? 'Expand sidebar'
+                          : 'Collapse sidebar'
                     }
+                    tooltip={
+                      isZh
+                        ? isSideNavCollapsed
+                          ? '展开侧边栏'
+                          : '收起侧边栏'
+                        : isSideNavCollapsed
+                          ? 'Expand sidebar'
+                          : 'Collapse sidebar'
+                    }
+                    variant="ghost"
+                    size="sm"
+                    icon={<Icon icon={PanelLeft} />}
+                    onClick={() => setIsSideNavCollapsed((prev) => !prev)}
                   />
-                ))}
-              </SideNavSection>
-            </Fragment>
-          ))}
-        </SideNav>
-      }
-    >
-      <VStack hAlign="center" width="100%" paddingBlock={6}>
-        <Section maxWidth={896} width="100%" variant="transparent" padding={0}>
-          <Outlet />
-        </Section>
-      </VStack>
-    </AppShell>
+                )}
+              </HStack>
+            }
+            endContent={
+              <HStack gap={1} vAlign="center">
+                {isCompactNav ? (
+                  <IconButton
+                    label={isZh ? '搜索文档' : 'Search documentation'}
+                    variant="ghost"
+                    size="sm"
+                    icon={<Icon icon="search" />}
+                    onClick={(e) => {
+                      if (e.detail > 0) e.currentTarget.blur();
+                      onOpenSearch();
+                    }}
+                  />
+                ) : (
+                  <Button
+                    label={isZh ? '搜索' : 'Search'}
+                    variant="secondary"
+                    size="sm"
+                    icon={<Icon icon="search" />}
+                    endContent={<Kbd keys="mod+k" />}
+                    onClick={(e) => {
+                      if (e.detail > 0) e.currentTarget.blur();
+                      onOpenSearch();
+                    }}
+                  />
+                )}
+                <LanguageSwitcher />
+                <IconButton
+                  label={
+                    isZh
+                      ? isDark
+                        ? '切换到浅色模式'
+                        : '切换到深色模式'
+                      : isDark
+                        ? 'Switch to light mode'
+                        : 'Switch to dark mode'
+                  }
+                  tooltip={
+                    isZh ? (isDark ? '浅色模式' : '深色模式') : isDark ? 'Light mode' : 'Dark mode'
+                  }
+                  variant="ghost"
+                  size="sm"
+                  icon={<Icon icon={isDark ? Sun : Moon} />}
+                  onClick={onToggleTheme}
+                />
+                <IconButton
+                  label="GitHub"
+                  tooltip="GitHub"
+                  variant="ghost"
+                  size="sm"
+                  icon={<Icon icon={Github} />}
+                  onClick={() => window.open('https://github.com/lumizora/cesiumlab', '_blank')}
+                />
+              </HStack>
+            }
+          />
+        }
+        sideNav={
+          <SideNav aria-label="Component documentation navigation" collapsible={sideNavCollapsible}>
+            {NAV_ITEMS.map((group, groupIdx) => (
+              <Fragment key={group.section}>
+                {groupIdx > 0 && <Divider />}
+                <SideNavSection
+                  title={formatSectionLabel(group.section)}
+                  endContent={
+                    group.count !== undefined ? (
+                      <Text type="supporting" size="xsm" hasTabularNumbers>
+                        {group.count}
+                      </Text>
+                    ) : undefined
+                  }
+                >
+                  {group.items.map((item) => (
+                    <SideNavItem
+                      key={item.path}
+                      label={formatDocLabel(item.name)}
+                      size="sm"
+                      isSelected={location.pathname === item.path}
+                      onClick={() => void navigate(item.path)}
+                    />
+                  ))}
+                </SideNavSection>
+              </Fragment>
+            ))}
+          </SideNav>
+        }
+      >
+        <VStack
+          hAlign="center"
+          width="100%"
+          paddingInline={isCompactNav ? 4 : 6}
+          paddingBlock={isCompactNav ? 5 : 8}
+        >
+          <HStack maxWidth={1180} width="100%" gap={10} vAlign="start" hAlign="center">
+            <StackItem size="fill" style={{ minWidth: 0, maxWidth: 880 }}>
+              <Section width="100%" variant="transparent" padding={0}>
+                <VStack gap={6}>
+                  <div ref={contentRef}>
+                    <Outlet />
+                  </div>
+
+                  {(prevItem || nextItem) && (
+                    <VStack gap={4} paddingBlockStart={2} paddingBlockEnd={8}>
+                      <Grid columns={{ minWidth: 240, max: 2 }} gap={4}>
+                        {prevItem ? (
+                          <Card padding={4} width="100%">
+                            <HStack hAlign="between" vAlign="center">
+                              <VStack gap={0.5}>
+                                <Text type="supporting" size="xsm">
+                                  {isZh ? '上一页' : 'Previous'}
+                                </Text>
+                                <Button
+                                  label={formatDocLabel(prevItem.name)}
+                                  variant="ghost"
+                                  size="sm"
+                                  icon={<Icon icon={ArrowLeft} />}
+                                  onClick={() => void navigate(prevItem.path)}
+                                />
+                              </VStack>
+                            </HStack>
+                          </Card>
+                        ) : (
+                          <VStack />
+                        )}
+
+                        {nextItem ? (
+                          <Card padding={4} width="100%">
+                            <HStack hAlign="end" vAlign="center">
+                              <VStack gap={0.5} hAlign="end">
+                                <Text type="supporting" size="xsm">
+                                  {isZh ? '下一页' : 'Next'}
+                                </Text>
+                                <Button
+                                  label={formatDocLabel(nextItem.name)}
+                                  variant="ghost"
+                                  size="sm"
+                                  endContent={<Icon icon={ArrowRight} />}
+                                  onClick={() => void navigate(nextItem.path)}
+                                />
+                              </VStack>
+                            </HStack>
+                          </Card>
+                        ) : (
+                          <VStack />
+                        )}
+                      </Grid>
+                    </VStack>
+                  )}
+                </VStack>
+              </Section>
+            </StackItem>
+
+            {showToc && <TableOfContents contentRef={contentRef} routeKey={location.pathname} />}
+          </HStack>
+        </VStack>
+      </AppShell>
+    </DocsPageProvider>
   );
 }

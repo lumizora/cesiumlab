@@ -1,25 +1,41 @@
 # @cesiumlab/effects
 
-基于 CesiumJS 的小型视觉效果库。当前实现提供一条发光弧线和沿线循环的光点。
+基于 CesiumJS 的轻量、框架无关三维视觉特效库。所有特效均采用 **纯 GPU 自定义 GLSL 着色器 + `Primitive`** 构建（0 每帧 CPU 顶点重建），使用独立的 `scene.preRender` 动画时钟，并支持实时 `update()`、暂停/恢复与幂等 `destroy()` 清理。
+
+## 包含特效
+
+- **`createCometArc`**：单 `Primitive` GPU 着色器驱动的三维测地线彗星飞线，融合双层底弧、横向收尖渐隐拖尾、无缝炽白光头、同轨多光流（`cometCount`）与 `onArrive` 抵达回调。
+- **`createPulseRing`**：单张 ENU 切平面 `Primitive` + 自定义 GLSL 雷达波纹着色器，具备锐利前沿与向内渐隐尾迹，支持循环（`mode: 'loop'`）与事件触发强脉冲（`mode: 'trigger'` + `trigger()`）。
+- **`createEnergyBeam`**：双层无封口锥形圆柱网格 + 自定义 GLSL 菲涅尔（Fresnel）体积着色器构建的连续三维全息光束，带上升能量波纹、顶部指数消散与镂空双环底座。
+
+## 快速开始
 
 ```ts
-import { createFlowingArc } from '@cesiumlab/effects';
+import { createCometArc, createEnergyBeam, createPulseRing } from '@cesiumlab/effects';
 
-const arc = createFlowingArc(viewer, {
-  from: [103.82, 1.35],
-  to: [139.69, 35.68],
-  height: 430_000,
-  duration: 4,
+const arc = createCometArc(viewer, {
+  from: [104.07, 30.57],
+  to: [121.47, 31.23],
+  color: '#ffa31a',
+  cometCount: 2,
 });
 
-// 离开场景时调用。
+const pulse = createPulseRing(viewer, {
+  position: [121.47, 31.23],
+  mode: 'loop',
+  color: '#00a8ff',
+});
+
+const beam = createEnergyBeam(viewer, {
+  position: [104.07, 30.57],
+  color: '#00a8ff',
+});
+
+// 离开场景时释放资源
 arc.destroy();
+pulse.destroy();
+beam.destroy();
 ```
 
-- `viewer` 为调用方创建和持有的 Cesium `Viewer`。需要 CesiumJS 1.147.x，已用 1.147.0 验证。
-- `from`、`to` 是经度和纬度，单位为度。坐标必须不同，且不能接近对跖点。
-- `height` 为相对于场景椭球的峰值高度，默认为 350,000 米。`duration` 为一次循环的 Cesium 时钟秒数，默认为 4。可用 Cesium `Color` 设置颜色。
-- 动画跟随 `viewer.clock`。效果只创建一个 Entity，`destroy()` 可以重复调用，且仅移除该 Entity。
-- 首个版本支持三维地球。飞线按椭球计算高度，经过高地形时可能被遮挡。
-
-打包候选产物可通过 `pnpm build` 和 `pnpm pack` 生成。包提供 ESM 与 TypeScript 类型。
+- `viewer` 为调用方创建和持有的 Cesium `Viewer`（需要 CesiumJS `~1.147.0`）。
+- 构建产物通过 `pnpm --filter @cesiumlab/effects build`（`vp pack`）生成，仅输出 ESM 与合并后的 TypeScript 类型声明。

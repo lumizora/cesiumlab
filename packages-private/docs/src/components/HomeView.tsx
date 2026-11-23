@@ -9,11 +9,13 @@ import { Text } from '@astryxdesign/core/Text';
 import { Button } from '@astryxdesign/core/Button';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Icon } from '@astryxdesign/core/Icon';
-import { Sun, Moon, Github, ArrowRight } from 'lucide-react';
+import { CodeBlock } from '@astryxdesign/core/CodeBlock';
+import { Kbd } from '@astryxdesign/core/Kbd';
+import { ArrowRight, Github, Moon, Sun } from 'lucide-react';
 import { CesiumLogo } from './CesiumLogo';
-import { EarthShowcaseBoard } from './EarthShowcaseBoard';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { DEFAULT_DOC_PATH } from '../data/components';
+import { DEFAULT_MODULE_PATH } from '../data/catalog';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useI18n } from '../lib/i18n';
 
 interface HomeViewProps {
@@ -22,24 +24,23 @@ interface HomeViewProps {
   onOpenSearch: () => void;
 }
 
+const INSTALL_CMD = 'pnpm add @cesiumlab/effects cesium';
+
 export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps) {
   const { isZh } = useI18n();
   const navigate = useNavigate();
+  const isCompactNav = !useMediaQuery('(min-width: 640px)');
 
   return (
     <AppShell
-      height="auto"
+      height="fill"
       variant="surface"
       contentPadding={4}
       topNav={
         <TopNav
           label="Primary navigation"
           heading={
-            <TopNavHeading
-              logo={<CesiumLogo size={28} />}
-              heading="Cesiumlab"
-              headingHref="/"
-            />
+            <TopNavHeading logo={<CesiumLogo size={26} />} heading="Cesiumlab" headingHref="/" />
           }
           centerContent={
             <HStack gap={1} vAlign="center">
@@ -51,7 +52,7 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps)
                     label={isZh ? '文档' : 'Docs'}
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate('/docs/introduction')}
+                    onClick={() => void navigate('/docs/introduction')}
                     className={className}
                   >
                     {children}
@@ -60,13 +61,13 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps)
               />
               <TopNavItem
                 label={isZh ? '模块' : 'Modules'}
-                href={DEFAULT_DOC_PATH}
+                href={DEFAULT_MODULE_PATH}
                 as={({ children, className }) => (
                   <Button
                     label={isZh ? '模块' : 'Modules'}
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate(DEFAULT_DOC_PATH)}
+                    onClick={() => void navigate(DEFAULT_MODULE_PATH)}
                     className={className}
                   >
                     {children}
@@ -77,17 +78,30 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps)
           }
           endContent={
             <HStack gap={1} vAlign="center">
-              <IconButton
-                label={isZh ? '搜索文档' : 'Search components'}
-                tooltip={isZh ? '搜索 (Ctrl+K)' : 'Search (Ctrl+K)'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon="search" />}
-                onClick={(e) => {
-                  if (e.detail > 0) e.currentTarget.blur();
-                  onOpenSearch();
-                }}
-              />
+              {isCompactNav ? (
+                <IconButton
+                  label={isZh ? '搜索文档' : 'Search docs'}
+                  variant="ghost"
+                  size="sm"
+                  icon={<Icon icon="search" />}
+                  onClick={(e) => {
+                    if (e.detail > 0) e.currentTarget.blur();
+                    onOpenSearch();
+                  }}
+                />
+              ) : (
+                <Button
+                  label={isZh ? '搜索' : 'Search'}
+                  variant="secondary"
+                  size="sm"
+                  icon={<Icon icon="search" />}
+                  endContent={<Kbd keys="mod+k" />}
+                  onClick={(e) => {
+                    if (e.detail > 0) e.currentTarget.blur();
+                    onOpenSearch();
+                  }}
+                />
+              )}
               <LanguageSwitcher />
               <IconButton
                 label={
@@ -107,50 +121,45 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps)
                 icon={<Icon icon={isDark ? Sun : Moon} />}
                 onClick={onToggleTheme}
               />
-              <Button
-                label="6.5k"
+              <IconButton
+                label="GitHub"
+                tooltip="GitHub"
                 variant="ghost"
                 size="sm"
                 icon={<Icon icon={Github} />}
-                onClick={() => navigate(DEFAULT_DOC_PATH)}
+                onClick={() => window.open('https://github.com/lumizora/cesiumlab', '_blank')}
               />
             </HStack>
           }
         />
       }
     >
-      <VStack hAlign="center" width="100%" paddingBlock={10}>
-        <Section maxWidth={1120} width="100%" variant="transparent" padding={0}>
-          <VStack gap={8} hAlign="center">
-            <VStack gap={4} hAlign="center" maxWidth={760}>
-              <Heading level={1} type="display-1" justify="center" textWrap="balance">
+      <VStack hAlign="center" vAlign="center" width="100%" height="100%" paddingBlock={10}>
+        <Section maxWidth={840} width="100%" variant="transparent" padding={0}>
+          <VStack gap={5} hAlign="center">
+            <Heading level={1} type="display-1" justify="center">
+              {isZh ? 'CesiumJS 三维特效与空间模块' : 'Modular 3D effects for CesiumJS.'}
+            </Heading>
+            <VStack maxWidth={600} hAlign="center">
+              <Text type="large" color="secondary" justify="center">
                 {isZh
-                  ? '面向 CesiumJS 的模块化三维地理空间能力库'
-                  : 'Modular 3D geospatial packages for CesiumJS.'}
-              </Heading>
-              <Text type="large" color="secondary" justify="center" textWrap="pretty">
-                {isZh
-                  ? '面向 CesiumJS 的开源模块化工具与能力集合，涵盖视觉特效、空间分析与交互扩展。框架无关、类型完备、按需引入。'
-                  : 'An open-source collection of framework-agnostic packages for CesiumJS — from visual effects to spatial utilities and interactive modules. Typed, composable, and ready to ship.'}
+                  ? '纯 GPU GLSL 着色器驱动的开源扩展库，框架无关、类型完备、按需引入。'
+                  : 'Pure GPU GLSL primitives for CesiumJS — framework-agnostic, fully typed, and ready to compose.'}
               </Text>
-              <HStack gap={3} hAlign="center" paddingBlockStart={2}>
-                <Button
-                  label={isZh ? '快速开始' : 'Get started'}
-                  variant="primary"
-                  size="lg"
-                  endContent={<Icon icon={ArrowRight} />}
-                  onClick={() => navigate('/docs/introduction')}
-                />
-                <Button
-                  label={isZh ? '浏览模块' : 'Explore modules'}
-                  variant="secondary"
-                  size="lg"
-                  onClick={() => navigate(DEFAULT_DOC_PATH)}
-                />
-              </HStack>
             </VStack>
 
-            <EarthShowcaseBoard onNavigateDocs={(path) => navigate(path ?? DEFAULT_DOC_PATH)} />
+            <HStack gap={3} hAlign="center" vAlign="center" wrap="wrap" paddingBlockStart={3}>
+              <Button
+                label={isZh ? '快速开始' : 'Get started'}
+                variant="primary"
+                size="lg"
+                endContent={
+                  <Icon icon={ArrowRight} size="sm" style={{ transform: 'translateY(-1px)' }} />
+                }
+                onClick={() => void navigate('/docs/introduction')}
+              />
+              <CodeBlock code={INSTALL_CMD} language="bash" size="sm" hasLanguageLabel={false} />
+            </HStack>
           </VStack>
         </Section>
       </VStack>

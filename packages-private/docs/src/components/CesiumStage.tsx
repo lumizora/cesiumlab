@@ -13,7 +13,10 @@ export interface CesiumStageProps extends CreateDocsViewerOptions {
   /** Accessible label for the CesiumJS canvas region. */
   label: string;
   /** Called once the Viewer is mounted; may return a cleanup callback. */
-  onMount: (viewer: Viewer, signal: AbortSignal) => void | (() => void) | Promise<void | (() => void)>;
+  onMount: (
+    viewer: Viewer,
+    signal: AbortSignal,
+  ) => void | (() => void) | Promise<void | (() => void)>;
   /** Optional toolbar rendered below or above the canvas inside the stage card. */
   toolbar?: ReactNode;
 }
@@ -131,9 +134,9 @@ export function CesiumStage({
           </VStack>
 
           {toolbar && (
-            <HStack padding={3} hAlign="between" vAlign="center" gap={3} wrap="wrap">
+            <VStack padding={3} gap={3} width="100%">
               {toolbar}
-            </HStack>
+            </VStack>
           )}
         </VStack>
       </Card>
