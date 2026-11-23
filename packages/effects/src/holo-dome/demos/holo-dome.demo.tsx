@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4, type Viewer } from 'cesium';
 import {
   Button,
@@ -6,17 +6,16 @@ import {
   Code,
   CodeBlock,
   Divider,
-  Grid,
   HStack,
   Heading,
   Icon,
-  Slider,
   StackItem,
   Text,
   VStack,
 } from '@astryxdesign/core';
 import { Eye, EyeOff, Pause, Play, RotateCcw } from 'lucide-react';
 import { CesiumStage } from '@docs/components/CesiumStage';
+import type { ParamGroup } from '@docs/components/EffectParamPanel';
 import { useDocsPageMarkdown } from '@docs/lib/docsPage';
 import type { EffectDemoMeta } from '@docs/lib/effectDemos';
 import { useI18n } from '@docs/lib/i18n';
@@ -62,6 +61,16 @@ function resetCamera(viewer: Viewer) {
   viewer.camera.lookAtTransform(Matrix4.IDENTITY);
 }
 
+const DEFAULTS = {
+  color: '#38bdf8',
+  radiusKm: 180,
+  heightScale: 0.85,
+  speed: 1,
+  opacity: 0.85,
+  gridScale: 14,
+  groundOffsetKm: 0,
+} as const;
+
 export default function HoloDomeDemoPage() {
   const { isZh } = useI18n();
   const viewerRef = useRef<Viewer | null>(null);
@@ -73,18 +82,26 @@ export default function HoloDomeDemoPage() {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [visible, setVisible] = useState(true);
-  const [radiusKm, setRadiusKm] = useState(180);
-  const [speed, setSpeed] = useState(1);
-  const [gridScale, setGridScale] = useState(14);
+  const [color, setColor] = useState<string>(DEFAULTS.color);
+  const [radiusKm, setRadiusKm] = useState<number>(DEFAULTS.radiusKm);
+  const [heightScale, setHeightScale] = useState<number>(DEFAULTS.heightScale);
+  const [speed, setSpeed] = useState<number>(DEFAULTS.speed);
+  const [opacity, setOpacity] = useState<number>(DEFAULTS.opacity);
+  const [gridScale, setGridScale] = useState<number>(DEFAULTS.gridScale);
+  const [groundOffsetKm, setGroundOffsetKm] = useState<number>(DEFAULTS.groundOffsetKm);
 
   const handleMount = useCallback(
     (viewer: Viewer) => {
       viewerRef.current = viewer;
       domeRef.current = createHoloDome(viewer, {
         position: CENTER_COORD,
+        color,
         radius: radiusKm * 1_000,
+        heightScale,
         speed,
+        opacity,
         gridScale,
+        groundOffset: groundOffsetKm * 1_000,
         paused,
         show: visible,
       });
@@ -102,12 +119,149 @@ export default function HoloDomeDemoPage() {
   );
 
   useEffect(() => {
-    domeRef.current?.update({
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+    domeRef.current?.destroy();
+    domeRef.current = createHoloDome(viewer, {
+      position: CENTER_COORD,
+      color,
       radius: radiusKm * 1_000,
+      heightScale,
       speed,
+      opacity,
+      gridScale,
+      groundOffset: groundOffsetKm * 1_000,
+      paused,
+      show: visible,
+    });
+    // Rebuild only when construction-only anchor offset changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groundOffsetKm]);
+
+  useEffect(() => {
+    domeRef.current?.update({
+      color,
+      radius: radiusKm * 1_000,
+      heightScale,
+      speed,
+      opacity,
       gridScale,
     });
-  }, [radiusKm, speed, gridScale]);
+  }, [color, radiusKm, heightScale, speed, opacity, gridScale]);
+
+  const hasModifiedParams =
+    color !== DEFAULTS.color ||
+    radiusKm !== DEFAULTS.radiusKm ||
+    heightScale !== DEFAULTS.heightScale ||
+    speed !== DEFAULTS.speed ||
+    opacity !== DEFAULTS.opacity ||
+    gridScale !== DEFAULTS.gridScale ||
+    groundOffsetKm !== DEFAULTS.groundOffsetKm;
+
+  const handleResetParams = useCallback(() => {
+    setColor(DEFAULTS.color);
+    setRadiusKm(DEFAULTS.radiusKm);
+    setHeightScale(DEFAULTS.heightScale);
+    setSpeed(DEFAULTS.speed);
+    setOpacity(DEFAULTS.opacity);
+    setGridScale(DEFAULTS.gridScale);
+    setGroundOffsetKm(DEFAULTS.groundOffsetKm);
+  }, []);
+
+  const paramGroups = useMemo<ParamGroup[]>(
+    () => [
+      {
+        id: 'appearance',
+        label: isZh ? '外观' : 'Appearance',
+        controls: [
+          {
+            type: 'color',
+            id: 'color',
+            label: isZh ? '护盾颜色' : 'Color',
+            value: color,
+            onChange: setColor,
+          },
+          {
+            type: 'slider',
+            id: 'opacity',
+            label: isZh
+              ? `不透明度 · ${Math.round(opacity * 100)}%`
+              : `Opacity · ${Math.round(opacity * 100)}%`,
+            value: opacity,
+            min: 0.2,
+            max: 1.4,
+            step: 0.05,
+            onChange: setOpacity,
+          },
+          {
+            type: 'slider',
+            id: 'gridScale',
+            label: isZh ? `蜂巢密度 · ${gridScale}` : `Grid · ${gridScale}`,
+            value: gridScale,
+            min: 6,
+            max: 28,
+            step: 2,
+            onChange: setGridScale,
+          },
+        ],
+      },
+      {
+        id: 'geometry',
+        label: isZh ? '几何' : 'Geometry',
+        controls: [
+          {
+            type: 'slider',
+            id: 'radius',
+            label: isZh ? `半径 · ${radiusKm}km` : `Radius · ${radiusKm}km`,
+            value: radiusKm,
+            min: 60,
+            max: 360,
+            step: 20,
+            onChange: setRadiusKm,
+          },
+          {
+            type: 'slider',
+            id: 'heightScale',
+            label: isZh
+              ? `高度比例 · ${heightScale.toFixed(2)}x`
+              : `Height scale · ${heightScale.toFixed(2)}x`,
+            value: heightScale,
+            min: 0.35,
+            max: 1.4,
+            step: 0.05,
+            onChange: setHeightScale,
+          },
+          {
+            type: 'slider',
+            id: 'groundOffset',
+            label: isZh ? `离地偏移 · ${groundOffsetKm}km` : `Ground offset · ${groundOffsetKm}km`,
+            value: groundOffsetKm,
+            min: 0,
+            max: 60,
+            step: 2,
+            onChange: setGroundOffsetKm,
+          },
+        ],
+      },
+      {
+        id: 'motion',
+        label: isZh ? '动画' : 'Motion',
+        controls: [
+          {
+            type: 'slider',
+            id: 'speed',
+            label: isZh ? `扫描速度 · ${speed.toFixed(1)}x` : `Speed · ${speed.toFixed(1)}x`,
+            value: speed,
+            min: 0,
+            max: 3,
+            step: 0.1,
+            onChange: setSpeed,
+          },
+        ],
+      },
+    ],
+    [isZh, color, opacity, gridScale, radiusKm, heightScale, groundOffsetKm, speed],
+  );
 
   useEffect(() => {
     domeRef.current?.setPaused(paused);
@@ -246,58 +400,32 @@ export default function HoloDomeDemoPage() {
         label={isZh ? 'Holo Dome 全息能量穹顶演示场景' : 'Holo Dome 3D CesiumJS demo scene'}
         shouldAnimate={false}
         onMount={handleMount}
-        toolbar={
+        paramGroups={paramGroups}
+        onResetParams={handleResetParams}
+        hasModifiedParams={hasModifiedParams}
+        actions={
           <>
-            <HStack gap={2} vAlign="center" wrap="wrap">
-              <Button
-                label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
-                variant="secondary"
-                size="sm"
-                icon={<Icon icon={paused ? Play : Pause} />}
-                onClick={() => setPaused((prev) => !prev)}
-              />
-              <Button
-                label={visible ? (isZh ? '隐藏' : 'Hide') : isZh ? '显示' : 'Show'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={visible ? EyeOff : Eye} />}
-                onClick={() => setVisible((prev) => !prev)}
-              />
-              <Button
-                label={isZh ? '重置视角' : 'Reset camera'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={RotateCcw} />}
-                onClick={handleResetCamera}
-              />
-            </HStack>
-
-            <Grid columns={{ minWidth: 160, max: 3 }} gap={4} width="100%">
-              <Slider
-                label={isZh ? `半径 · ${radiusKm}km` : `Radius · ${radiusKm}km`}
-                value={radiusKm}
-                min={60}
-                max={360}
-                step={20}
-                onChange={setRadiusKm}
-              />
-              <Slider
-                label={isZh ? `扫描速度 · ${speed.toFixed(1)}x` : `Speed · ${speed.toFixed(1)}x`}
-                value={speed}
-                min={0.2}
-                max={3}
-                step={0.1}
-                onChange={setSpeed}
-              />
-              <Slider
-                label={isZh ? `网格密度 · ${gridScale}` : `Grid · ${gridScale}`}
-                value={gridScale}
-                min={6}
-                max={28}
-                step={2}
-                onChange={setGridScale}
-              />
-            </Grid>
+            <Button
+              label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
+              variant="secondary"
+              size="sm"
+              icon={<Icon icon={paused ? Play : Pause} />}
+              onClick={() => setPaused((prev) => !prev)}
+            />
+            <Button
+              label={visible ? (isZh ? '隐藏' : 'Hide') : isZh ? '显示' : 'Show'}
+              variant="ghost"
+              size="sm"
+              icon={<Icon icon={visible ? EyeOff : Eye} />}
+              onClick={() => setVisible((prev) => !prev)}
+            />
+            <Button
+              label={isZh ? '重置视角' : 'Reset camera'}
+              variant="ghost"
+              size="sm"
+              icon={<Icon icon={RotateCcw} />}
+              onClick={handleResetCamera}
+            />
           </>
         }
       />

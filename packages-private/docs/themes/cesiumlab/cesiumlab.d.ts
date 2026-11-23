@@ -6,7 +6,6 @@
  * Core: @astryxdesign/core@0.7.16
  */
 
-/// <reference path="./cesiumlab.variants.d.ts" />
 import type { DefinedTheme } from '@astryxdesign/core/theme';
 import type { IconRegistry } from '@astryxdesign/core/Icon';
 export declare const themeIcons: IconRegistry;

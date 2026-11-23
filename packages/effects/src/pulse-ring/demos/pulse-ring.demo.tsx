@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4, type Viewer } from 'cesium';
 import {
   Button,
@@ -6,19 +6,16 @@ import {
   Code,
   CodeBlock,
   Divider,
-  Grid,
   HStack,
   Heading,
   Icon,
-  SegmentedControl,
-  SegmentedControlItem,
-  Slider,
   StackItem,
   Text,
   VStack,
 } from '@astryxdesign/core';
 import { Eye, EyeOff, Pause, Play, RotateCcw, Zap } from 'lucide-react';
 import { CesiumStage } from '@docs/components/CesiumStage';
+import type { ParamGroup } from '@docs/components/EffectParamPanel';
 import { useDocsPageMarkdown } from '@docs/lib/docsPage';
 import type { EffectDemoMeta } from '@docs/lib/effectDemos';
 import { useI18n } from '@docs/lib/i18n';
@@ -71,50 +68,64 @@ function resetCamera(viewer: Viewer) {
   viewer.camera.lookAtTransform(Matrix4.IDENTITY);
 }
 
+const DEFAULTS = {
+  mode: 'loop' as PulseRingMode,
+  color: '#00a8ff',
+  minRadiusKm: 12,
+  maxRadiusKm: 320,
+  heightM: 2_000,
+  ringCount: 3,
+  duration: 2.6,
+  speed: 1,
+} as const;
+
 export default function PulseRingDemoPage() {
   const { isZh } = useI18n();
   const viewerRef = useRef<Viewer | null>(null);
   const ringRef = useRef<PulseRingHandle | null>(null);
 
-  const [mode, setMode] = useState<PulseRingMode>('loop');
+  const [mode, setMode] = useState<PulseRingMode>(DEFAULTS.mode);
   const [paused, setPaused] = useState(
     () =>
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [visible, setVisible] = useState(true);
-  const [speed, setSpeed] = useState(1);
-  const [radiusKm, setRadiusKm] = useState(320);
+  const [color, setColor] = useState<string>(DEFAULTS.color);
+  const [minRadiusKm, setMinRadiusKm] = useState<number>(DEFAULTS.minRadiusKm);
+  const [maxRadiusKm, setMaxRadiusKm] = useState<number>(DEFAULTS.maxRadiusKm);
+  const [heightM, setHeightM] = useState<number>(DEFAULTS.heightM);
+  const [ringCount, setRingCount] = useState<number>(DEFAULTS.ringCount);
+  const [duration, setDuration] = useState<number>(DEFAULTS.duration);
+  const [speed, setSpeed] = useState<number>(DEFAULTS.speed);
 
-  const buildRing = useCallback(
-    (
-      viewer: Viewer,
-      nextMode: PulseRingMode,
-      nextRadiusKm: number,
-      nextSpeed: number,
-      nextPaused: boolean,
-    ) => {
-      ringRef.current?.destroy();
-      const handle = createPulseRing(viewer, {
-        position: CENTER_COORD,
-        mode: nextMode,
-        color: nextMode === 'trigger' ? '#ffa31a' : '#00a8ff',
-        maxRadius: nextRadiusKm * 1_000,
-        speed: nextSpeed,
-        paused: nextPaused,
-      });
-      ringRef.current = handle;
-      if (nextMode === 'trigger' && !nextPaused) {
-        handle.trigger();
-      }
-    },
-    [],
-  );
+  const handleModeChange = useCallback((nextMode: PulseRingMode) => {
+    setMode(nextMode);
+    setColor(nextMode === 'trigger' ? '#ffa31a' : '#00a8ff');
+    setDuration(nextMode === 'trigger' ? 1.4 : 2.6);
+    setRingCount(nextMode === 'trigger' ? 2 : 3);
+  }, []);
 
   const handleMount = useCallback(
     (viewer: Viewer) => {
       viewerRef.current = viewer;
-      buildRing(viewer, mode, radiusKm, speed, paused);
+      const handle = createPulseRing(viewer, {
+        position: CENTER_COORD,
+        mode,
+        color,
+        minRadius: minRadiusKm * 1_000,
+        maxRadius: maxRadiusKm * 1_000,
+        height: heightM,
+        ringCount,
+        duration,
+        speed,
+        paused,
+        show: visible,
+      });
+      ringRef.current = handle;
+      if (mode === 'trigger' && !paused) {
+        handle.trigger();
+      }
       resetCamera(viewer);
 
       return () => {
@@ -123,7 +134,7 @@ export default function PulseRingDemoPage() {
         viewerRef.current = null;
       };
     },
-    // Mount once per stage lifecycle; mode/param updates are synced by effects below.
+    // Mount once per stage lifecycle; updates are synced by effects below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -131,14 +142,177 @@ export default function PulseRingDemoPage() {
   useEffect(() => {
     const viewer = viewerRef.current;
     if (!viewer || viewer.isDestroyed()) return;
-    buildRing(viewer, mode, radiusKm, speed, paused);
-    // Rebuild only when mode changes.
+    ringRef.current?.destroy();
+    const handle = createPulseRing(viewer, {
+      position: CENTER_COORD,
+      mode,
+      color,
+      minRadius: minRadiusKm * 1_000,
+      maxRadius: Math.max(minRadiusKm + 20, maxRadiusKm) * 1_000,
+      height: heightM,
+      ringCount,
+      duration,
+      speed,
+      paused,
+      show: visible,
+    });
+    ringRef.current = handle;
+    if (mode === 'trigger' && !paused) {
+      handle.trigger();
+    }
+    // Rebuild only when construction-only options change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, buildRing]);
+  }, [mode, heightM, duration]);
 
   useEffect(() => {
-    ringRef.current?.update({ maxRadius: radiusKm * 1_000, speed });
-  }, [radiusKm, speed]);
+    ringRef.current?.update({
+      color,
+      minRadius: minRadiusKm * 1_000,
+      maxRadius: Math.max(minRadiusKm + 20, maxRadiusKm) * 1_000,
+      ringCount,
+      speed,
+    });
+  }, [color, minRadiusKm, maxRadiusKm, ringCount, speed]);
+
+  const hasModifiedParams =
+    mode !== DEFAULTS.mode ||
+    color !== DEFAULTS.color ||
+    minRadiusKm !== DEFAULTS.minRadiusKm ||
+    maxRadiusKm !== DEFAULTS.maxRadiusKm ||
+    heightM !== DEFAULTS.heightM ||
+    ringCount !== DEFAULTS.ringCount ||
+    duration !== DEFAULTS.duration ||
+    speed !== DEFAULTS.speed;
+
+  const handleResetParams = useCallback(() => {
+    setMode(DEFAULTS.mode);
+    setColor(DEFAULTS.color);
+    setMinRadiusKm(DEFAULTS.minRadiusKm);
+    setMaxRadiusKm(DEFAULTS.maxRadiusKm);
+    setHeightM(DEFAULTS.heightM);
+    setRingCount(DEFAULTS.ringCount);
+    setDuration(DEFAULTS.duration);
+    setSpeed(DEFAULTS.speed);
+  }, []);
+
+  const paramGroups = useMemo<ParamGroup[]>(
+    () => [
+      {
+        id: 'appearance',
+        label: isZh ? '外观' : 'Appearance',
+        controls: [
+          {
+            type: 'segment',
+            id: 'mode',
+            label: isZh ? '扩散模式' : 'Mode',
+            value: mode,
+            options: [
+              { value: 'loop', label: isZh ? '循环' : 'Loop' },
+              { value: 'trigger', label: isZh ? '触发脉冲' : 'Trigger' },
+            ],
+            onChange: (val) => {
+              if (val === 'loop' || val === 'trigger') handleModeChange(val);
+            },
+          },
+          {
+            type: 'color',
+            id: 'color',
+            label: isZh ? '光环颜色' : 'Color',
+            value: color,
+            onChange: setColor,
+          },
+          {
+            type: 'slider',
+            id: 'ringCount',
+            label: isZh ? `光环数量 · ${ringCount}` : `Rings · ${ringCount}`,
+            value: ringCount,
+            min: 1,
+            max: 6,
+            step: 1,
+            onChange: setRingCount,
+          },
+        ],
+      },
+      {
+        id: 'geometry',
+        label: isZh ? '几何' : 'Geometry',
+        controls: [
+          {
+            type: 'slider',
+            id: 'minRadius',
+            label: isZh ? `起始半径 · ${minRadiusKm}km` : `Min radius · ${minRadiusKm}km`,
+            value: minRadiusKm,
+            min: 0,
+            max: 120,
+            step: 4,
+            onChange: setMinRadiusKm,
+          },
+          {
+            type: 'slider',
+            id: 'maxRadius',
+            label: isZh ? `最大半径 · ${maxRadiusKm}km` : `Max radius · ${maxRadiusKm}km`,
+            value: maxRadiusKm,
+            min: 100,
+            max: 800,
+            step: 20,
+            onChange: setMaxRadiusKm,
+          },
+          {
+            type: 'slider',
+            id: 'height',
+            label: isZh
+              ? `离地高度 · ${(heightM / 1_000).toFixed(1)}km`
+              : `Elevation · ${(heightM / 1_000).toFixed(1)}km`,
+            value: heightM,
+            min: 0,
+            max: 20_000,
+            step: 1_000,
+            onChange: setHeightM,
+          },
+        ],
+      },
+      {
+        id: 'motion',
+        label: isZh ? '动画' : 'Motion',
+        controls: [
+          {
+            type: 'slider',
+            id: 'speed',
+            label: isZh ? `扩散速度 · ${speed.toFixed(1)}x` : `Speed · ${speed.toFixed(1)}x`,
+            value: speed,
+            min: 0.3,
+            max: 3,
+            step: 0.1,
+            onChange: setSpeed,
+          },
+          {
+            type: 'slider',
+            id: 'duration',
+            label: isZh
+              ? `单圈周期 · ${duration.toFixed(1)}s`
+              : `Duration · ${duration.toFixed(1)}s`,
+            value: duration,
+            min: 0.6,
+            max: 5,
+            step: 0.2,
+            onChange: setDuration,
+          },
+        ],
+      },
+    ],
+    [
+      isZh,
+      mode,
+      handleModeChange,
+      color,
+      ringCount,
+      minRadiusKm,
+      maxRadiusKm,
+      heightM,
+      speed,
+      duration,
+    ],
+  );
 
   useEffect(() => {
     ringRef.current?.setPaused(paused);
@@ -289,72 +463,41 @@ export default function PulseRingDemoPage() {
         label={isZh ? 'Pulse Ring 扩散波纹演示场景' : 'Pulse Ring 3D CesiumJS demo scene'}
         shouldAnimate={false}
         onMount={handleMount}
-        toolbar={
+        paramGroups={paramGroups}
+        onResetParams={handleResetParams}
+        hasModifiedParams={hasModifiedParams}
+        actions={
           <>
-            <HStack gap={2} vAlign="center" wrap="wrap">
-              <SegmentedControl
-                label={isZh ? '波纹模式' : 'Pulse ring mode'}
-                size="sm"
-                value={mode}
-                onChange={(val) => {
-                  if (val === 'loop' || val === 'trigger') setMode(val);
-                }}
-              >
-                <SegmentedControlItem value="loop" label={isZh ? '循环' : 'Loop'} />
-                <SegmentedControlItem value="trigger" label={isZh ? '触发脉冲' : 'Trigger'} />
-              </SegmentedControl>
-
-              {mode === 'trigger' && (
-                <Button
-                  label={isZh ? '触发脉冲' : 'Trigger pulse'}
-                  variant="primary"
-                  size="sm"
-                  icon={<Icon icon={Zap} />}
-                  onClick={() => ringRef.current?.trigger()}
-                />
-              )}
-
+            {mode === 'trigger' && (
               <Button
-                label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
-                variant="secondary"
+                label={isZh ? '触发脉冲' : 'Trigger pulse'}
+                variant="primary"
                 size="sm"
-                icon={<Icon icon={paused ? Play : Pause} />}
-                onClick={() => setPaused((prev) => !prev)}
+                icon={<Icon icon={Zap} />}
+                onClick={() => ringRef.current?.trigger()}
               />
-              <Button
-                label={visible ? (isZh ? '隐藏' : 'Hide') : isZh ? '显示' : 'Show'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={visible ? EyeOff : Eye} />}
-                onClick={() => setVisible((prev) => !prev)}
-              />
-              <Button
-                label={isZh ? '重置视角' : 'Reset camera'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={RotateCcw} />}
-                onClick={handleResetCamera}
-              />
-            </HStack>
-
-            <Grid columns={{ minWidth: 160, max: 2 }} gap={4} width="100%">
-              <Slider
-                label={isZh ? `最大半径 · ${radiusKm}km` : `Max radius · ${radiusKm}km`}
-                value={radiusKm}
-                min={100}
-                max={800}
-                step={20}
-                onChange={setRadiusKm}
-              />
-              <Slider
-                label={isZh ? `扩散速度 · ${speed.toFixed(1)}x` : `Speed · ${speed.toFixed(1)}x`}
-                value={speed}
-                min={0.3}
-                max={3}
-                step={0.1}
-                onChange={setSpeed}
-              />
-            </Grid>
+            )}
+            <Button
+              label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
+              variant="secondary"
+              size="sm"
+              icon={<Icon icon={paused ? Play : Pause} />}
+              onClick={() => setPaused((prev) => !prev)}
+            />
+            <Button
+              label={visible ? (isZh ? '隐藏' : 'Hide') : isZh ? '显示' : 'Show'}
+              variant="ghost"
+              size="sm"
+              icon={<Icon icon={visible ? EyeOff : Eye} />}
+              onClick={() => setVisible((prev) => !prev)}
+            />
+            <Button
+              label={isZh ? '重置视角' : 'Reset camera'}
+              variant="ghost"
+              size="sm"
+              icon={<Icon icon={RotateCcw} />}
+              onClick={handleResetCamera}
+            />
           </>
         }
       />

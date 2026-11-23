@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useRef, useState, type AnchorHTMLAttributes } from 'react';
+import { Fragment, useMemo, useRef, type AnchorHTMLAttributes } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { AppShell } from '@astryxdesign/core/AppShell';
 import { TopNav, TopNavHeading } from '@astryxdesign/core/TopNav';
@@ -16,9 +16,9 @@ import { IconButton } from '@astryxdesign/core/IconButton';
 import { Icon } from '@astryxdesign/core/Icon';
 import { Divider } from '@astryxdesign/core/Divider';
 import { Kbd } from '@astryxdesign/core/Kbd';
-import { ArrowLeft, ArrowRight, Github, Moon, PanelLeft, Sun } from 'lucide-react';
+import { useMediaQuery } from '@astryxdesign/core/hooks';
+import { ArrowLeft, ArrowRight, Github, Moon, Sun } from 'lucide-react';
 import { NAV_ITEMS } from '../data/components';
-import { useMediaQuery } from '../hooks/useMediaQuery';
 import { DocsPageProvider } from '../lib/docsPage';
 import { useI18n } from '../lib/i18n';
 import { CesiumLogo } from './CesiumLogo';
@@ -51,8 +51,6 @@ export function DocsView({ isDark, onToggleTheme, onOpenSearch }: DocsViewProps)
   const { isZh } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
-  const [isSideNavCollapsed, setIsSideNavCollapsed] = useState(false);
-  const isDesktop = useMediaQuery('(min-width: 960px)');
   const isCompactNav = !useMediaQuery('(min-width: 640px)');
   const showToc = useMediaQuery('(min-width: 1180px)');
   const contentRef = useRef<HTMLDivElement>(null);
@@ -72,15 +70,6 @@ export function DocsView({ isDark, onToggleTheme, onOpenSearch }: DocsViewProps)
   const prevItem = currentIdx > 0 ? flatItems[currentIdx - 1] : undefined;
   const nextItem =
     currentIdx >= 0 && currentIdx < flatItems.length - 1 ? flatItems[currentIdx + 1] : undefined;
-
-  const sideNavCollapsible = useMemo(
-    () => ({
-      isCollapsed: isSideNavCollapsed,
-      onCollapsedChange: setIsSideNavCollapsed,
-      hasButton: false,
-    }),
-    [isSideNavCollapsed],
-  );
 
   const HomeBrandLink = useMemo(
     () =>
@@ -123,46 +112,13 @@ export function DocsView({ isDark, onToggleTheme, onOpenSearch }: DocsViewProps)
           <TopNav
             label="Documentation toolbar"
             heading={
-              <HStack
-                width={isDesktop && !isSideNavCollapsed ? 250 : undefined}
-                gap={2}
-                hAlign={isDesktop && !isSideNavCollapsed ? 'between' : 'start'}
-                vAlign="center"
-              >
-                <LinkProvider component={HomeBrandLink}>
-                  <TopNavHeading
-                    logo={<CesiumLogo size={26} />}
-                    heading="Cesiumlab"
-                    headingHref="/"
-                  />
-                </LinkProvider>
-                {isDesktop && (
-                  <IconButton
-                    label={
-                      isZh
-                        ? isSideNavCollapsed
-                          ? '展开侧边栏'
-                          : '收起侧边栏'
-                        : isSideNavCollapsed
-                          ? 'Expand sidebar'
-                          : 'Collapse sidebar'
-                    }
-                    tooltip={
-                      isZh
-                        ? isSideNavCollapsed
-                          ? '展开侧边栏'
-                          : '收起侧边栏'
-                        : isSideNavCollapsed
-                          ? 'Expand sidebar'
-                          : 'Collapse sidebar'
-                    }
-                    variant="ghost"
-                    size="sm"
-                    icon={<Icon icon={PanelLeft} />}
-                    onClick={() => setIsSideNavCollapsed((prev) => !prev)}
-                  />
-                )}
-              </HStack>
+              <LinkProvider component={HomeBrandLink}>
+                <TopNavHeading
+                  logo={<CesiumLogo size={26} />}
+                  heading="Cesiumlab"
+                  headingHref="/"
+                />
+              </LinkProvider>
             }
             endContent={
               <HStack gap={1} vAlign="center">
@@ -222,7 +178,7 @@ export function DocsView({ isDark, onToggleTheme, onOpenSearch }: DocsViewProps)
           />
         }
         sideNav={
-          <SideNav aria-label="Component documentation navigation" collapsible={sideNavCollapsible}>
+          <SideNav aria-label="Component documentation navigation">
             {NAV_ITEMS.map((group, groupIdx) => (
               <Fragment key={group.section}>
                 {groupIdx > 0 && <Divider />}
@@ -256,6 +212,12 @@ export function DocsView({ isDark, onToggleTheme, onOpenSearch }: DocsViewProps)
           width="100%"
           paddingInline={isCompactNav ? 4 : 6}
           paddingBlock={isCompactNav ? 5 : 8}
+          style={{
+            minHeight: 'calc(100dvh - 3.5rem)',
+            backgroundImage: 'var(--effect-film-grain)',
+            backgroundRepeat: 'repeat',
+            backgroundSize: '200px 200px',
+          }}
         >
           <HStack maxWidth={1180} width="100%" gap={10} vAlign="start" hAlign="center">
             <StackItem size="fill" style={{ minWidth: 0, maxWidth: 880 }}>

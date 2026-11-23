@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4, type Viewer } from 'cesium';
 import {
   Button,
@@ -6,17 +6,16 @@ import {
   Code,
   CodeBlock,
   Divider,
-  Grid,
   HStack,
   Heading,
   Icon,
-  Slider,
   StackItem,
   Text,
   VStack,
 } from '@astryxdesign/core';
 import { Eye, EyeOff, Pause, Play, RotateCcw } from 'lucide-react';
 import { CesiumStage } from '@docs/components/CesiumStage';
+import type { ParamGroup } from '@docs/components/EffectParamPanel';
 import { useDocsPageMarkdown } from '@docs/lib/docsPage';
 import type { EffectDemoMeta } from '@docs/lib/effectDemos';
 import { useI18n } from '@docs/lib/i18n';
@@ -73,6 +72,18 @@ function resetCamera(viewer: Viewer) {
   viewer.camera.lookAtTransform(Matrix4.IDENTITY);
 }
 
+const DEFAULTS = {
+  color: '#00a8ff',
+  heightKm: 520,
+  radiusKm: 24,
+  coreWidth: 1,
+  glowWidth: 1,
+  intensity: 1,
+  flowSpeed: 1,
+  breathingSpeed: 1,
+  groundOffsetKm: 0,
+} as const;
+
 export default function EnergyBeamDemoPage() {
   const { isZh } = useI18n();
   const viewerRef = useRef<Viewer | null>(null);
@@ -84,9 +95,15 @@ export default function EnergyBeamDemoPage() {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [visible, setVisible] = useState(true);
-  const [heightKm, setHeightKm] = useState(520);
-  const [intensity, setIntensity] = useState(1);
-  const [glowWidth, setGlowWidth] = useState(1);
+  const [color, setColor] = useState<string>(DEFAULTS.color);
+  const [heightKm, setHeightKm] = useState<number>(DEFAULTS.heightKm);
+  const [radiusKm, setRadiusKm] = useState<number>(DEFAULTS.radiusKm);
+  const [coreWidth, setCoreWidth] = useState<number>(DEFAULTS.coreWidth);
+  const [glowWidth, setGlowWidth] = useState<number>(DEFAULTS.glowWidth);
+  const [intensity, setIntensity] = useState<number>(DEFAULTS.intensity);
+  const [flowSpeed, setFlowSpeed] = useState<number>(DEFAULTS.flowSpeed);
+  const [breathingSpeed, setBreathingSpeed] = useState<number>(DEFAULTS.breathingSpeed);
+  const [groundOffsetKm, setGroundOffsetKm] = useState<number>(DEFAULTS.groundOffsetKm);
 
   const handleMount = useCallback(
     (viewer: Viewer) => {
@@ -94,11 +111,18 @@ export default function EnergyBeamDemoPage() {
       beamsRef.current = BEAM_NODES.map((node) =>
         createEnergyBeam(viewer, {
           position: node.coord,
+          color,
           height: heightKm * 1_000 * node.heightFactor,
-          intensity,
+          radius: radiusKm * 1_000,
+          coreWidth,
           glowWidth,
+          intensity,
+          flowSpeed,
+          breathingSpeed,
+          groundOffset: groundOffsetKm * 1_000,
           phase: node.phase,
           paused,
+          show: visible,
         }),
       );
       resetCamera(viewer);
@@ -117,15 +141,201 @@ export default function EnergyBeamDemoPage() {
   );
 
   useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+    for (const beam of beamsRef.current) {
+      beam.destroy();
+    }
+    beamsRef.current = BEAM_NODES.map((node) =>
+      createEnergyBeam(viewer, {
+        position: node.coord,
+        color,
+        height: heightKm * 1_000 * node.heightFactor,
+        radius: radiusKm * 1_000,
+        coreWidth,
+        glowWidth,
+        intensity,
+        flowSpeed,
+        breathingSpeed,
+        groundOffset: groundOffsetKm * 1_000,
+        phase: node.phase,
+        paused,
+        show: visible,
+      }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groundOffsetKm]);
+
+  useEffect(() => {
     beamsRef.current.forEach((beam, idx) => {
       const factor = BEAM_NODES[idx]?.heightFactor ?? 1;
       beam.update({
+        color,
         height: heightKm * 1_000 * factor,
-        intensity,
+        radius: radiusKm * 1_000,
+        coreWidth,
         glowWidth,
+        intensity,
+        flowSpeed,
+        breathingSpeed,
       });
     });
-  }, [heightKm, intensity, glowWidth]);
+  }, [color, heightKm, radiusKm, coreWidth, glowWidth, intensity, flowSpeed, breathingSpeed]);
+
+  const hasModifiedParams =
+    color !== DEFAULTS.color ||
+    heightKm !== DEFAULTS.heightKm ||
+    radiusKm !== DEFAULTS.radiusKm ||
+    coreWidth !== DEFAULTS.coreWidth ||
+    glowWidth !== DEFAULTS.glowWidth ||
+    intensity !== DEFAULTS.intensity ||
+    flowSpeed !== DEFAULTS.flowSpeed ||
+    breathingSpeed !== DEFAULTS.breathingSpeed ||
+    groundOffsetKm !== DEFAULTS.groundOffsetKm;
+
+  const handleResetParams = useCallback(() => {
+    setColor(DEFAULTS.color);
+    setHeightKm(DEFAULTS.heightKm);
+    setRadiusKm(DEFAULTS.radiusKm);
+    setCoreWidth(DEFAULTS.coreWidth);
+    setGlowWidth(DEFAULTS.glowWidth);
+    setIntensity(DEFAULTS.intensity);
+    setFlowSpeed(DEFAULTS.flowSpeed);
+    setBreathingSpeed(DEFAULTS.breathingSpeed);
+    setGroundOffsetKm(DEFAULTS.groundOffsetKm);
+  }, []);
+
+  const paramGroups = useMemo<ParamGroup[]>(
+    () => [
+      {
+        id: 'appearance',
+        label: isZh ? '外观' : 'Appearance',
+        controls: [
+          {
+            type: 'color',
+            id: 'color',
+            label: isZh ? '光束颜色' : 'Color',
+            value: color,
+            onChange: setColor,
+          },
+          {
+            type: 'slider',
+            id: 'intensity',
+            label: isZh
+              ? `亮度 · ${intensity.toFixed(1)}x`
+              : `Intensity · ${intensity.toFixed(1)}x`,
+            value: intensity,
+            min: 0.3,
+            max: 1.8,
+            step: 0.1,
+            onChange: setIntensity,
+          },
+        ],
+      },
+      {
+        id: 'geometry',
+        label: isZh ? '几何' : 'Geometry',
+        controls: [
+          {
+            type: 'slider',
+            id: 'height',
+            label: isZh ? `高度 · ${heightKm}km` : `Height · ${heightKm}km`,
+            value: heightKm,
+            min: 200,
+            max: 900,
+            step: 20,
+            onChange: setHeightKm,
+          },
+          {
+            type: 'slider',
+            id: 'radius',
+            label: isZh ? `底半径 · ${radiusKm}km` : `Radius · ${radiusKm}km`,
+            value: radiusKm,
+            min: 10,
+            max: 60,
+            step: 2,
+            onChange: setRadiusKm,
+          },
+          {
+            type: 'slider',
+            id: 'coreWidth',
+            label: isZh
+              ? `核心宽度 · ${coreWidth.toFixed(1)}x`
+              : `Core width · ${coreWidth.toFixed(1)}x`,
+            value: coreWidth,
+            min: 0.4,
+            max: 2,
+            step: 0.1,
+            onChange: setCoreWidth,
+          },
+          {
+            type: 'slider',
+            id: 'glowWidth',
+            label: isZh
+              ? `光晕宽度 · ${glowWidth.toFixed(1)}x`
+              : `Glow width · ${glowWidth.toFixed(1)}x`,
+            value: glowWidth,
+            min: 0.5,
+            max: 2,
+            step: 0.1,
+            onChange: setGlowWidth,
+          },
+          {
+            type: 'slider',
+            id: 'groundOffset',
+            label: isZh ? `离地偏移 · ${groundOffsetKm}km` : `Ground offset · ${groundOffsetKm}km`,
+            value: groundOffsetKm,
+            min: 0,
+            max: 80,
+            step: 4,
+            onChange: setGroundOffsetKm,
+          },
+        ],
+      },
+      {
+        id: 'motion',
+        label: isZh ? '动画' : 'Motion',
+        controls: [
+          {
+            type: 'slider',
+            id: 'flowSpeed',
+            label: isZh
+              ? `流动速度 · ${flowSpeed.toFixed(1)}x`
+              : `Flow speed · ${flowSpeed.toFixed(1)}x`,
+            value: flowSpeed,
+            min: 0,
+            max: 3,
+            step: 0.1,
+            onChange: setFlowSpeed,
+          },
+          {
+            type: 'slider',
+            id: 'breathingSpeed',
+            label: isZh
+              ? `呼吸速度 · ${breathingSpeed.toFixed(1)}x`
+              : `Breathing · ${breathingSpeed.toFixed(1)}x`,
+            value: breathingSpeed,
+            min: 0,
+            max: 3,
+            step: 0.1,
+            onChange: setBreathingSpeed,
+          },
+        ],
+      },
+    ],
+    [
+      isZh,
+      color,
+      intensity,
+      heightKm,
+      radiusKm,
+      coreWidth,
+      glowWidth,
+      groundOffsetKm,
+      flowSpeed,
+      breathingSpeed,
+    ],
+  );
 
   useEffect(() => {
     for (const beam of beamsRef.current) {
@@ -282,60 +492,32 @@ export default function EnergyBeamDemoPage() {
         label={isZh ? 'Energy Beam 全息光束演示场景' : 'Energy Beam 3D CesiumJS demo scene'}
         shouldAnimate={false}
         onMount={handleMount}
-        toolbar={
+        paramGroups={paramGroups}
+        onResetParams={handleResetParams}
+        hasModifiedParams={hasModifiedParams}
+        actions={
           <>
-            <HStack gap={2} vAlign="center" wrap="wrap">
-              <Button
-                label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
-                variant="secondary"
-                size="sm"
-                icon={<Icon icon={paused ? Play : Pause} />}
-                onClick={() => setPaused((prev) => !prev)}
-              />
-              <Button
-                label={visible ? (isZh ? '隐藏' : 'Hide') : isZh ? '显示' : 'Show'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={visible ? EyeOff : Eye} />}
-                onClick={() => setVisible((prev) => !prev)}
-              />
-              <Button
-                label={isZh ? '重置视角' : 'Reset camera'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={RotateCcw} />}
-                onClick={handleResetCamera}
-              />
-            </HStack>
-
-            <Grid columns={{ minWidth: 160, max: 3 }} gap={4} width="100%">
-              <Slider
-                label={isZh ? `高度 · ${heightKm}km` : `Height · ${heightKm}km`}
-                value={heightKm}
-                min={200}
-                max={900}
-                step={20}
-                onChange={setHeightKm}
-              />
-              <Slider
-                label={
-                  isZh ? `亮度 · ${intensity.toFixed(1)}x` : `Intensity · ${intensity.toFixed(1)}x`
-                }
-                value={intensity}
-                min={0.3}
-                max={1.8}
-                step={0.1}
-                onChange={setIntensity}
-              />
-              <Slider
-                label={isZh ? `光晕 · ${glowWidth.toFixed(1)}x` : `Glow · ${glowWidth.toFixed(1)}x`}
-                value={glowWidth}
-                min={0.5}
-                max={2}
-                step={0.1}
-                onChange={setGlowWidth}
-              />
-            </Grid>
+            <Button
+              label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
+              variant="secondary"
+              size="sm"
+              icon={<Icon icon={paused ? Play : Pause} />}
+              onClick={() => setPaused((prev) => !prev)}
+            />
+            <Button
+              label={visible ? (isZh ? '隐藏' : 'Hide') : isZh ? '显示' : 'Show'}
+              variant="ghost"
+              size="sm"
+              icon={<Icon icon={visible ? EyeOff : Eye} />}
+              onClick={() => setVisible((prev) => !prev)}
+            />
+            <Button
+              label={isZh ? '重置视角' : 'Reset camera'}
+              variant="ghost"
+              size="sm"
+              icon={<Icon icon={RotateCcw} />}
+              onClick={handleResetCamera}
+            />
           </>
         }
       />

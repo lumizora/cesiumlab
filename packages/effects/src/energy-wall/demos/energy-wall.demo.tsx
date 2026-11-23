@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4, type Viewer } from 'cesium';
 import {
   Button,
@@ -6,17 +6,16 @@ import {
   Code,
   CodeBlock,
   Divider,
-  Grid,
   HStack,
   Heading,
   Icon,
-  Slider,
   StackItem,
   Text,
   VStack,
 } from '@astryxdesign/core';
 import { Eye, EyeOff, Pause, Play, RotateCcw } from 'lucide-react';
 import { CesiumStage } from '@docs/components/CesiumStage';
+import type { ParamGroup } from '@docs/components/EffectParamPanel';
 import { useDocsPageMarkdown } from '@docs/lib/docsPage';
 import type { EffectDemoMeta } from '@docs/lib/effectDemos';
 import { useI18n } from '@docs/lib/i18n';
@@ -73,6 +72,16 @@ function resetCamera(viewer: Viewer) {
   viewer.camera.lookAtTransform(Matrix4.IDENTITY);
 }
 
+const DEFAULTS = {
+  color: '#00d4ff',
+  heightKm: 36,
+  baseHeightKm: 0,
+  closed: true,
+  speed: 1,
+  opacity: 0.85,
+  repeat: 3,
+} as const;
+
 export default function EnergyWallDemoPage() {
   const { isZh } = useI18n();
   const viewerRef = useRef<Viewer | null>(null);
@@ -84,17 +93,25 @@ export default function EnergyWallDemoPage() {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [visible, setVisible] = useState(true);
-  const [heightKm, setHeightKm] = useState(36);
-  const [speed, setSpeed] = useState(1);
-  const [repeat, setRepeat] = useState(3);
+  const [color, setColor] = useState<string>(DEFAULTS.color);
+  const [heightKm, setHeightKm] = useState<number>(DEFAULTS.heightKm);
+  const [baseHeightKm, setBaseHeightKm] = useState<number>(DEFAULTS.baseHeightKm);
+  const [closed, setClosed] = useState<boolean>(DEFAULTS.closed);
+  const [speed, setSpeed] = useState<number>(DEFAULTS.speed);
+  const [opacity, setOpacity] = useState<number>(DEFAULTS.opacity);
+  const [repeat, setRepeat] = useState<number>(DEFAULTS.repeat);
 
   const handleMount = useCallback(
     (viewer: Viewer) => {
       viewerRef.current = viewer;
       wallRef.current = createEnergyWall(viewer, {
         positions: DEMO_POLYGON,
+        color,
         height: heightKm * 1_000,
+        baseHeight: baseHeightKm * 1_000,
+        closed,
         speed,
+        opacity,
         repeat,
         paused,
         show: visible,
@@ -113,8 +130,143 @@ export default function EnergyWallDemoPage() {
   );
 
   useEffect(() => {
-    wallRef.current?.update({ height: heightKm * 1_000, speed, repeat });
-  }, [heightKm, speed, repeat]);
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+    wallRef.current?.destroy();
+    wallRef.current = createEnergyWall(viewer, {
+      positions: DEMO_POLYGON,
+      color,
+      height: heightKm * 1_000,
+      baseHeight: baseHeightKm * 1_000,
+      closed,
+      speed,
+      opacity,
+      repeat,
+      paused,
+      show: visible,
+    });
+    // Rebuild only when construction-only geometry options change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [baseHeightKm, closed]);
+
+  useEffect(() => {
+    wallRef.current?.update({
+      color,
+      height: heightKm * 1_000,
+      speed,
+      opacity,
+      repeat,
+    });
+  }, [color, heightKm, speed, opacity, repeat]);
+
+  const hasModifiedParams =
+    color !== DEFAULTS.color ||
+    heightKm !== DEFAULTS.heightKm ||
+    baseHeightKm !== DEFAULTS.baseHeightKm ||
+    closed !== DEFAULTS.closed ||
+    speed !== DEFAULTS.speed ||
+    opacity !== DEFAULTS.opacity ||
+    repeat !== DEFAULTS.repeat;
+
+  const handleResetParams = useCallback(() => {
+    setColor(DEFAULTS.color);
+    setHeightKm(DEFAULTS.heightKm);
+    setBaseHeightKm(DEFAULTS.baseHeightKm);
+    setClosed(DEFAULTS.closed);
+    setSpeed(DEFAULTS.speed);
+    setOpacity(DEFAULTS.opacity);
+    setRepeat(DEFAULTS.repeat);
+  }, []);
+
+  const paramGroups = useMemo<ParamGroup[]>(
+    () => [
+      {
+        id: 'appearance',
+        label: isZh ? '外观' : 'Appearance',
+        controls: [
+          {
+            type: 'color',
+            id: 'color',
+            label: isZh ? '围栏颜色' : 'Color',
+            value: color,
+            onChange: setColor,
+          },
+          {
+            type: 'slider',
+            id: 'opacity',
+            label: isZh
+              ? `不透明度 · ${Math.round(opacity * 100)}%`
+              : `Opacity · ${Math.round(opacity * 100)}%`,
+            value: opacity,
+            min: 0.15,
+            max: 1.4,
+            step: 0.05,
+            onChange: setOpacity,
+          },
+          {
+            type: 'slider',
+            id: 'repeat',
+            label: isZh ? `波带数 · ${repeat}` : `Bands · ${repeat}`,
+            value: repeat,
+            min: 1,
+            max: 6,
+            step: 1,
+            onChange: setRepeat,
+          },
+        ],
+      },
+      {
+        id: 'geometry',
+        label: isZh ? '几何' : 'Geometry',
+        controls: [
+          {
+            type: 'slider',
+            id: 'height',
+            label: isZh ? `墙高 · ${heightKm}km` : `Height · ${heightKm}km`,
+            value: heightKm,
+            min: 10,
+            max: 80,
+            step: 2,
+            onChange: setHeightKm,
+          },
+          {
+            type: 'slider',
+            id: 'baseHeight',
+            label: isZh ? `底部高度 · ${baseHeightKm}km` : `Base height · ${baseHeightKm}km`,
+            value: baseHeightKm,
+            min: 0,
+            max: 30,
+            step: 1,
+            onChange: setBaseHeightKm,
+          },
+          {
+            type: 'switch',
+            id: 'closed',
+            label: isZh ? '闭合围栏' : 'Closed loop',
+            value: closed,
+            onChange: setClosed,
+          },
+        ],
+      },
+      {
+        id: 'motion',
+        label: isZh ? '动画' : 'Motion',
+        controls: [
+          {
+            type: 'slider',
+            id: 'speed',
+            label: isZh ? `流速 · ${speed.toFixed(1)}x` : `Speed · ${speed.toFixed(1)}x`,
+            value: speed,
+            min: 0,
+            max: 3,
+            step: 0.1,
+            onChange: setSpeed,
+          },
+        ],
+      },
+    ],
+    [isZh, color, opacity, repeat, heightKm, baseHeightKm, closed, speed],
+  );
 
   useEffect(() => {
     wallRef.current?.setPaused(paused);
@@ -253,58 +405,32 @@ export default function EnergyWallDemoPage() {
         label={isZh ? 'Energy Wall 流光电子围栏演示场景' : 'Energy Wall 3D CesiumJS demo scene'}
         shouldAnimate={false}
         onMount={handleMount}
-        toolbar={
+        paramGroups={paramGroups}
+        onResetParams={handleResetParams}
+        hasModifiedParams={hasModifiedParams}
+        actions={
           <>
-            <HStack gap={2} vAlign="center" wrap="wrap">
-              <Button
-                label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
-                variant="secondary"
-                size="sm"
-                icon={<Icon icon={paused ? Play : Pause} />}
-                onClick={() => setPaused((prev) => !prev)}
-              />
-              <Button
-                label={visible ? (isZh ? '隐藏' : 'Hide') : isZh ? '显示' : 'Show'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={visible ? EyeOff : Eye} />}
-                onClick={() => setVisible((prev) => !prev)}
-              />
-              <Button
-                label={isZh ? '重置视角' : 'Reset camera'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={RotateCcw} />}
-                onClick={handleResetCamera}
-              />
-            </HStack>
-
-            <Grid columns={{ minWidth: 160, max: 3 }} gap={4} width="100%">
-              <Slider
-                label={isZh ? `墙高 · ${heightKm}km` : `Height · ${heightKm}km`}
-                value={heightKm}
-                min={10}
-                max={80}
-                step={2}
-                onChange={setHeightKm}
-              />
-              <Slider
-                label={isZh ? `流速 · ${speed.toFixed(1)}x` : `Speed · ${speed.toFixed(1)}x`}
-                value={speed}
-                min={0.2}
-                max={3}
-                step={0.1}
-                onChange={setSpeed}
-              />
-              <Slider
-                label={isZh ? `波带数 · ${repeat}` : `Bands · ${repeat}`}
-                value={repeat}
-                min={1}
-                max={6}
-                step={1}
-                onChange={setRepeat}
-              />
-            </Grid>
+            <Button
+              label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
+              variant="secondary"
+              size="sm"
+              icon={<Icon icon={paused ? Play : Pause} />}
+              onClick={() => setPaused((prev) => !prev)}
+            />
+            <Button
+              label={visible ? (isZh ? '隐藏' : 'Hide') : isZh ? '显示' : 'Show'}
+              variant="ghost"
+              size="sm"
+              icon={<Icon icon={visible ? EyeOff : Eye} />}
+              onClick={() => setVisible((prev) => !prev)}
+            />
+            <Button
+              label={isZh ? '重置视角' : 'Reset camera'}
+              variant="ghost"
+              size="sm"
+              icon={<Icon icon={RotateCcw} />}
+              onClick={handleResetCamera}
+            />
           </>
         }
       />

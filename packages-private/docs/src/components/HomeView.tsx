@@ -11,11 +11,11 @@ import { IconButton } from '@astryxdesign/core/IconButton';
 import { Icon } from '@astryxdesign/core/Icon';
 import { CodeBlock } from '@astryxdesign/core/CodeBlock';
 import { Kbd } from '@astryxdesign/core/Kbd';
+import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { ArrowRight, Github, Moon, Sun } from 'lucide-react';
 import { CesiumLogo } from './CesiumLogo';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { DEFAULT_MODULE_PATH } from '../data/catalog';
-import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useI18n } from '../lib/i18n';
 
 interface HomeViewProps {
@@ -35,7 +35,7 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps)
     <AppShell
       height="fill"
       variant="surface"
-      contentPadding={4}
+      contentPadding={0}
       topNav={
         <TopNav
           label="Primary navigation"
@@ -134,7 +134,19 @@ export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps)
         />
       }
     >
-      <VStack hAlign="center" vAlign="center" width="100%" height="100%" paddingBlock={10}>
+      <VStack
+        hAlign="center"
+        vAlign="center"
+        width="100%"
+        height="100%"
+        paddingInline={4}
+        paddingBlock={10}
+        style={{
+          backgroundImage: 'var(--effect-film-grain)',
+          backgroundRepeat: 'repeat',
+          backgroundSize: '200px 200px',
+        }}
+      >
         <Section maxWidth={840} width="100%" variant="transparent" padding={0}>
           <VStack gap={5} hAlign="center">
             <Heading level={1} type="display-1" justify="center">

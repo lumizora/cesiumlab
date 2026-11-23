@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4, type Viewer } from 'cesium';
 import {
   Button,
@@ -6,17 +6,16 @@ import {
   Code,
   CodeBlock,
   Divider,
-  Grid,
   HStack,
   Heading,
   Icon,
-  Slider,
   StackItem,
   Text,
   VStack,
 } from '@astryxdesign/core';
 import { Eye, EyeOff, Pause, Play, RotateCcw } from 'lucide-react';
 import { CesiumStage } from '@docs/components/CesiumStage';
+import type { ParamGroup } from '@docs/components/EffectParamPanel';
 import { useDocsPageMarkdown } from '@docs/lib/docsPage';
 import type { EffectDemoMeta } from '@docs/lib/effectDemos';
 import { useI18n } from '@docs/lib/i18n';
@@ -71,6 +70,18 @@ function resetCamera(viewer: Viewer) {
   viewer.camera.lookAtTransform(Matrix4.IDENTITY);
 }
 
+const DEFAULTS = {
+  color: '#ffa31a',
+  heightKm: 640,
+  width: 14,
+  duration: 3.6,
+  speed: 1,
+  trailLength: 0.24,
+  cometCount: 1,
+  baseOpacity: 0.45,
+  brightness: 1,
+} as const;
+
 export default function CometArcDemoPage() {
   const { isZh } = useI18n();
   const viewerRef = useRef<Viewer | null>(null);
@@ -82,24 +93,49 @@ export default function CometArcDemoPage() {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [visible, setVisible] = useState(true);
-  const [speed, setSpeed] = useState(1);
-  const [trailLength, setTrailLength] = useState(0.24);
-  const [cometCount, setCometCount] = useState(1);
+  const [color, setColor] = useState<string>(DEFAULTS.color);
+  const [heightKm, setHeightKm] = useState<number>(DEFAULTS.heightKm);
+  const [width, setWidth] = useState<number>(DEFAULTS.width);
+  const [duration, setDuration] = useState<number>(DEFAULTS.duration);
+  const [speed, setSpeed] = useState<number>(DEFAULTS.speed);
+  const [trailLength, setTrailLength] = useState<number>(DEFAULTS.trailLength);
+  const [cometCount, setCometCount] = useState<number>(DEFAULTS.cometCount);
+  const [baseOpacity, setBaseOpacity] = useState<number>(DEFAULTS.baseOpacity);
+  const [brightness, setBrightness] = useState<number>(DEFAULTS.brightness);
 
-  const handleMount = useCallback(
-    (viewer: Viewer) => {
-      viewerRef.current = viewer;
+  const rebuildArcs = useCallback(
+    (viewer: Viewer, nextWidth: number, nextDuration: number) => {
+      for (const arc of arcsRef.current) {
+        arc.destroy();
+      }
       arcsRef.current = DEMO_ROUTES.map((route) =>
         createCometArc(viewer, {
           from: route.from,
           to: HUB_COORD,
           phase: route.phase,
+          color,
+          height: heightKm * 1_000,
+          width: nextWidth,
+          duration: nextDuration,
           speed,
           trailLength,
           cometCount,
+          baseOpacity,
+          brightness,
           paused,
+          show: visible,
         }),
       );
+    },
+    // Rebuild only when construction-only options change; live options use update().
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const handleMount = useCallback(
+    (viewer: Viewer) => {
+      viewerRef.current = viewer;
+      rebuildArcs(viewer, width, duration);
       resetCamera(viewer);
 
       return () => {
@@ -110,16 +146,201 @@ export default function CometArcDemoPage() {
         viewerRef.current = null;
       };
     },
-    // Mount once per stage lifecycle; parameter updates use handle.update().
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
   useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
     for (const arc of arcsRef.current) {
-      arc.update({ speed, trailLength, cometCount });
+      arc.destroy();
     }
-  }, [speed, trailLength, cometCount]);
+    arcsRef.current = DEMO_ROUTES.map((route) =>
+      createCometArc(viewer, {
+        from: route.from,
+        to: HUB_COORD,
+        phase: route.phase,
+        color,
+        height: heightKm * 1_000,
+        width,
+        duration,
+        speed,
+        trailLength,
+        cometCount,
+        baseOpacity,
+        brightness,
+        paused,
+        show: visible,
+      }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [width, duration]);
+
+  useEffect(() => {
+    for (const arc of arcsRef.current) {
+      arc.update({
+        color,
+        height: heightKm * 1_000,
+        speed,
+        trailLength,
+        cometCount,
+        baseOpacity,
+        brightness,
+      });
+    }
+  }, [color, heightKm, speed, trailLength, cometCount, baseOpacity, brightness]);
+
+  const hasModifiedParams =
+    color !== DEFAULTS.color ||
+    heightKm !== DEFAULTS.heightKm ||
+    width !== DEFAULTS.width ||
+    duration !== DEFAULTS.duration ||
+    speed !== DEFAULTS.speed ||
+    trailLength !== DEFAULTS.trailLength ||
+    cometCount !== DEFAULTS.cometCount ||
+    baseOpacity !== DEFAULTS.baseOpacity ||
+    brightness !== DEFAULTS.brightness;
+
+  const handleResetParams = useCallback(() => {
+    setColor(DEFAULTS.color);
+    setHeightKm(DEFAULTS.heightKm);
+    setWidth(DEFAULTS.width);
+    setDuration(DEFAULTS.duration);
+    setSpeed(DEFAULTS.speed);
+    setTrailLength(DEFAULTS.trailLength);
+    setCometCount(DEFAULTS.cometCount);
+    setBaseOpacity(DEFAULTS.baseOpacity);
+    setBrightness(DEFAULTS.brightness);
+  }, []);
+
+  const paramGroups = useMemo<ParamGroup[]>(
+    () => [
+      {
+        id: 'appearance',
+        label: isZh ? '外观' : 'Appearance',
+        controls: [
+          {
+            type: 'color',
+            id: 'color',
+            label: isZh ? '光流颜色' : 'Color',
+            value: color,
+            onChange: setColor,
+          },
+          {
+            type: 'slider',
+            id: 'width',
+            label: isZh ? `线宽 · ${width}px` : `Width · ${width}px`,
+            value: width,
+            min: 6,
+            max: 28,
+            step: 1,
+            onChange: setWidth,
+          },
+          {
+            type: 'slider',
+            id: 'baseOpacity',
+            label: isZh
+              ? `底弧透明度 · ${Math.round(baseOpacity * 100)}%`
+              : `Base opacity · ${Math.round(baseOpacity * 100)}%`,
+            value: baseOpacity,
+            min: 0,
+            max: 1,
+            step: 0.05,
+            onChange: setBaseOpacity,
+          },
+          {
+            type: 'slider',
+            id: 'brightness',
+            label: isZh
+              ? `亮度 · ${brightness.toFixed(1)}x`
+              : `Brightness · ${brightness.toFixed(1)}x`,
+            value: brightness,
+            min: 0.4,
+            max: 2,
+            step: 0.1,
+            onChange: setBrightness,
+          },
+        ],
+      },
+      {
+        id: 'geometry',
+        label: isZh ? '几何' : 'Geometry',
+        controls: [
+          {
+            type: 'slider',
+            id: 'height',
+            label: isZh ? `弧顶高度 · ${heightKm}km` : `Peak height · ${heightKm}km`,
+            value: heightKm,
+            min: 200,
+            max: 1400,
+            step: 20,
+            onChange: setHeightKm,
+          },
+        ],
+      },
+      {
+        id: 'motion',
+        label: isZh ? '动画' : 'Motion',
+        controls: [
+          {
+            type: 'slider',
+            id: 'speed',
+            label: isZh ? `速度 · ${speed.toFixed(1)}x` : `Speed · ${speed.toFixed(1)}x`,
+            value: speed,
+            min: 0.2,
+            max: 3,
+            step: 0.1,
+            onChange: setSpeed,
+          },
+          {
+            type: 'slider',
+            id: 'trailLength',
+            label: isZh
+              ? `拖尾 · ${Math.round(trailLength * 100)}%`
+              : `Trail · ${Math.round(trailLength * 100)}%`,
+            value: trailLength,
+            min: 0.08,
+            max: 0.65,
+            step: 0.01,
+            onChange: setTrailLength,
+          },
+          {
+            type: 'slider',
+            id: 'cometCount',
+            label: isZh ? `光流数量 · ${cometCount}` : `Comets · ${cometCount}`,
+            value: cometCount,
+            min: 1,
+            max: 4,
+            step: 1,
+            onChange: setCometCount,
+          },
+          {
+            type: 'slider',
+            id: 'duration',
+            label: isZh ? `周期 · ${duration.toFixed(1)}s` : `Duration · ${duration.toFixed(1)}s`,
+            value: duration,
+            min: 1.5,
+            max: 8,
+            step: 0.5,
+            onChange: setDuration,
+          },
+        ],
+      },
+    ],
+    [
+      isZh,
+      color,
+      width,
+      baseOpacity,
+      brightness,
+      heightKm,
+      speed,
+      trailLength,
+      cometCount,
+      duration,
+    ],
+  );
 
   useEffect(() => {
     for (const arc of arcsRef.current) {
@@ -288,62 +509,32 @@ export default function CometArcDemoPage() {
         label={isZh ? 'Comet Arc 三维飞线演示场景' : 'Comet Arc 3D CesiumJS demo scene'}
         shouldAnimate={false}
         onMount={handleMount}
-        toolbar={
+        paramGroups={paramGroups}
+        onResetParams={handleResetParams}
+        hasModifiedParams={hasModifiedParams}
+        actions={
           <>
-            <HStack gap={2} vAlign="center" wrap="wrap">
-              <Button
-                label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
-                variant="secondary"
-                size="sm"
-                icon={<Icon icon={paused ? Play : Pause} />}
-                onClick={() => setPaused((prev) => !prev)}
-              />
-              <Button
-                label={visible ? (isZh ? '隐藏' : 'Hide') : isZh ? '显示' : 'Show'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={visible ? EyeOff : Eye} />}
-                onClick={() => setVisible((prev) => !prev)}
-              />
-              <Button
-                label={isZh ? '重置视角' : 'Reset camera'}
-                variant="ghost"
-                size="sm"
-                icon={<Icon icon={RotateCcw} />}
-                onClick={handleResetCamera}
-              />
-            </HStack>
-
-            <Grid columns={{ minWidth: 160, max: 3 }} gap={4} width="100%">
-              <Slider
-                label={isZh ? `速度 · ${speed.toFixed(1)}x` : `Speed · ${speed.toFixed(1)}x`}
-                value={speed}
-                min={0.2}
-                max={3}
-                step={0.1}
-                onChange={setSpeed}
-              />
-              <Slider
-                label={
-                  isZh
-                    ? `拖尾 · ${Math.round(trailLength * 100)}%`
-                    : `Trail · ${Math.round(trailLength * 100)}%`
-                }
-                value={trailLength}
-                min={0.08}
-                max={0.55}
-                step={0.01}
-                onChange={setTrailLength}
-              />
-              <Slider
-                label={isZh ? `光流数量 · ${cometCount}` : `Comets · ${cometCount}`}
-                value={cometCount}
-                min={1}
-                max={4}
-                step={1}
-                onChange={setCometCount}
-              />
-            </Grid>
+            <Button
+              label={paused ? (isZh ? '播放' : 'Play') : isZh ? '暂停' : 'Pause'}
+              variant="secondary"
+              size="sm"
+              icon={<Icon icon={paused ? Play : Pause} />}
+              onClick={() => setPaused((prev) => !prev)}
+            />
+            <Button
+              label={visible ? (isZh ? '隐藏' : 'Hide') : isZh ? '显示' : 'Show'}
+              variant="ghost"
+              size="sm"
+              icon={<Icon icon={visible ? EyeOff : Eye} />}
+              onClick={() => setVisible((prev) => !prev)}
+            />
+            <Button
+              label={isZh ? '重置视角' : 'Reset camera'}
+              variant="ghost"
+              size="sm"
+              icon={<Icon icon={RotateCcw} />}
+              onClick={handleResetCamera}
+            />
           </>
         }
       />

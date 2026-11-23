@@ -4,17 +4,33 @@
   "mode": "both",
   "settings": [
     {
+      "thing": "neutral",
+      "value": "#64748b",
+      "source": "dial"
+    },
+    {
       "thing": "--color-background-body",
-      "value": "#ffffff",
+      "value": "#eef2f6",
       "source": "token",
       "mode": "light"
     },
     {
       "thing": "--color-background-body",
-      "value": "#0a0a0a",
+      "value": "#06080f",
       "source": "token",
       "mode": "dark"
+    },
+    {
+      "thing": "surfaces",
+      "value": "flat",
+      "source": "dial"
+    },
+    {
+      "thing": "corners",
+      "value": "square",
+      "source": "dial"
     }
   ],
-  "lifted": []
+  "lifted": [],
+  "palette": "cce688b7b7f276516dd44d0114cef01ccab4898f8c596dc77976134ec2835013"
 }
