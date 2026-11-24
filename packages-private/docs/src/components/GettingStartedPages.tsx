@@ -13,6 +13,7 @@ import {
   ArrowRight,
   CloudRain,
   Cpu,
+  Droplets,
   Globe,
   Layers,
   MapPin,
@@ -23,6 +24,7 @@ import {
   Shield,
   Sparkles,
   Waves,
+  Wind,
   Zap,
 } from 'lucide-react';
 import { MODULE_CATALOG } from '../data/catalog';
@@ -58,6 +60,8 @@ const MODULE_ICONS = {
   'holo-beacon': MapPin,
   'water-surface': Waves,
   'weather-overlay': CloudRain,
+  'fluid-simulation': Wind,
+  'shallow-water': Droplets,
 } as const;
 
 export function IntroductionPage() {

@@ -120,6 +120,28 @@ export const MODULE_CATALOG: readonly ModuleCatalogItem[] = [
       'Pure-GPU screen-space rain, swaying snow, and depth-buffer atmospheric fog driven by a single PostProcessStage.',
     summaryZh: '单 PostProcessStage 驱动的多层视差雨丝、风摆飘雪与真实深度缓冲大气距离雾。',
   },
+  {
+    id: 'fluid-simulation',
+    path: '/docs/fluid-simulation',
+    section: 'Visual Effects',
+    titleEn: 'Fluid Simulation',
+    titleZh: 'Navier-Stokes 涡旋流体',
+    tag: 'Ping-Pong FBO · WebGL2',
+    summaryEn:
+      'Real-time WebGL2 2D Navier-Stokes incompressible fluid solver with vorticity confinement and interactive globe splatting.',
+    summaryZh: '真实 WebGL2 浮点 Ping-Pong FBO 二维不可压缩流体求解器，支持涡量增强与鼠标搅动。',
+  },
+  {
+    id: 'shallow-water',
+    path: '/docs/shallow-water',
+    section: 'Visual Effects',
+    titleEn: 'Shallow Water',
+    titleZh: '地形浅水方程仿真',
+    tag: 'SWE · Ping-Pong FBO',
+    summaryEn:
+      'Real-time 2D Shallow Water Equations solver supporting terrain-reflecting wave ripples and virtual-pipe valley water flow.',
+    summaryZh: '真 2D 浅水方程 GPU 求解器，支持地形障碍岸线反射涟漪与山地重力水流演进。',
+  },
 ];
 
 export const DEFAULT_MODULE_PATH = MODULE_CATALOG[0]?.path ?? '/docs/introduction';

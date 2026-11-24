@@ -11,11 +11,13 @@ import {
   createCometArc,
   createEnergyBeam,
   createEnergyWall,
+  createFluidSimulation,
   createGroundFlowPath,
   createHoloBeacon,
   createHoloDome,
   createPulseRing,
   createRadarScan,
+  createShallowWater,
   createWaterSurface,
   createWeatherOverlay,
   type EffectHandle,
@@ -289,6 +291,8 @@ describe('createEnergyBeam', () => {
         ],
       }),
       createWeatherOverlay(mock.viewer, { mode: 'rain' }),
+      createFluidSimulation(mock.viewer, { bounds: [119.5, 29.2, 123.5, 32.8] }),
+      createShallowWater(mock.viewer, { bounds: [103.52, 31.38, 103.68, 31.52] }),
     ];
 
     for (const effect of effects) {
@@ -635,5 +639,111 @@ describe('createWeatherOverlay', () => {
     expect(mock.postProcessStages.length).toBe(0);
     expect(mock.preRenderListeners.size).toBe(0);
     expect(() => weather.destroy()).not.toThrow();
+  });
+});
+
+describe('createFluidSimulation', () => {
+  it('creates a fluid primitive, supports splat/clear/update, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const fluid = createFluidSimulation(mock.viewer, {
+      bounds: [119.5, 29.2, 123.5, 32.8],
+      show: false,
+    });
+
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(fluid.isVisible()).toBe(false);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    fluid.show();
+    expect(fluid.isVisible()).toBe(true);
+    expect(mock.primitives[0]?.show).toBe(true);
+
+    fluid.update({
+      curl: 45,
+      velocityDissipation: 0.4,
+      dyeDissipation: 1.1,
+      splatRadius: 0.006,
+      speed: 1.4,
+      opacity: 0.85,
+      primaryColor: '#38bdf8',
+      secondaryColor: '#f43f5e',
+      autoEmit: false,
+    });
+    fluid.splat([121.5, 31.0], [400, 200], '#00e5a0');
+    mock.tick();
+    fluid.clear();
+    fluid.restart();
+    fluid.setPaused(true);
+    expect(fluid.isPaused()).toBe(true);
+
+    fluid.destroy();
+    expect(fluid.isDestroyed()).toBe(true);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => fluid.destroy()).not.toThrow();
+  });
+
+  it('rejects invalid geographic bounds', () => {
+    const mock = createMockViewer();
+    expect(() => createFluidSimulation(mock.viewer, { bounds: [125, 30, 120, 35] })).toThrow(
+      RangeError,
+    );
+  });
+});
+
+describe('createShallowWater', () => {
+  it('creates a shallow-water primitive, supports ripples/flow modes, drop/syncTerrain/clear, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const water = createShallowWater(mock.viewer, {
+      bounds: [103.52, 31.38, 103.68, 31.52],
+      height: 1_580,
+      mode: 'ripples',
+      show: false,
+    });
+
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(water.isVisible()).toBe(false);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    water.show();
+    expect(water.isVisible()).toBe(true);
+    expect(mock.primitives[0]?.show).toBe(true);
+
+    water.drop([103.6, 31.45], 0.9, 0.045);
+    water.update({
+      mode: 'flow',
+      terrainPreset: 'valley',
+      waveSpeed: 1.4,
+      damping: 0.02,
+      waterLevel: 0.6,
+      shallowColor: '#38bdf8',
+      deepColor: '#0c4a6e',
+      specularIntensity: 1.2,
+      foamIntensity: 1.1,
+      speed: 1.3,
+      opacity: 0.9,
+      autoEmit: false,
+    });
+    expect(water.syncTerrain()).toBe(false);
+    mock.tick();
+    water.clear();
+    water.restart();
+    water.setPaused(true);
+    expect(water.isPaused()).toBe(true);
+
+    water.destroy();
+    expect(water.isDestroyed()).toBe(true);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => water.destroy()).not.toThrow();
+  });
+
+  it('rejects invalid geographic bounds', () => {
+    const mock = createMockViewer();
+    expect(() => createShallowWater(mock.viewer, { bounds: [104, 31, 103, 32] })).toThrow(
+      RangeError,
+    );
   });
 });

@@ -65,6 +65,21 @@ export {
   type WeatherOverlayOptions,
   type WeatherOverlayUpdateOptions,
 } from './weather-overlay/index.ts';
+export {
+  createFluidSimulation,
+  type FluidSimulationHandle,
+  type FluidSimulationOptions,
+  type FluidSimulationUpdateOptions,
+  type GeographicBounds,
+} from './fluid-simulation/index.ts';
+export {
+  createShallowWater,
+  type ShallowWaterHandle,
+  type ShallowWaterMode,
+  type ShallowWaterOptions,
+  type ShallowWaterTerrainPreset,
+  type ShallowWaterUpdateOptions,
+} from './shallow-water/index.ts';
 
 export type { EffectBaseOptions, EffectHandle } from './shared/effect.ts';
 export type { ColorInput, LngLat } from './shared/geo.ts';

@@ -14,6 +14,8 @@
 - **`createHoloBeacon`**：三维全息悬浮八面体信标，融合晶面棱边高光与菲涅尔轮廓、平滑自转与上下呼吸、垂直能量牵引光丝及地面双层旋转锁定环。
 - **`createWaterSurface`**：零外部法线贴图的纯 GPU 程序化多频流动水面，融合菲涅尔天空反射、太阳高光波光闪烁与动态水位高度调节。
 - **`createWeatherOverlay`**：单 `PostProcessStage` 驱动的纯 GPU 屏幕空间气象引擎，支持多层视差雨丝、柔和风摆飘雪与真实深度缓冲大气距离雾。
+- **`createFluidSimulation`**：基于独立 WebGL2 浮点 Ping-Pong FBO 的真实二维不可压缩 Navier-Stokes 流体求解器，支持涡量增强、自动涡旋喷口与地理坐标实时 `splat()` 交互搅动。
+- **`createShallowWater`**：基于 WebGL2 Ping-Pong 浮点 FBO 的真 2D 浅水方程（SWE）求解器，支持地形障碍岸线反射涟漪（`ripples`）与虚拟管道山地重力水流演进（`flow`），自动采样 Cesium 地形高程并支持 `drop()` 交互造波 / 注水。
 
 ## 快速开始
 
