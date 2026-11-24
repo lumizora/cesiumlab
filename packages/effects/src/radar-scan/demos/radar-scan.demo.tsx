@@ -51,24 +51,26 @@ radar.hide();
 radar.show();
 radar.destroy();`;
 
-const CENTER_COORD: readonly [number, number] = [121.4737, 31.2304];
+// Gongga Shan / Dadu River alpine gorge (1,400 m canyon next to 5,000 m+ ridges)
+const CENTER_COORD: readonly [number, number] = [101.96, 29.6];
 
 function resetCamera(viewer: Viewer) {
   viewer.camera.lookAt(
-    Cartesian3.fromDegrees(CENTER_COORD[0], CENTER_COORD[1], 0),
-    new HeadingPitchRange(CesiumMath.toRadians(350), CesiumMath.toRadians(-56), 950_000),
+    Cartesian3.fromDegrees(CENTER_COORD[0], CENTER_COORD[1], 3_200),
+    new HeadingPitchRange(CesiumMath.toRadians(24), CesiumMath.toRadians(-32), 68_000),
   );
   viewer.camera.lookAtTransform(Matrix4.IDENTITY);
 }
 
 const DEFAULTS = {
   color: '#00e5a0',
-  radiusKm: 180,
+  radiusKm: 22,
   heightM: 2_000,
   speed: 1.2,
   sectorDeg: 80,
   clockwise: true,
   opacity: 0.9,
+  clampToGround: true,
 } as const;
 
 export default function RadarScanDemoPage() {
@@ -89,6 +91,7 @@ export default function RadarScanDemoPage() {
   const [sectorDeg, setSectorDeg] = useState<number>(DEFAULTS.sectorDeg);
   const [clockwise, setClockwise] = useState<boolean>(DEFAULTS.clockwise);
   const [opacity, setOpacity] = useState<number>(DEFAULTS.opacity);
+  const [clampToGround, setClampToGround] = useState<boolean>(DEFAULTS.clampToGround);
 
   const handleMount = useCallback(
     (viewer: Viewer) => {
@@ -97,11 +100,12 @@ export default function RadarScanDemoPage() {
         position: CENTER_COORD,
         color,
         radius: radiusKm * 1_000,
-        height: heightM,
+        height: clampToGround ? undefined : heightM,
         speed,
         sectorAngle: CesiumMath.toRadians(sectorDeg),
         clockwise,
         opacity,
+        clampToGround,
         paused,
         show: visible,
       });
@@ -126,11 +130,12 @@ export default function RadarScanDemoPage() {
       position: CENTER_COORD,
       color,
       radius: radiusKm * 1_000,
-      height: heightM,
+      height: clampToGround ? undefined : heightM,
       speed,
       sectorAngle: CesiumMath.toRadians(sectorDeg),
       clockwise,
       opacity,
+      clampToGround,
       paused,
       show: visible,
     });
@@ -145,8 +150,9 @@ export default function RadarScanDemoPage() {
       speed,
       sectorAngle: CesiumMath.toRadians(sectorDeg),
       opacity,
+      clampToGround,
     });
-  }, [color, radiusKm, speed, sectorDeg, opacity]);
+  }, [color, radiusKm, speed, sectorDeg, opacity, clampToGround]);
 
   const hasModifiedParams =
     color !== DEFAULTS.color ||
@@ -155,7 +161,8 @@ export default function RadarScanDemoPage() {
     speed !== DEFAULTS.speed ||
     sectorDeg !== DEFAULTS.sectorDeg ||
     clockwise !== DEFAULTS.clockwise ||
-    opacity !== DEFAULTS.opacity;
+    opacity !== DEFAULTS.opacity ||
+    clampToGround !== DEFAULTS.clampToGround;
 
   const handleResetParams = useCallback(() => {
     setColor(DEFAULTS.color);
@@ -165,6 +172,7 @@ export default function RadarScanDemoPage() {
     setSectorDeg(DEFAULTS.sectorDeg);
     setClockwise(DEFAULTS.clockwise);
     setOpacity(DEFAULTS.opacity);
+    setClampToGround(DEFAULTS.clampToGround);
   }, []);
 
   const paramGroups = useMemo<ParamGroup[]>(
@@ -199,13 +207,20 @@ export default function RadarScanDemoPage() {
         label: isZh ? '几何' : 'Geometry',
         controls: [
           {
+            type: 'switch',
+            id: 'clampToGround',
+            label: isZh ? '贴合地形' : 'Clamp to ground',
+            value: clampToGround,
+            onChange: setClampToGround,
+          },
+          {
             type: 'slider',
             id: 'radius',
             label: isZh ? `半径 · ${radiusKm}km` : `Radius · ${radiusKm}km`,
             value: radiusKm,
-            min: 60,
-            max: 400,
-            step: 20,
+            min: 6,
+            max: 80,
+            step: 2,
             onChange: setRadiusKm,
           },
           {
@@ -218,18 +233,22 @@ export default function RadarScanDemoPage() {
             step: 5,
             onChange: setSectorDeg,
           },
-          {
-            type: 'slider',
-            id: 'height',
-            label: isZh
-              ? `离地高度 · ${(heightM / 1_000).toFixed(1)}km`
-              : `Elevation · ${(heightM / 1_000).toFixed(1)}km`,
-            value: heightM,
-            min: 0,
-            max: 20_000,
-            step: 1_000,
-            onChange: setHeightM,
-          },
+          ...(!clampToGround
+            ? [
+                {
+                  type: 'slider' as const,
+                  id: 'height',
+                  label: isZh
+                    ? `离地高度 · ${(heightM / 1_000).toFixed(1)}km`
+                    : `Elevation · ${(heightM / 1_000).toFixed(1)}km`,
+                  value: heightM,
+                  min: 0,
+                  max: 20_000,
+                  step: 1_000,
+                  onChange: setHeightM,
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -256,7 +275,7 @@ export default function RadarScanDemoPage() {
         ],
       },
     ],
-    [isZh, color, opacity, radiusKm, sectorDeg, heightM, speed, clockwise],
+    [isZh, color, opacity, radiusKm, sectorDeg, heightM, speed, clockwise, clampToGround],
   );
 
   useEffect(() => {

@@ -2,12 +2,15 @@ import {
   BlendingState,
   BoundingSphere,
   Cartesian3,
+  CircleGeometry,
+  ClassificationType,
   Color,
   ComponentDatatype,
   Geometry,
   GeometryAttribute,
   GeometryAttributes,
   GeometryInstance,
+  GroundPrimitive,
   Material,
   MaterialAppearance,
   Matrix4,
@@ -49,11 +52,16 @@ export interface RadarScanOptions extends EffectBaseOptions {
   clockwise?: boolean;
   /** Overall opacity multiplier. Defaults to 0.9. */
   opacity?: number;
+  /**
+   * Drape the radar disc pixel-perfectly onto terrain and 3D Tiles via `GroundPrimitive`.
+   * When `false`, renders a floating flat ENU disc at `height`. Defaults to `true`.
+   */
+  clampToGround?: boolean;
 }
 
 export type RadarScanUpdateOptions = Pick<
   RadarScanOptions,
-  'color' | 'radius' | 'speed' | 'sectorAngle' | 'opacity'
+  'color' | 'radius' | 'speed' | 'sectorAngle' | 'opacity' | 'clampToGround'
 >;
 
 export type RadarScanHandle = EffectHandle<RadarScanUpdateOptions>;
@@ -174,9 +182,9 @@ function buildDiscMatrix(enuFrame: Matrix4, radius: number): Matrix4 {
 export function createRadarScan(viewer: Viewer, options: RadarScanOptions): RadarScanHandle {
   validateLngLat(options.position, 'position');
 
-  const heightOffset = options.height ?? 2_000;
+  const flatHeightOffset = options.height ?? 2_000;
   const clockwise = options.clockwise ?? true;
-  validateNonNegativeFinite(heightOffset, 'height');
+  validateNonNegativeFinite(flatHeightOffset, 'height');
 
   const state = {
     color: resolveColor(options.color, DEFAULT_COLOR),
@@ -184,6 +192,7 @@ export function createRadarScan(viewer: Viewer, options: RadarScanOptions): Rada
     speed: options.speed ?? 1.2,
     sectorAngle: options.sectorAngle ?? Math.PI * 0.45,
     opacity: options.opacity ?? 0.9,
+    clampToGround: options.clampToGround ?? true,
   };
 
   validatePositiveFinite(state.radius, 'radius');
@@ -191,13 +200,21 @@ export function createRadarScan(viewer: Viewer, options: RadarScanOptions): Rada
   validatePositiveFinite(state.sectorAngle, 'sectorAngle');
   validateNonNegativeFinite(state.opacity, 'opacity');
 
+  const ellipsoid = viewer.scene.ellipsoid;
+  const centerCartesian = Cartesian3.fromDegrees(
+    options.position[0],
+    options.position[1],
+    0,
+    ellipsoid,
+  );
   const ground = sampleGroundHeight(viewer, options.position);
   const anchor = Cartesian3.fromDegrees(
     options.position[0],
     options.position[1],
-    ground + heightOffset,
+    ground + flatHeightOffset,
+    ellipsoid,
   );
-  const enuFrame = Transforms.eastNorthUpToFixedFrame(anchor, viewer.scene.ellipsoid);
+  const enuFrame = Transforms.eastNorthUpToFixedFrame(anchor, ellipsoid);
 
   const material = new Material({
     fabric: {
@@ -215,27 +232,64 @@ export function createRadarScan(viewer: Viewer, options: RadarScanOptions): Rada
     translucent: true,
   });
 
-  const primitive = new Primitive({
-    geometryInstances: new GeometryInstance({
-      geometry: createDiscQuadGeometry(),
-    }),
-    appearance: new MaterialAppearance({
-      material,
-      flat: true,
-      translucent: true,
-      closed: false,
-      renderState: {
-        depthTest: { enabled: true },
-        depthMask: false,
-        blending: BlendingState.ALPHA_BLEND,
-        cull: { enabled: false },
-      },
-    }),
-    modelMatrix: buildDiscMatrix(enuFrame, state.radius),
-    asynchronous: false,
-  });
+  const createFlatPrimitive = (radius: number): Primitive =>
+    new Primitive({
+      geometryInstances: new GeometryInstance({
+        geometry: createDiscQuadGeometry(),
+      }),
+      appearance: new MaterialAppearance({
+        material,
+        flat: true,
+        translucent: true,
+        closed: false,
+        renderState: {
+          depthTest: { enabled: true },
+          depthMask: false,
+          blending: BlendingState.ALPHA_BLEND,
+          cull: { enabled: false },
+        },
+      }),
+      modelMatrix: buildDiscMatrix(enuFrame, radius),
+      asynchronous: false,
+    });
 
-  viewer.scene.primitives.add(primitive);
+  const createGroundPrimitive = (radius: number): GroundPrimitive =>
+    new GroundPrimitive({
+      geometryInstances: new GeometryInstance({
+        geometry: new CircleGeometry({
+          center: centerCartesian,
+          radius,
+          ellipsoid,
+        }),
+      }),
+      appearance: new MaterialAppearance({
+        material,
+        flat: true,
+        translucent: true,
+      }),
+      classificationType: ClassificationType.BOTH,
+      asynchronous: true,
+    });
+
+  let activeInGround = state.clampToGround;
+  let primitive: Primitive | GroundPrimitive = activeInGround
+    ? createGroundPrimitive(state.radius)
+    : createFlatPrimitive(state.radius);
+
+  const getActiveCollection = () =>
+    activeInGround ? viewer.scene.groundPrimitives : viewer.scene.primitives;
+
+  getActiveCollection().add(primitive);
+
+  const swapPrimitive = (nextClamped: boolean, nextPrimitive: Primitive | GroundPrimitive) => {
+    if (viewer.isDestroyed()) return;
+    const wasVisible = primitive.show;
+    getActiveCollection().remove(primitive);
+    activeInGround = nextClamped;
+    primitive = nextPrimitive;
+    primitive.show = wasVisible;
+    getActiveCollection().add(primitive);
+  };
 
   const clock = createAnimationClock(viewer, options.paused ?? false, (elapsedSeconds) => {
     material.uniforms.u_time = elapsedSeconds;
@@ -246,15 +300,11 @@ export function createRadarScan(viewer: Viewer, options: RadarScanOptions): Rada
     clock,
     initialShow: options.show,
     getPrimitives: () => [primitive],
+    getCollection: getActiveCollection,
     onUpdate(next) {
       if (next.color !== undefined) {
         state.color = resolveColor(next.color, DEFAULT_COLOR);
         material.uniforms.u_color = state.color;
-      }
-      if (next.radius !== undefined) {
-        validatePositiveFinite(next.radius, 'radius');
-        state.radius = next.radius;
-        primitive.modelMatrix = buildDiscMatrix(enuFrame, state.radius);
       }
       if (next.speed !== undefined) {
         validateNonNegativeFinite(next.speed, 'speed');
@@ -270,6 +320,29 @@ export function createRadarScan(viewer: Viewer, options: RadarScanOptions): Rada
         validateNonNegativeFinite(next.opacity, 'opacity');
         state.opacity = next.opacity;
         material.uniforms.u_opacity = state.opacity;
+      }
+
+      const radiusChanged = next.radius !== undefined && next.radius !== state.radius;
+      const clampChanged =
+        next.clampToGround !== undefined && next.clampToGround !== state.clampToGround;
+
+      if (next.radius !== undefined) {
+        validatePositiveFinite(next.radius, 'radius');
+        state.radius = next.radius;
+      }
+      if (next.clampToGround !== undefined) {
+        state.clampToGround = next.clampToGround;
+      }
+
+      if (clampChanged || (radiusChanged && state.clampToGround)) {
+        swapPrimitive(
+          state.clampToGround,
+          state.clampToGround
+            ? createGroundPrimitive(state.radius)
+            : createFlatPrimitive(state.radius),
+        );
+      } else if (radiusChanged && !state.clampToGround && primitive instanceof Primitive) {
+        primitive.modelMatrix = buildDiscMatrix(enuFrame, state.radius);
       }
     },
     onRestart() {

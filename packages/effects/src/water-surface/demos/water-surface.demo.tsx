@@ -136,6 +136,7 @@ const DEFAULTS = {
   flowDeg: 35,
   specularIntensity: 0.9,
   opacity: 0.72,
+  clampToGround: false,
 } as const;
 
 export default function WaterSurfaceDemoPage() {
@@ -160,6 +161,7 @@ export default function WaterSurfaceDemoPage() {
   const [flowDeg, setFlowDeg] = useState<number>(DEFAULTS.flowDeg);
   const [specularIntensity, setSpecularIntensity] = useState<number>(DEFAULTS.specularIntensity);
   const [opacity, setOpacity] = useState<number>(DEFAULTS.opacity);
+  const [clampToGround, setClampToGround] = useState<boolean>(DEFAULTS.clampToGround);
 
   const handleSceneChange = useCallback((nextScene: WaterScenePreset) => {
     setScene(nextScene);
@@ -185,6 +187,7 @@ export default function WaterSurfaceDemoPage() {
         flowAngle: CesiumMath.toRadians(flowDeg),
         specularIntensity,
         opacity,
+        clampToGround,
         paused,
         show: visible,
       });
@@ -221,6 +224,7 @@ export default function WaterSurfaceDemoPage() {
       flowAngle: CesiumMath.toRadians(flowDeg),
       specularIntensity,
       opacity,
+      clampToGround,
       paused,
       show: visible,
     });
@@ -241,6 +245,7 @@ export default function WaterSurfaceDemoPage() {
       flowAngle: CesiumMath.toRadians(flowDeg),
       specularIntensity,
       opacity,
+      clampToGround,
     });
   }, [
     color,
@@ -253,6 +258,7 @@ export default function WaterSurfaceDemoPage() {
     flowDeg,
     specularIntensity,
     opacity,
+    clampToGround,
   ]);
 
   useEffect(() => {
@@ -283,7 +289,8 @@ export default function WaterSurfaceDemoPage() {
     flowSpeed !== DEFAULTS.flowSpeed ||
     flowDeg !== DEFAULTS.flowDeg ||
     specularIntensity !== DEFAULTS.specularIntensity ||
-    opacity !== DEFAULTS.opacity;
+    opacity !== DEFAULTS.opacity ||
+    clampToGround !== DEFAULTS.clampToGround;
 
   const handleResetParams = useCallback(() => {
     setScene(DEFAULTS.scene);
@@ -297,6 +304,7 @@ export default function WaterSurfaceDemoPage() {
     setFlowDeg(DEFAULTS.flowDeg);
     setSpecularIntensity(DEFAULTS.specularIntensity);
     setOpacity(DEFAULTS.opacity);
+    setClampToGround(DEFAULTS.clampToGround);
   }, []);
 
   const paramGroups = useMemo<ParamGroup[]>(
@@ -363,15 +371,26 @@ export default function WaterSurfaceDemoPage() {
         label: isZh ? '水面' : 'Surface',
         controls: [
           {
-            type: 'slider',
-            id: 'height',
-            label: isZh ? `水位海拔 · ${height}m` : `Water level · ${height}m`,
-            value: height,
-            min: activePreset.minHeight,
-            max: activePreset.maxHeight,
-            step: activePreset.heightStep,
-            onChange: setHeight,
+            type: 'switch',
+            id: 'clampToGround',
+            label: isZh ? '贴合地形（斜坡河道）' : 'Clamp to ground',
+            value: clampToGround,
+            onChange: setClampToGround,
           },
+          ...(!clampToGround
+            ? [
+                {
+                  type: 'slider' as const,
+                  id: 'height',
+                  label: isZh ? `水位海拔 · ${height}m` : `Water level · ${height}m`,
+                  value: height,
+                  min: activePreset.minHeight,
+                  max: activePreset.maxHeight,
+                  step: activePreset.heightStep,
+                  onChange: setHeight,
+                },
+              ]
+            : []),
           {
             type: 'slider',
             id: 'waveScale',
@@ -454,6 +473,7 @@ export default function WaterSurfaceDemoPage() {
       speed,
       flowSpeed,
       flowDeg,
+      clampToGround,
     ],
   );
 

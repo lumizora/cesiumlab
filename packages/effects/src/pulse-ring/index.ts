@@ -2,12 +2,15 @@ import {
   BlendingState,
   BoundingSphere,
   Cartesian3,
+  CircleGeometry,
+  ClassificationType,
   Color,
   ComponentDatatype,
   Geometry,
   GeometryAttribute,
   GeometryAttributes,
   GeometryInstance,
+  GroundPrimitive,
   Material,
   MaterialAppearance,
   Matrix4,
@@ -55,11 +58,16 @@ export interface PulseRingOptions extends EffectBaseOptions {
   speed?: number;
   /** Initial phase offset in [0, 1) for loop mode. Defaults to 0. */
   phase?: number;
+  /**
+   * Drape the expanding pulse disc pixel-perfectly onto terrain and 3D Tiles via `GroundPrimitive`.
+   * When `false`, renders a floating flat ENU disc at `height`. Defaults to `true`.
+   */
+  clampToGround?: boolean;
 }
 
 export type PulseRingUpdateOptions = Pick<
   PulseRingOptions,
-  'color' | 'minRadius' | 'maxRadius' | 'ringCount' | 'speed'
+  'color' | 'minRadius' | 'maxRadius' | 'ringCount' | 'speed' | 'clampToGround'
 >;
 
 export interface PulseRingHandle extends EffectHandle<PulseRingUpdateOptions> {
@@ -152,8 +160,8 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   float alpha = clamp((edgeEnergy * 0.85 + wakeEnergy * 0.7) * outerClip, 0.0, 0.92);
   vec3 tint = mix(u_color.rgb, vec3(1.0), clamp(edgeEnergy * 0.55, 0.0, 0.78));
 
-  material.diffuse = tint;
-  material.emission = tint * (0.65 + 0.45 * clamp(edgeEnergy, 0.0, 1.0));
+  material.diffuse = tint * 0.35;
+  material.emission = tint * (0.65 + 0.35 * clamp(edgeEnergy, 0.0, 1.0));
   material.alpha = alpha;
   return material;
 }
@@ -209,11 +217,11 @@ export function createPulseRing(viewer: Viewer, options: PulseRingOptions): Puls
   const defaultColor = mode === 'trigger' ? DEFAULT_TRIGGER_COLOR : DEFAULT_LOOP_COLOR;
 
   const duration = options.duration ?? (mode === 'trigger' ? 1.4 : 2.6);
-  const heightOffset = options.height ?? 2_000;
+  const flatHeightOffset = options.height ?? 2_000;
   const phase = options.phase ?? 0;
 
   validatePositiveFinite(duration, 'duration');
-  validateNonNegativeFinite(heightOffset, 'height');
+  validateNonNegativeFinite(flatHeightOffset, 'height');
   if (!Number.isFinite(phase)) {
     throw new RangeError('Expected phase to be a finite number.');
   }
@@ -224,6 +232,7 @@ export function createPulseRing(viewer: Viewer, options: PulseRingOptions): Puls
     maxRadius: options.maxRadius ?? (mode === 'trigger' ? 760_000 : 180_000),
     ringCount: options.ringCount ?? (mode === 'trigger' ? 2 : 3),
     speed: options.speed ?? 1,
+    clampToGround: options.clampToGround ?? true,
   };
 
   validateNonNegativeFinite(state.minRadius, 'minRadius');
@@ -233,13 +242,21 @@ export function createPulseRing(viewer: Viewer, options: PulseRingOptions): Puls
   }
   validatePositiveFinite(state.speed, 'speed');
 
+  const ellipsoid = viewer.scene.ellipsoid;
+  const centerCartesian = Cartesian3.fromDegrees(
+    options.position[0],
+    options.position[1],
+    0,
+    ellipsoid,
+  );
   const ground = sampleGroundHeight(viewer, options.position);
   const anchor = Cartesian3.fromDegrees(
     options.position[0],
     options.position[1],
-    ground + heightOffset,
+    ground + flatHeightOffset,
+    ellipsoid,
   );
-  const enuFrame = Transforms.eastNorthUpToFixedFrame(anchor, viewer.scene.ellipsoid);
+  const enuFrame = Transforms.eastNorthUpToFixedFrame(anchor, ellipsoid);
 
   let triggerTime = -1;
 
@@ -262,26 +279,64 @@ export function createPulseRing(viewer: Viewer, options: PulseRingOptions): Puls
     translucent: true,
   });
 
-  const primitive = new Primitive({
-    geometryInstances: new GeometryInstance({
-      geometry: createDiscQuadGeometry(),
-    }),
-    appearance: new MaterialAppearance({
-      material,
-      translucent: true,
-      closed: false,
-      renderState: {
-        depthTest: { enabled: true },
-        depthMask: false,
-        blending: BlendingState.ADDITIVE_BLEND,
-        cull: { enabled: false },
-      },
-    }),
-    modelMatrix: buildDiscMatrix(enuFrame, state.maxRadius),
-    asynchronous: false,
-  });
+  const createFlatPrimitive = (radius: number): Primitive =>
+    new Primitive({
+      geometryInstances: new GeometryInstance({
+        geometry: createDiscQuadGeometry(),
+      }),
+      appearance: new MaterialAppearance({
+        material,
+        flat: true,
+        translucent: true,
+        closed: false,
+        renderState: {
+          depthTest: { enabled: true },
+          depthMask: false,
+          blending: BlendingState.ADDITIVE_BLEND,
+          cull: { enabled: false },
+        },
+      }),
+      modelMatrix: buildDiscMatrix(enuFrame, radius),
+      asynchronous: false,
+    });
 
-  viewer.scene.primitives.add(primitive);
+  const createGroundPrimitive = (radius: number): GroundPrimitive =>
+    new GroundPrimitive({
+      geometryInstances: new GeometryInstance({
+        geometry: new CircleGeometry({
+          center: centerCartesian,
+          radius,
+          ellipsoid,
+        }),
+      }),
+      appearance: new MaterialAppearance({
+        material,
+        flat: true,
+        translucent: true,
+      }),
+      classificationType: ClassificationType.BOTH,
+      asynchronous: true,
+    });
+
+  let activeInGround = state.clampToGround;
+  let primitive: Primitive | GroundPrimitive = activeInGround
+    ? createGroundPrimitive(state.maxRadius)
+    : createFlatPrimitive(state.maxRadius);
+
+  const getActiveCollection = () =>
+    activeInGround ? viewer.scene.groundPrimitives : viewer.scene.primitives;
+
+  getActiveCollection().add(primitive);
+
+  const swapPrimitive = (nextClamped: boolean, nextPrimitive: Primitive | GroundPrimitive) => {
+    if (viewer.isDestroyed()) return;
+    const wasVisible = primitive.show;
+    getActiveCollection().remove(primitive);
+    activeInGround = nextClamped;
+    primitive = nextPrimitive;
+    primitive.show = wasVisible;
+    getActiveCollection().add(primitive);
+  };
 
   const clock = createAnimationClock(viewer, options.paused ?? false, (elapsedSeconds) => {
     material.uniforms.u_time = elapsedSeconds;
@@ -298,6 +353,7 @@ export function createPulseRing(viewer: Viewer, options: PulseRingOptions): Puls
     clock,
     initialShow: options.show,
     getPrimitives: () => [primitive],
+    getCollection: getActiveCollection,
     onUpdate(next) {
       if (next.color !== undefined) {
         state.color = resolveColor(next.color, defaultColor);
@@ -307,14 +363,34 @@ export function createPulseRing(viewer: Viewer, options: PulseRingOptions): Puls
         validateNonNegativeFinite(next.minRadius, 'minRadius');
         state.minRadius = next.minRadius;
       }
+
+      const maxRadiusChanged = next.maxRadius !== undefined && next.maxRadius !== state.maxRadius;
+      const clampChanged =
+        next.clampToGround !== undefined && next.clampToGround !== state.clampToGround;
+
       if (next.maxRadius !== undefined) {
         validatePositiveFinite(next.maxRadius, 'maxRadius');
         state.maxRadius = next.maxRadius;
-        primitive.modelMatrix = buildDiscMatrix(enuFrame, state.maxRadius);
       }
+      if (next.clampToGround !== undefined) {
+        state.clampToGround = next.clampToGround;
+      }
+
       if (next.minRadius !== undefined || next.maxRadius !== undefined) {
         material.uniforms.u_minRatio = Math.min(0.9, state.minRadius / state.maxRadius);
       }
+
+      if (clampChanged || (maxRadiusChanged && state.clampToGround)) {
+        swapPrimitive(
+          state.clampToGround,
+          state.clampToGround
+            ? createGroundPrimitive(state.maxRadius)
+            : createFlatPrimitive(state.maxRadius),
+        );
+      } else if (maxRadiusChanged && !state.clampToGround && primitive instanceof Primitive) {
+        primitive.modelMatrix = buildDiscMatrix(enuFrame, state.maxRadius);
+      }
+
       if (next.ringCount !== undefined) {
         if (!Number.isInteger(next.ringCount) || next.ringCount < 1 || next.ringCount > MAX_RINGS) {
           throw new RangeError(`Expected ringCount to be an integer in [1, ${MAX_RINGS}].`);

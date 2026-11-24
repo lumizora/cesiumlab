@@ -2,11 +2,14 @@ import {
   BlendingState,
   Cartesian2,
   Cartesian3,
+  ClassificationType,
   Color,
   EllipsoidGeodesic,
   EllipsoidSurfaceAppearance,
   GeometryInstance,
+  GroundPrimitive,
   Material,
+  MaterialAppearance,
   PolygonGeometry,
   PolygonHierarchy,
   Primitive,
@@ -55,6 +58,11 @@ export interface WaterSurfaceOptions extends EffectBaseOptions {
   specularIntensity?: number;
   /** Base water opacity at steep viewing angles (0.1 to 1). Defaults to 0.72. */
   opacity?: number;
+  /**
+   * Conform the water polygon mesh directly to terrain relief (ideal for sloped rivers or mountain streams).
+   * Defaults to `false` (flat horizontal water plane intersecting 3D terrain for lakes, reservoirs, and floods).
+   */
+  clampToGround?: boolean;
 }
 
 export type WaterSurfaceUpdateOptions = Pick<
@@ -69,6 +77,7 @@ export type WaterSurfaceUpdateOptions = Pick<
   | 'flowAngle'
   | 'specularIntensity'
   | 'opacity'
+  | 'clampToGround'
 >;
 
 export type WaterSurfaceHandle = EffectHandle<WaterSurfaceUpdateOptions>;
@@ -320,6 +329,7 @@ export function createWaterSurface(
     flowAngle: options.flowAngle ?? 0.6,
     specularIntensity: options.specularIntensity ?? 0.9,
     opacity: options.opacity ?? 0.72,
+    clampToGround: options.clampToGround ?? false,
   };
 
   if (!Number.isFinite(state.height)) {
@@ -356,8 +366,42 @@ export function createWaterSurface(
     translucent: true,
   });
 
-  let primitive = buildWaterPrimitive(cartesianPositions, state.height, ellipsoid, material);
-  viewer.scene.primitives.add(primitive);
+  const buildGroundWaterPrimitive = (): GroundPrimitive =>
+    new GroundPrimitive({
+      geometryInstances: new GeometryInstance({
+        geometry: new PolygonGeometry({
+          polygonHierarchy: new PolygonHierarchy([...cartesianPositions]),
+          ellipsoid,
+        }),
+      }),
+      appearance: new MaterialAppearance({
+        material,
+        flat: true,
+        translucent: true,
+      }),
+      classificationType: ClassificationType.BOTH,
+      asynchronous: true,
+    });
+
+  let activeInGround = state.clampToGround;
+  let primitive: Primitive | GroundPrimitive = activeInGround
+    ? buildGroundWaterPrimitive()
+    : buildWaterPrimitive(cartesianPositions, state.height, ellipsoid, material);
+
+  const getActiveCollection = () =>
+    activeInGround ? viewer.scene.groundPrimitives : viewer.scene.primitives;
+
+  getActiveCollection().add(primitive);
+
+  const swapPrimitive = (nextClamped: boolean, nextPrimitive: Primitive | GroundPrimitive) => {
+    if (viewer.isDestroyed()) return;
+    const wasVisible = primitive.show;
+    getActiveCollection().remove(primitive);
+    activeInGround = nextClamped;
+    primitive = nextPrimitive;
+    primitive.show = wasVisible;
+    getActiveCollection().add(primitive);
+  };
 
   const clock = createAnimationClock(viewer, options.paused ?? false, (elapsedSeconds) => {
     material.uniforms.u_time = elapsedSeconds;
@@ -368,6 +412,7 @@ export function createWaterSurface(
     clock,
     initialShow: options.show,
     getPrimitives: () => [primitive],
+    getCollection: getActiveCollection,
     onUpdate(next) {
       if (next.color !== undefined) {
         state.color = resolveColor(next.color, DEFAULT_WATER_COLOR);
@@ -414,16 +459,33 @@ export function createWaterSurface(
         state.opacity = Math.min(1, next.opacity);
         material.uniforms.u_opacity = state.opacity;
       }
-      if (next.height !== undefined && next.height !== state.height) {
+
+      const clampChanged =
+        next.clampToGround !== undefined && next.clampToGround !== state.clampToGround;
+      const heightChanged = next.height !== undefined && next.height !== state.height;
+
+      if (next.height !== undefined) {
         if (!Number.isFinite(next.height)) {
           throw new RangeError('Expected height to be a finite number.');
         }
         state.height = next.height;
-        if (!viewer.isDestroyed()) {
-          viewer.scene.primitives.remove(primitive);
-          primitive = buildWaterPrimitive(cartesianPositions, state.height, ellipsoid, material);
-          viewer.scene.primitives.add(primitive);
-        }
+      }
+      if (next.clampToGround !== undefined) {
+        state.clampToGround = next.clampToGround;
+      }
+
+      if (clampChanged) {
+        swapPrimitive(
+          state.clampToGround,
+          state.clampToGround
+            ? buildGroundWaterPrimitive()
+            : buildWaterPrimitive(cartesianPositions, state.height, ellipsoid, material),
+        );
+      } else if (heightChanged && !state.clampToGround) {
+        swapPrimitive(
+          false,
+          buildWaterPrimitive(cartesianPositions, state.height, ellipsoid, material),
+        );
       }
     },
     onRestart() {

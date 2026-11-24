@@ -2,6 +2,7 @@ import * as Cesium from 'cesium';
 import {
   Ellipsoid,
   type GroundPolylinePrimitive,
+  type GroundPrimitive,
   type PostProcessStage,
   type Primitive,
   type Viewer,
@@ -50,7 +51,7 @@ if (contextLimits && (contextLimits._maximumAliasedLineWidth ?? 0) < 1) {
 
 function createMockViewer() {
   const primitives: Primitive[] = [];
-  const groundPrimitives: GroundPolylinePrimitive[] = [];
+  const groundPrimitives: (GroundPrimitive | GroundPolylinePrimitive)[] = [];
   const postProcessStages: PostProcessStage[] = [];
   const preRenderListeners = new Set<() => void>();
   let destroyed = false;
@@ -73,11 +74,11 @@ function createMockViewer() {
         },
       },
       groundPrimitives: {
-        add(primitive: GroundPolylinePrimitive) {
+        add(primitive: GroundPrimitive | GroundPolylinePrimitive) {
           groundPrimitives.push(primitive);
           return primitive;
         },
-        remove(primitive: GroundPolylinePrimitive) {
+        remove(primitive: GroundPrimitive | GroundPolylinePrimitive) {
           const index = groundPrimitives.indexOf(primitive);
           if (index !== -1) groundPrimitives.splice(index, 1);
           return index !== -1;
@@ -185,13 +186,13 @@ describe('createPulseRing', () => {
       show: false,
     });
 
-    expect(mock.primitives.length).toBe(1);
+    expect(mock.groundPrimitives.length).toBe(1);
     expect(ring.isVisible()).toBe(false);
-    expect(mock.primitives[0]?.show).toBe(false);
+    expect(mock.groundPrimitives[0]?.show).toBe(false);
 
     ring.setVisible(true);
     expect(ring.isVisible()).toBe(true);
-    expect(mock.primitives[0]?.show).toBe(true);
+    expect(mock.groundPrimitives[0]?.show).toBe(true);
 
     ring.update({ maxRadius: 300_000, speed: 1.5, ringCount: 4 });
     ring.setPaused(true);
@@ -199,7 +200,7 @@ describe('createPulseRing', () => {
 
     ring.destroy();
     expect(ring.isDestroyed()).toBe(true);
-    expect(mock.primitives.length).toBe(0);
+    expect(mock.groundPrimitives.length).toBe(0);
     expect(mock.preRenderListeners.size).toBe(0);
   });
 
@@ -211,13 +212,13 @@ describe('createPulseRing', () => {
       ringCount: 2,
     });
 
-    expect(mock.primitives.length).toBe(1);
+    expect(mock.groundPrimitives.length).toBe(1);
     pulse.trigger();
     mock.tick();
     pulse.restart();
 
     pulse.destroy();
-    expect(mock.primitives.length).toBe(0);
+    expect(mock.groundPrimitives.length).toBe(0);
     expect(mock.preRenderListeners.size).toBe(0);
   });
 });
@@ -373,14 +374,14 @@ describe('createRadarScan', () => {
       show: false,
     });
 
-    expect(mock.primitives.length).toBe(1);
+    expect(mock.groundPrimitives.length).toBe(1);
     expect(mock.preRenderListeners.size).toBe(1);
     expect(radar.isVisible()).toBe(false);
-    expect(mock.primitives[0]?.show).toBe(false);
+    expect(mock.groundPrimitives[0]?.show).toBe(false);
 
     radar.setVisible(true);
     expect(radar.isVisible()).toBe(true);
-    expect(mock.primitives[0]?.show).toBe(true);
+    expect(mock.groundPrimitives[0]?.show).toBe(true);
 
     radar.update({
       radius: 180_000,
@@ -396,7 +397,7 @@ describe('createRadarScan', () => {
 
     radar.destroy();
     expect(radar.isDestroyed()).toBe(true);
-    expect(mock.primitives.length).toBe(0);
+    expect(mock.groundPrimitives.length).toBe(0);
     expect(mock.preRenderListeners.size).toBe(0);
     expect(() => radar.destroy()).not.toThrow();
   });
@@ -635,5 +636,100 @@ describe('createWeatherOverlay', () => {
     expect(mock.postProcessStages.length).toBe(0);
     expect(mock.preRenderListeners.size).toBe(0);
     expect(() => weather.destroy()).not.toThrow();
+  });
+});
+
+describe('GroundPrimitive terrain clamping (clampToGround)', () => {
+  it('seamlessly switches RadarScan, PulseRing, and WaterSurface between GroundPrimitive and Primitive', () => {
+    const mock = createMockViewer();
+    const radar = createRadarScan(mock.viewer, {
+      position: [101.96, 29.6],
+      radius: 22_000,
+      clampToGround: true,
+    });
+    const pulse = createPulseRing(mock.viewer, {
+      position: [102.9, 31.1],
+      maxRadius: 24_000,
+      clampToGround: true,
+    });
+    const water = createWaterSurface(mock.viewer, {
+      positions: [
+        [103.52, 31.52],
+        [103.68, 31.52],
+        [103.68, 31.38],
+        [103.52, 31.38],
+      ],
+      clampToGround: true,
+    });
+
+    expect(mock.groundPrimitives.length).toBe(3);
+    expect(mock.primitives.length).toBe(0);
+
+    // Hide all, switch to non-clamped Primitive, verify collection swap & hidden state preserved
+    radar.hide();
+    pulse.hide();
+    water.hide();
+
+    radar.update({ clampToGround: false });
+    pulse.update({ clampToGround: false });
+    water.update({ clampToGround: false, height: 1_620 });
+    expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.primitives.length).toBe(3);
+    expect(mock.primitives.every((p) => p.show === false)).toBe(true);
+
+    // Switch back to GroundPrimitive
+    radar.update({ clampToGround: true, radius: 30_000 });
+    pulse.update({ clampToGround: true, maxRadius: 32_000 });
+    water.update({ clampToGround: true });
+    expect(mock.groundPrimitives.length).toBe(3);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.groundPrimitives.every((p) => p.show === false)).toBe(true);
+
+    radar.destroy();
+    pulse.destroy();
+    water.destroy();
+    expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+  });
+
+  it('batches multi-path road networks into a single GroundPolylinePrimitive or Primitive and toggles clampToGround seamlessly', () => {
+    const mock = createMockViewer();
+    const roadNetwork = Array.from({ length: 50 }, (_, i) => [
+      [103.2 + i * 0.01, 30.2] as const,
+      [103.5 + i * 0.01, 30.6] as const,
+      [103.9 + i * 0.01, 30.9] as const,
+    ]);
+
+    const paths = createGroundFlowPath(mock.viewer, {
+      positions: roadNetwork,
+      clampToGround: true,
+      loop: true,
+    });
+
+    // All 50 paths batched into a single GroundPolylinePrimitive with 1 preRender clock
+    expect(mock.groundPrimitives.length).toBe(1);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(1);
+
+    paths.hide();
+    paths.update({ clampToGround: false, height: 1_200 });
+    expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    paths.update({ height: 2_000 });
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    paths.update({ clampToGround: true });
+    expect(mock.groundPrimitives.length).toBe(1);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.groundPrimitives[0]?.show).toBe(false);
+
+    paths.destroy();
+    expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
   });
 });

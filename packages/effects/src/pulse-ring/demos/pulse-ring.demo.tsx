@@ -58,12 +58,13 @@ hubPulse.trigger();
 nodeRipple.destroy();
 hubPulse.destroy();`;
 
-const CENTER_COORD: readonly [number, number] = [121.4737, 31.2304];
+// Siguniang Mountain / Qionglai alpine range (2,200 m valleys to 5,500 m+ snow peaks)
+const CENTER_COORD: readonly [number, number] = [102.9, 31.1];
 
 function resetCamera(viewer: Viewer) {
   viewer.camera.lookAt(
-    Cartesian3.fromDegrees(CENTER_COORD[0], CENTER_COORD[1], 0),
-    new HeadingPitchRange(CesiumMath.toRadians(340), CesiumMath.toRadians(-52), 2_400_000),
+    Cartesian3.fromDegrees(CENTER_COORD[0], CENTER_COORD[1], 3_500),
+    new HeadingPitchRange(CesiumMath.toRadians(338), CesiumMath.toRadians(-34), 72_000),
   );
   viewer.camera.lookAtTransform(Matrix4.IDENTITY);
 }
@@ -71,12 +72,13 @@ function resetCamera(viewer: Viewer) {
 const DEFAULTS = {
   mode: 'loop' as PulseRingMode,
   color: '#00a8ff',
-  minRadiusKm: 12,
-  maxRadiusKm: 320,
+  minRadiusKm: 2,
+  maxRadiusKm: 24,
   heightM: 2_000,
   ringCount: 3,
   duration: 2.6,
   speed: 1,
+  clampToGround: true,
 } as const;
 
 export default function PulseRingDemoPage() {
@@ -98,6 +100,7 @@ export default function PulseRingDemoPage() {
   const [ringCount, setRingCount] = useState<number>(DEFAULTS.ringCount);
   const [duration, setDuration] = useState<number>(DEFAULTS.duration);
   const [speed, setSpeed] = useState<number>(DEFAULTS.speed);
+  const [clampToGround, setClampToGround] = useState<boolean>(DEFAULTS.clampToGround);
 
   const handleModeChange = useCallback((nextMode: PulseRingMode) => {
     setMode(nextMode);
@@ -115,10 +118,11 @@ export default function PulseRingDemoPage() {
         color,
         minRadius: minRadiusKm * 1_000,
         maxRadius: maxRadiusKm * 1_000,
-        height: heightM,
+        height: clampToGround ? undefined : heightM,
         ringCount,
         duration,
         speed,
+        clampToGround,
         paused,
         show: visible,
       });
@@ -148,11 +152,12 @@ export default function PulseRingDemoPage() {
       mode,
       color,
       minRadius: minRadiusKm * 1_000,
-      maxRadius: Math.max(minRadiusKm + 20, maxRadiusKm) * 1_000,
-      height: heightM,
+      maxRadius: Math.max(minRadiusKm + 4, maxRadiusKm) * 1_000,
+      height: clampToGround ? undefined : heightM,
       ringCount,
       duration,
       speed,
+      clampToGround,
       paused,
       show: visible,
     });
@@ -168,11 +173,12 @@ export default function PulseRingDemoPage() {
     ringRef.current?.update({
       color,
       minRadius: minRadiusKm * 1_000,
-      maxRadius: Math.max(minRadiusKm + 20, maxRadiusKm) * 1_000,
+      maxRadius: Math.max(minRadiusKm + 4, maxRadiusKm) * 1_000,
       ringCount,
       speed,
+      clampToGround,
     });
-  }, [color, minRadiusKm, maxRadiusKm, ringCount, speed]);
+  }, [color, minRadiusKm, maxRadiusKm, ringCount, speed, clampToGround]);
 
   const hasModifiedParams =
     mode !== DEFAULTS.mode ||
@@ -182,7 +188,8 @@ export default function PulseRingDemoPage() {
     heightM !== DEFAULTS.heightM ||
     ringCount !== DEFAULTS.ringCount ||
     duration !== DEFAULTS.duration ||
-    speed !== DEFAULTS.speed;
+    speed !== DEFAULTS.speed ||
+    clampToGround !== DEFAULTS.clampToGround;
 
   const handleResetParams = useCallback(() => {
     setMode(DEFAULTS.mode);
@@ -193,6 +200,7 @@ export default function PulseRingDemoPage() {
     setRingCount(DEFAULTS.ringCount);
     setDuration(DEFAULTS.duration);
     setSpeed(DEFAULTS.speed);
+    setClampToGround(DEFAULTS.clampToGround);
   }, []);
 
   const paramGroups = useMemo<ParamGroup[]>(
@@ -238,13 +246,20 @@ export default function PulseRingDemoPage() {
         label: isZh ? '几何' : 'Geometry',
         controls: [
           {
+            type: 'switch',
+            id: 'clampToGround',
+            label: isZh ? '贴合地形' : 'Clamp to ground',
+            value: clampToGround,
+            onChange: setClampToGround,
+          },
+          {
             type: 'slider',
             id: 'minRadius',
             label: isZh ? `起始半径 · ${minRadiusKm}km` : `Min radius · ${minRadiusKm}km`,
             value: minRadiusKm,
             min: 0,
-            max: 120,
-            step: 4,
+            max: 12,
+            step: 1,
             onChange: setMinRadiusKm,
           },
           {
@@ -252,23 +267,27 @@ export default function PulseRingDemoPage() {
             id: 'maxRadius',
             label: isZh ? `最大半径 · ${maxRadiusKm}km` : `Max radius · ${maxRadiusKm}km`,
             value: maxRadiusKm,
-            min: 100,
-            max: 800,
-            step: 20,
+            min: 8,
+            max: 80,
+            step: 2,
             onChange: setMaxRadiusKm,
           },
-          {
-            type: 'slider',
-            id: 'height',
-            label: isZh
-              ? `离地高度 · ${(heightM / 1_000).toFixed(1)}km`
-              : `Elevation · ${(heightM / 1_000).toFixed(1)}km`,
-            value: heightM,
-            min: 0,
-            max: 20_000,
-            step: 1_000,
-            onChange: setHeightM,
-          },
+          ...(!clampToGround
+            ? [
+                {
+                  type: 'slider' as const,
+                  id: 'height',
+                  label: isZh
+                    ? `离地高度 · ${(heightM / 1_000).toFixed(1)}km`
+                    : `Elevation · ${(heightM / 1_000).toFixed(1)}km`,
+                  value: heightM,
+                  min: 0,
+                  max: 20_000,
+                  step: 1_000,
+                  onChange: setHeightM,
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -309,6 +328,7 @@ export default function PulseRingDemoPage() {
       minRadiusKm,
       maxRadiusKm,
       heightM,
+      clampToGround,
       speed,
       duration,
     ],

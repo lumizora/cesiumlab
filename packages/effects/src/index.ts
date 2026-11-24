@@ -44,6 +44,7 @@ export {
   createGroundFlowPath,
   type GroundFlowPathHandle,
   type GroundFlowPathOptions,
+  type GroundFlowPathPositions,
   type GroundFlowPathUpdateOptions,
 } from './ground-flow-path/index.ts';
 export {

@@ -1,4 +1,6 @@
 import {
+  ArcType,
+  BlendingState,
   Cartesian3,
   ClassificationType,
   Color,
@@ -6,7 +8,9 @@ import {
   GroundPolylineGeometry,
   GroundPolylinePrimitive,
   Material,
+  PolylineGeometry,
   PolylineMaterialAppearance,
+  Primitive,
   type Viewer,
 } from 'cesium';
 import { createAnimationClock } from '../shared/clock.ts';
@@ -24,9 +28,14 @@ import {
   type LngLat,
 } from '../shared/geo.ts';
 
+export type GroundFlowPathPositions = readonly LngLat[] | readonly (readonly LngLat[])[];
+
 export interface GroundFlowPathOptions extends EffectBaseOptions {
-  /** Ordered path vertices as [longitude, latitude] in degrees (minimum 2 points). */
-  positions: readonly LngLat[];
+  /**
+   * Single path (`LngLat[]`) or multi-path road network (`LngLat[][]`) as `[longitude, latitude]`
+   * degrees. Multi-path inputs are automatically batched into a single Primitive / Draw Call.
+   */
+  positions: GroundFlowPathPositions;
   /** Path glow and pulse color (Cesium Color or CSS string). Defaults to '#00e5a0'. */
   color?: ColorInput;
   /** Screen-space ribbon width in pixels. Defaults to 10. */
@@ -43,17 +52,33 @@ export interface GroundFlowPathOptions extends EffectBaseOptions {
   brightness?: number;
   /** Reverse flow direction (from last point toward first). Defaults to false. */
   reverse?: boolean;
-  /** Close the path from the last vertex back to the first. Defaults to false. */
+  /** Close each path from the last vertex back to the first. Defaults to false. */
   loop?: boolean;
   /** Initial normalized animation phase offset in [0, 1). Defaults to 0. */
   phase?: number;
+  /**
+   * Drape paths onto terrain and 3D Tiles via `GroundPolylinePrimitive`.
+   * Set to `false` to render as a lightweight batched `Primitive` (`PolylineGeometry`) at `height`,
+   * which is 3–5× faster for flat cities and massive road networks. Defaults to `true`.
+   */
+  clampToGround?: boolean;
+  /** Altitude above the ellipsoid in metres when `clampToGround` is `false`. Defaults to 0. */
+  height?: number;
   /** Classification target for clamping (terrain, 3D Tiles, or both). Defaults to ClassificationType.BOTH. */
   classificationType?: ClassificationType;
 }
 
 export type GroundFlowPathUpdateOptions = Pick<
   GroundFlowPathOptions,
-  'color' | 'speed' | 'pulseCount' | 'trailLength' | 'baseOpacity' | 'brightness' | 'reverse'
+  | 'color'
+  | 'speed'
+  | 'pulseCount'
+  | 'trailLength'
+  | 'baseOpacity'
+  | 'brightness'
+  | 'reverse'
+  | 'clampToGround'
+  | 'height'
 >;
 
 export type GroundFlowPathHandle = EffectHandle<GroundFlowPathUpdateOptions>;
@@ -84,7 +109,7 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   float baseHalo = exp(-d * d * 3.8) * u_baseOpacity * 0.28;
   float baseAlpha = baseCore + baseHalo;
 
-  // Seamless periodic pulse streams along the terrain-clamped path.
+  // Seamless periodic pulse streams along the path.
   float count = clamp(u_pulseCount, 1.0, 8.0);
   float coord = u_direction > 0.0 ? st.s : (1.0 - st.s);
   float slotPos = fract(coord * count - u_time * u_speed * 0.42 + u_phase);
@@ -131,25 +156,43 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
 }
 `;
 
+function normalizePaths(input: GroundFlowPathPositions): readonly (readonly LngLat[])[] {
+  if (!Array.isArray(input) || input.length === 0) {
+    throw new RangeError('Expected positions to contain at least 2 [longitude, latitude] points.');
+  }
+
+  const first = input[0];
+  const isMultiPath = Array.isArray(first) && Array.isArray(first[0]);
+  const paths: readonly (readonly LngLat[])[] = isMultiPath
+    ? (input as readonly (readonly LngLat[])[])
+    : [input as readonly LngLat[]];
+
+  for (let p = 0; p < paths.length; p += 1) {
+    const path = paths[p];
+    if (!Array.isArray(path) || path.length < 2) {
+      throw new RangeError(
+        `Expected positions${isMultiPath ? `[${p}]` : ''} to contain at least 2 [longitude, latitude] points.`,
+      );
+    }
+    for (let i = 0; i < path.length; i += 1) {
+      validateLngLat(path[i]!, isMultiPath ? `positions[${p}][${i}]` : `positions[${i}]`);
+    }
+  }
+
+  return paths;
+}
+
 /**
- * Adds a terrain- and 3D-Tiles-clamped GPU-driven luminous flowing path using
- * Cesium's GroundPolylinePrimitive and a custom GLSL shader.
+ * Adds a GPU-driven luminous flowing path (or a batched multi-path road network) that
+ * seamlessly switches between terrain/3D-Tiles-clamped `GroundPolylinePrimitive` and
+ * high-performance non-clamped `Primitive` (`PolylineGeometry`).
  */
 export function createGroundFlowPath(
   viewer: Viewer,
   options: GroundFlowPathOptions,
 ): GroundFlowPathHandle {
-  if (!Array.isArray(options.positions) || options.positions.length < 2) {
-    throw new RangeError('Expected positions to contain at least 2 [longitude, latitude] points.');
-  }
-
+  const normalizedPaths = normalizePaths(options.positions);
   const ellipsoid = viewer.scene.ellipsoid;
-  const cartesianPositions: Cartesian3[] = [];
-  for (let i = 0; i < options.positions.length; i += 1) {
-    const [lng, lat] = options.positions[i]!;
-    validateLngLat([lng, lat], `positions[${i}]`);
-    cartesianPositions.push(Cartesian3.fromDegrees(lng, lat, 0, ellipsoid));
-  }
 
   const width = options.width ?? 10;
   const loop = options.loop ?? false;
@@ -169,10 +212,15 @@ export function createGroundFlowPath(
     baseOpacity: Math.max(0, Math.min(1, options.baseOpacity ?? 0.35)),
     brightness: options.brightness ?? 1,
     reverse: options.reverse ?? false,
+    clampToGround: options.clampToGround ?? true,
+    height: options.height ?? 0,
   };
 
   validateNonNegativeFinite(state.speed, 'speed');
   validateNonNegativeFinite(state.brightness, 'brightness');
+  if (!Number.isFinite(state.height)) {
+    throw new RangeError('Expected height to be a finite number.');
+  }
 
   const material = new Material({
     fabric: {
@@ -193,24 +241,84 @@ export function createGroundFlowPath(
     translucent: true,
   });
 
-  const primitive = new GroundPolylinePrimitive({
-    geometryInstances: new GeometryInstance({
-      geometry: new GroundPolylineGeometry({
-        positions: cartesianPositions,
-        width,
-        loop,
-      }),
-    }),
-    appearance: new PolylineMaterialAppearance({
-      material,
-      translucent: true,
-    }),
-    classificationType,
-    asynchronous: true,
-  });
+  const buildGroundPrimitive = (): GroundPolylinePrimitive => {
+    const geometryInstances = normalizedPaths.map(
+      (path) =>
+        new GeometryInstance({
+          geometry: new GroundPolylineGeometry({
+            positions: path.map(([lng, lat]) => Cartesian3.fromDegrees(lng, lat, 0, ellipsoid)),
+            width,
+            loop,
+          }),
+        }),
+    );
 
-  const collection = viewer.scene.groundPrimitives ?? viewer.scene.primitives;
-  collection.add(primitive);
+    return new GroundPolylinePrimitive({
+      geometryInstances,
+      appearance: new PolylineMaterialAppearance({
+        material,
+        translucent: true,
+      }),
+      classificationType,
+      asynchronous: true,
+    });
+  };
+
+  const buildAirPrimitive = (altitude: number): Primitive => {
+    const geometryInstances = normalizedPaths.map((path) => {
+      const pts = path.map(([lng, lat]) => Cartesian3.fromDegrees(lng, lat, altitude, ellipsoid));
+      if (loop && pts.length >= 2 && !Cartesian3.equals(pts[0]!, pts[pts.length - 1]!)) {
+        pts.push(pts[0]!);
+      }
+      return new GeometryInstance({
+        geometry: new PolylineGeometry({
+          positions: pts,
+          width,
+          arcType: ArcType.GEODESIC,
+          vertexFormat: PolylineMaterialAppearance.VERTEX_FORMAT,
+        }),
+      });
+    });
+
+    return new Primitive({
+      geometryInstances,
+      appearance: new PolylineMaterialAppearance({
+        material,
+        translucent: true,
+        renderState: {
+          depthTest: { enabled: true },
+          depthMask: false,
+          blending: BlendingState.ALPHA_BLEND,
+        },
+      }),
+      asynchronous: true,
+    });
+  };
+
+  let activeInGround = state.clampToGround;
+  let primitive: GroundPolylinePrimitive | Primitive = activeInGround
+    ? buildGroundPrimitive()
+    : buildAirPrimitive(state.height);
+
+  const getActiveCollection = () =>
+    activeInGround
+      ? (viewer.scene.groundPrimitives ?? viewer.scene.primitives)
+      : viewer.scene.primitives;
+
+  getActiveCollection().add(primitive);
+
+  const swapPrimitive = (
+    nextClamped: boolean,
+    nextPrimitive: GroundPolylinePrimitive | Primitive,
+  ) => {
+    if (viewer.isDestroyed()) return;
+    const wasVisible = primitive.show;
+    getActiveCollection().remove(primitive);
+    activeInGround = nextClamped;
+    primitive = nextPrimitive;
+    primitive.show = wasVisible;
+    getActiveCollection().add(primitive);
+  };
 
   const clock = createAnimationClock(viewer, options.paused ?? false, (elapsedSeconds) => {
     material.uniforms.u_time = elapsedSeconds;
@@ -219,7 +327,7 @@ export function createGroundFlowPath(
   return createPrimitiveEffectHandle<GroundFlowPathUpdateOptions>({
     viewer,
     clock,
-    collection,
+    getCollection: getActiveCollection,
     initialShow: options.show,
     getPrimitives: () => [primitive],
     onUpdate(next) {
@@ -255,6 +363,29 @@ export function createGroundFlowPath(
       if (next.reverse !== undefined) {
         state.reverse = next.reverse;
         material.uniforms.u_direction = state.reverse ? -1 : 1;
+      }
+
+      const clampChanged =
+        next.clampToGround !== undefined && next.clampToGround !== state.clampToGround;
+      const heightChanged = next.height !== undefined && next.height !== state.height;
+
+      if (next.height !== undefined) {
+        if (!Number.isFinite(next.height)) {
+          throw new RangeError('Expected height to be a finite number.');
+        }
+        state.height = next.height;
+      }
+      if (next.clampToGround !== undefined) {
+        state.clampToGround = next.clampToGround;
+      }
+
+      if (clampChanged) {
+        swapPrimitive(
+          state.clampToGround,
+          state.clampToGround ? buildGroundPrimitive() : buildAirPrimitive(state.height),
+        );
+      } else if (heightChanged && !state.clampToGround) {
+        swapPrimitive(false, buildAirPrimitive(state.height));
       }
     },
     onRestart() {

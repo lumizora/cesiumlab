@@ -36,64 +36,57 @@ const INSTALL_CMD = 'pnpm add @cesiumlab/effects cesium';
 
 const USAGE_CODE = `import { createGroundFlowPath } from '@cesiumlab/effects';
 
-const path = createGroundFlowPath(viewer, {
+// Pass a single LngLat[] path OR a multi-path LngLat[][] road network (auto-batched into 1 Draw Call)
+const roadNetwork = createGroundFlowPath(viewer, {
   positions: [
-    [103.62, 30.98],
-    [104.06, 30.67],
-    [104.62, 30.42],
-    [105.05, 29.98],
+    [
+      [103.62, 30.98],
+      [104.06, 30.67],
+      [104.62, 30.42],
+    ],
+    [
+      [102.86, 30.14],
+      [103.58, 30.44],
+      [104.07, 30.66],
+    ],
   ],
+  clampToGround: true, // toggle false for ultra-fast non-clamped massive road networks
   color: '#00e5a0',
   width: 10,
   speed: 1,
   pulseCount: 3,
-  trailLength: 0.52,
 });
 
-// O(1) GPU uniform updates
-path.update({ speed: 1.6, reverse: true });
-path.hide();
-path.show();
-path.destroy();`;
+// Seamlessly switch between clamped GroundPolylinePrimitive and lightweight Primitive
+roadNetwork.update({ clampToGround: false, height: 1500, speed: 1.6 });
+roadNetwork.destroy();`;
 
-const DEMO_CORRIDORS: ReadonlyArray<{
-  positions: ReadonlyArray<readonly [number, number]>;
-  phase: number;
-}> = [
-  {
-    // Main northwest-to-southeast mountain-to-basin arterial corridor
-    positions: [
-      [103.24, 31.18],
-      [103.62, 30.98],
-      [103.92, 30.78],
-      [104.07, 30.66],
-      [104.38, 30.52],
-      [104.76, 30.28],
-      [105.12, 29.94],
-    ],
-    phase: 0,
-  },
-  {
-    // Southwest mountain pass branch converging into the basin hub
-    positions: [
-      [102.86, 30.14],
-      [103.22, 30.26],
-      [103.58, 30.44],
-      [103.88, 30.56],
-      [104.07, 30.66],
-    ],
-    phase: 0.35,
-  },
-  {
-    // Northeast highland transit route
-    positions: [
-      [104.07, 30.66],
-      [104.34, 30.92],
-      [104.68, 31.16],
-      [105.04, 31.42],
-    ],
-    phase: 0.68,
-  },
+const DEMO_PATHS: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
+  // Main northwest-to-southeast mountain-to-basin arterial corridor
+  [
+    [103.24, 31.18],
+    [103.62, 30.98],
+    [103.92, 30.78],
+    [104.07, 30.66],
+    [104.38, 30.52],
+    [104.76, 30.28],
+    [105.12, 29.94],
+  ],
+  // Southwest mountain pass branch converging into the basin hub
+  [
+    [102.86, 30.14],
+    [103.22, 30.26],
+    [103.58, 30.44],
+    [103.88, 30.56],
+    [104.07, 30.66],
+  ],
+  // Northeast highland transit route
+  [
+    [104.07, 30.66],
+    [104.34, 30.92],
+    [104.68, 31.16],
+    [105.04, 31.42],
+  ],
 ];
 
 function resetCamera(viewer: Viewer) {
@@ -114,12 +107,14 @@ const DEFAULTS = {
   brightness: 1,
   reverse: false,
   loop: false,
+  clampToGround: true,
+  heightM: 2_500,
 } as const;
 
 export default function GroundFlowPathDemoPage() {
   const { isZh } = useI18n();
   const viewerRef = useRef<Viewer | null>(null);
-  const pathsRef = useRef<GroundFlowPathHandle[]>([]);
+  const pathRef = useRef<GroundFlowPathHandle | null>(null);
 
   const [paused, setPaused] = useState(
     () =>
@@ -136,34 +131,33 @@ export default function GroundFlowPathDemoPage() {
   const [brightness, setBrightness] = useState<number>(DEFAULTS.brightness);
   const [reverse, setReverse] = useState<boolean>(DEFAULTS.reverse);
   const [loop, setLoop] = useState<boolean>(DEFAULTS.loop);
+  const [clampToGround, setClampToGround] = useState<boolean>(DEFAULTS.clampToGround);
+  const [heightM, setHeightM] = useState<number>(DEFAULTS.heightM);
 
   const handleMount = useCallback(
     (viewer: Viewer) => {
       viewerRef.current = viewer;
-      pathsRef.current = DEMO_CORRIDORS.map((corridor) =>
-        createGroundFlowPath(viewer, {
-          positions: corridor.positions,
-          phase: corridor.phase,
-          color,
-          width,
-          speed,
-          pulseCount,
-          trailLength,
-          baseOpacity,
-          brightness,
-          reverse,
-          loop,
-          paused,
-          show: visible,
-        }),
-      );
+      pathRef.current = createGroundFlowPath(viewer, {
+        positions: DEMO_PATHS,
+        color,
+        width,
+        speed,
+        pulseCount,
+        trailLength,
+        baseOpacity,
+        brightness,
+        reverse,
+        loop,
+        clampToGround,
+        height: heightM,
+        paused,
+        show: visible,
+      });
       resetCamera(viewer);
 
       return () => {
-        for (const path of pathsRef.current) {
-          path.destroy();
-        }
-        pathsRef.current = [];
+        pathRef.current?.destroy();
+        pathRef.current = null;
         viewerRef.current = null;
       };
     },
@@ -175,54 +169,57 @@ export default function GroundFlowPathDemoPage() {
   useEffect(() => {
     const viewer = viewerRef.current;
     if (!viewer || viewer.isDestroyed()) return;
-    for (const path of pathsRef.current) {
-      path.destroy();
-    }
-    pathsRef.current = DEMO_CORRIDORS.map((corridor) =>
-      createGroundFlowPath(viewer, {
-        positions: corridor.positions,
-        phase: corridor.phase,
-        color,
-        width,
-        speed,
-        pulseCount,
-        trailLength,
-        baseOpacity,
-        brightness,
-        reverse,
-        loop,
-        paused,
-        show: visible,
-      }),
-    );
+    pathRef.current?.destroy();
+    pathRef.current = createGroundFlowPath(viewer, {
+      positions: DEMO_PATHS,
+      color,
+      width,
+      speed,
+      pulseCount,
+      trailLength,
+      baseOpacity,
+      brightness,
+      reverse,
+      loop,
+      clampToGround,
+      height: heightM,
+      paused,
+      show: visible,
+    });
     // Rebuild only when construction-only geometry options change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [width, loop]);
 
   useEffect(() => {
-    for (const path of pathsRef.current) {
-      path.update({
-        color,
-        speed,
-        pulseCount,
-        trailLength,
-        baseOpacity,
-        brightness,
-        reverse,
-      });
-    }
-  }, [color, speed, pulseCount, trailLength, baseOpacity, brightness, reverse]);
+    pathRef.current?.update({
+      color,
+      speed,
+      pulseCount,
+      trailLength,
+      baseOpacity,
+      brightness,
+      reverse,
+      clampToGround,
+      height: heightM,
+    });
+  }, [
+    color,
+    speed,
+    pulseCount,
+    trailLength,
+    baseOpacity,
+    brightness,
+    reverse,
+    clampToGround,
+    heightM,
+  ]);
 
   useEffect(() => {
-    for (const path of pathsRef.current) {
-      path.setPaused(paused);
-    }
+    pathRef.current?.setPaused(paused);
   }, [paused]);
 
   useEffect(() => {
-    for (const path of pathsRef.current) {
-      path.setVisible(visible);
-    }
+    pathRef.current?.setVisible(visible);
   }, [visible]);
 
   const handleResetCamera = () => {
@@ -241,7 +238,9 @@ export default function GroundFlowPathDemoPage() {
     baseOpacity !== DEFAULTS.baseOpacity ||
     brightness !== DEFAULTS.brightness ||
     reverse !== DEFAULTS.reverse ||
-    loop !== DEFAULTS.loop;
+    loop !== DEFAULTS.loop ||
+    clampToGround !== DEFAULTS.clampToGround ||
+    heightM !== DEFAULTS.heightM;
 
   const handleResetParams = useCallback(() => {
     setColor(DEFAULTS.color);
@@ -253,6 +252,8 @@ export default function GroundFlowPathDemoPage() {
     setBrightness(DEFAULTS.brightness);
     setReverse(DEFAULTS.reverse);
     setLoop(DEFAULTS.loop);
+    setClampToGround(DEFAULTS.clampToGround);
+    setHeightM(DEFAULTS.heightM);
   }, []);
 
   const paramGroups = useMemo<ParamGroup[]>(
@@ -310,6 +311,29 @@ export default function GroundFlowPathDemoPage() {
         controls: [
           {
             type: 'switch',
+            id: 'clampToGround',
+            label: isZh ? '贴合地形' : 'Clamp to ground',
+            value: clampToGround,
+            onChange: setClampToGround,
+          },
+          ...(!clampToGround
+            ? [
+                {
+                  type: 'slider' as const,
+                  id: 'height',
+                  label: isZh
+                    ? `海拔高度 · ${(heightM / 1_000).toFixed(1)}km`
+                    : `Elevation · ${(heightM / 1_000).toFixed(1)}km`,
+                  value: heightM,
+                  min: 0,
+                  max: 10_000,
+                  step: 500,
+                  onChange: setHeightM,
+                },
+              ]
+            : []),
+          {
+            type: 'switch',
             id: 'loop',
             label: isZh ? '首尾闭合' : 'Closed loop',
             value: loop,
@@ -363,7 +387,20 @@ export default function GroundFlowPathDemoPage() {
         ],
       },
     ],
-    [isZh, color, width, baseOpacity, brightness, loop, speed, pulseCount, trailLength, reverse],
+    [
+      isZh,
+      color,
+      width,
+      baseOpacity,
+      brightness,
+      clampToGround,
+      heightM,
+      loop,
+      speed,
+      pulseCount,
+      trailLength,
+      reverse,
+    ],
   );
 
   const pageTitle = isZh ? '贴地流光路径 (Ground Flow Path)' : meta.title;
