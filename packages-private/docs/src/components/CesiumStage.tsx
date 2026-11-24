@@ -8,7 +8,7 @@ import { Icon } from '@astryxdesign/core/Icon';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { RotateCcw, SlidersHorizontal, X } from 'lucide-react';
+import { Maximize2, Minimize2, RotateCcw, SlidersHorizontal, X } from 'lucide-react';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { themes, defaultThemeSlug } from '../astryx-themes';
 import { createDocsViewer, type CreateDocsViewerOptions } from '../lib/cesium';
@@ -58,14 +58,36 @@ export function CesiumStage({
 }: CesiumStageProps) {
   const { isZh } = useI18n();
   const isWideStage = useMediaQuery('(min-width: 640px)');
+  const stageRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const onMountRef = useRef(onMount);
   onMountRef.current = onMount;
 
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [paramsOpen, setParamsOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const hasParams = Boolean(paramGroups && paramGroups.length > 0);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === stageRef.current);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  const handleToggleFullscreen = () => {
+    const el = stageRef.current;
+    if (!el) return;
+    if (document.fullscreenElement === el) {
+      void document.exitFullscreen?.();
+    } else {
+      void el.requestFullscreen?.();
+    }
+  };
 
   useEffect(() => {
     const host = hostRef.current;
@@ -139,10 +161,11 @@ export function CesiumStage({
     <Card width="100%" padding={0}>
       <VStack gap={0} width="100%">
         <VStack
+          ref={stageRef}
           width="100%"
           style={{
             position: 'relative',
-            height: 'clamp(22rem, 54svh, 36rem)',
+            height: isFullscreen ? '100vh' : 'clamp(22rem, 54svh, 36rem)',
             overflow: 'hidden',
             backgroundColor: '#050608',
           }}
@@ -177,47 +200,60 @@ export function CesiumStage({
               </HStack>
             )}
 
-            {(actions || hasParams) && (
-              <HStack
-                hAlign="end"
-                vAlign="start"
-                style={{
-                  position: 'absolute',
-                  top: 'var(--spacing-3)',
-                  left: 'var(--spacing-3)',
-                  right: 'var(--spacing-3)',
-                  pointerEvents: 'none',
-                  zIndex: 2,
-                }}
-              >
-                <HStack padding={1} gap={0.5} vAlign="center" wrap="wrap" style={HUD_SURFACE_STYLE}>
-                  {actions}
-                  {actions && hasParams && (
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        width: '1px',
-                        height: '1rem',
-                        backgroundColor: 'rgba(255, 255, 255, 0.14)',
-                        marginInline: 'var(--spacing-1)',
-                      }}
-                    />
-                  )}
-                  {hasParams && (
-                    <Button
-                      label={isZh ? '参数' : 'Params'}
-                      variant="ghost"
-                      size="sm"
-                      icon={<Icon icon={SlidersHorizontal} />}
-                      onClick={() => setParamsOpen((prev) => !prev)}
-                      style={
-                        paramsOpen ? { backgroundColor: 'rgba(255, 255, 255, 0.12)' } : undefined
-                      }
-                    />
-                  )}
-                </HStack>
+            <HStack
+              hAlign="end"
+              vAlign="start"
+              style={{
+                position: 'absolute',
+                top: 'var(--spacing-3)',
+                left: 'var(--spacing-3)',
+                right: 'var(--spacing-3)',
+                pointerEvents: 'none',
+                zIndex: 2,
+              }}
+            >
+              <HStack padding={1} gap={0.5} vAlign="center" wrap="wrap" style={HUD_SURFACE_STYLE}>
+                {actions}
+                {actions && (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: '1px',
+                      height: '1rem',
+                      backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                      marginInline: 'var(--spacing-1)',
+                    }}
+                  />
+                )}
+                {hasParams && (
+                  <Button
+                    label={isZh ? '参数' : 'Params'}
+                    variant="ghost"
+                    size="sm"
+                    icon={<Icon icon={SlidersHorizontal} />}
+                    onClick={() => setParamsOpen((prev) => !prev)}
+                    style={
+                      paramsOpen ? { backgroundColor: 'rgba(255, 255, 255, 0.12)' } : undefined
+                    }
+                  />
+                )}
+                <IconButton
+                  label={
+                    isFullscreen
+                      ? isZh
+                        ? '退出全屏'
+                        : 'Exit fullscreen'
+                      : isZh
+                        ? '全屏显示'
+                        : 'Enter fullscreen'
+                  }
+                  icon={<Icon icon={isFullscreen ? Minimize2 : Maximize2} />}
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleToggleFullscreen}
+                />
               </HStack>
-            )}
+            </HStack>
 
             {hasParams && paramsOpen && paramGroups && (
               <VStack
