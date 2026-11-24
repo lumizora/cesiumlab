@@ -58,6 +58,13 @@ export {
   type WaterSurfaceOptions,
   type WaterSurfaceUpdateOptions,
 } from './water-surface/index.ts';
+export {
+  createWeatherOverlay,
+  type WeatherMode,
+  type WeatherOverlayHandle,
+  type WeatherOverlayOptions,
+  type WeatherOverlayUpdateOptions,
+} from './weather-overlay/index.ts';
 
 export type { EffectBaseOptions, EffectHandle } from './shared/effect.ts';
 export type { ColorInput, LngLat } from './shared/geo.ts';

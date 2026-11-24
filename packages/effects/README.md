@@ -13,6 +13,7 @@
 - **`createGroundFlowPath`**：基于 `GroundPolylinePrimitive` 与自定义 GLSL 的贴地流光路径，自动贴合起伏地形与 3D Tiles 表面，融合双层发光底路、错位脉冲与收尖渐隐拖尾。
 - **`createHoloBeacon`**：三维全息悬浮八面体信标，融合晶面棱边高光与菲涅尔轮廓、平滑自转与上下呼吸、垂直能量牵引光丝及地面双层旋转锁定环。
 - **`createWaterSurface`**：零外部法线贴图的纯 GPU 程序化多频流动水面，融合菲涅尔天空反射、太阳高光波光闪烁与动态水位高度调节。
+- **`createWeatherOverlay`**：单 `PostProcessStage` 驱动的纯 GPU 屏幕空间气象引擎，支持多层视差雨丝、柔和风摆飘雪与真实深度缓冲大气距离雾。
 
 ## 快速开始
 

@@ -109,6 +109,17 @@ export const MODULE_CATALOG: readonly ModuleCatalogItem[] = [
       'Procedural multi-octave flowing water surface with Fresnel sky reflections, solar glint, and dynamic water levels.',
     summaryZh: '纯 GPU 程序化多频流动水面，融合菲涅尔天空反射、太阳波光闪烁与动态水位调节。',
   },
+  {
+    id: 'weather-overlay',
+    path: '/docs/weather-overlay',
+    section: 'Visual Effects',
+    titleEn: 'Weather Overlay',
+    titleZh: '屏幕空间气象特效',
+    tag: 'PostProcess · GLSL',
+    summaryEn:
+      'Pure-GPU screen-space rain, swaying snow, and depth-buffer atmospheric fog driven by a single PostProcessStage.',
+    summaryZh: '单 PostProcessStage 驱动的多层视差雨丝、风摆飘雪与真实深度缓冲大气距离雾。',
+  },
 ];
 
 export const DEFAULT_MODULE_PATH = MODULE_CATALOG[0]?.path ?? '/docs/introduction';

@@ -1,5 +1,11 @@
 import * as Cesium from 'cesium';
-import { Ellipsoid, type GroundPolylinePrimitive, type Primitive, type Viewer } from 'cesium';
+import {
+  Ellipsoid,
+  type GroundPolylinePrimitive,
+  type PostProcessStage,
+  type Primitive,
+  type Viewer,
+} from 'cesium';
 import { describe, expect, it } from 'vite-plus/test';
 import {
   createCometArc,
@@ -11,6 +17,7 @@ import {
   createPulseRing,
   createRadarScan,
   createWaterSurface,
+  createWeatherOverlay,
   type EffectHandle,
 } from '../src/index.ts';
 
@@ -44,6 +51,7 @@ if (contextLimits && (contextLimits._maximumAliasedLineWidth ?? 0) < 1) {
 function createMockViewer() {
   const primitives: Primitive[] = [];
   const groundPrimitives: GroundPolylinePrimitive[] = [];
+  const postProcessStages: PostProcessStage[] = [];
   const preRenderListeners = new Set<() => void>();
   let destroyed = false;
 
@@ -75,6 +83,17 @@ function createMockViewer() {
           return index !== -1;
         },
       },
+      postProcessStages: {
+        add(stage: PostProcessStage) {
+          postProcessStages.push(stage);
+          return stage;
+        },
+        remove(stage: PostProcessStage) {
+          const index = postProcessStages.indexOf(stage);
+          if (index !== -1) postProcessStages.splice(index, 1);
+          return index !== -1;
+        },
+      },
       preRender: {
         addEventListener(callback: () => void) {
           preRenderListeners.add(callback);
@@ -91,6 +110,7 @@ function createMockViewer() {
     viewer,
     primitives,
     groundPrimitives,
+    postProcessStages,
     preRenderListeners,
     markDestroyed() {
       destroyed = true;
@@ -268,6 +288,7 @@ describe('createEnergyBeam', () => {
           [104.07, 30.66],
         ],
       }),
+      createWeatherOverlay(mock.viewer, { mode: 'rain' }),
     ];
 
     for (const effect of effects) {
@@ -276,6 +297,7 @@ describe('createEnergyBeam', () => {
     }
     expect(mock.primitives.every((p) => p.show === false)).toBe(true);
     expect(mock.groundPrimitives.every((p) => p.show === false)).toBe(true);
+    expect(mock.postProcessStages.every((s) => s.enabled === false)).toBe(true);
 
     for (const effect of effects) {
       effect.destroy();
@@ -283,6 +305,7 @@ describe('createEnergyBeam', () => {
     }
     expect(mock.primitives.length).toBe(0);
     expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.postProcessStages.length).toBe(0);
   });
 });
 
@@ -579,5 +602,38 @@ describe('createWaterSurface', () => {
         ],
       }),
     ).toThrow(RangeError);
+  });
+});
+
+describe('createWeatherOverlay', () => {
+  it('adds a PostProcessStage, switches rain/snow/fog modes live, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const weather = createWeatherOverlay(mock.viewer, {
+      mode: 'rain',
+      intensity: 0.8,
+      show: false,
+    });
+
+    expect(mock.postProcessStages.length).toBe(1);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(weather.isVisible()).toBe(false);
+    expect(mock.postProcessStages[0]?.enabled).toBe(false);
+
+    weather.show();
+    expect(weather.isVisible()).toBe(true);
+    expect(mock.postProcessStages[0]?.enabled).toBe(true);
+
+    weather.update({ mode: 'snow', intensity: 1.1, speed: 1.3, wind: -0.3 });
+    mock.tick();
+    weather.update({ mode: 'fog', fogVisibility: 12_000, color: '#cbd5e1' });
+    weather.restart();
+    weather.setPaused(true);
+    expect(weather.isPaused()).toBe(true);
+
+    weather.destroy();
+    expect(weather.isDestroyed()).toBe(true);
+    expect(mock.postProcessStages.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => weather.destroy()).not.toThrow();
   });
 });

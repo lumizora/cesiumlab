@@ -11,6 +11,7 @@ import { CodeBlock } from '@astryxdesign/core/CodeBlock';
 import { Code } from '@astryxdesign/core/Code';
 import {
   ArrowRight,
+  CloudRain,
   Cpu,
   Globe,
   Layers,
@@ -56,6 +57,7 @@ const MODULE_ICONS = {
   'ground-flow-path': Route,
   'holo-beacon': MapPin,
   'water-surface': Waves,
+  'weather-overlay': CloudRain,
 } as const;
 
 export function IntroductionPage() {

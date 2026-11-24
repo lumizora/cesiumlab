@@ -42,6 +42,7 @@ const DOC_LABELS_ZH: Record<string, string> = {
   'Ground Flow Path': '贴地流光路径 (Ground Flow Path)',
   'Holo Beacon': '全息悬浮信标 (Holo Beacon)',
   'Water Surface': '程序化流动水面 (Water Surface)',
+  'Weather Overlay': '屏幕空间气象特效 (Weather Overlay)',
 };
 
 interface DocsViewProps {
