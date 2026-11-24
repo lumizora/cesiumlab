@@ -14,12 +14,14 @@ import {
   Cpu,
   Globe,
   Layers,
+  MapPin,
   Package,
   Radar,
   Radio,
   Route,
   Shield,
   Sparkles,
+  Waves,
   Zap,
 } from 'lucide-react';
 import { MODULE_CATALOG } from '../data/catalog';
@@ -52,6 +54,8 @@ const MODULE_ICONS = {
   'radar-scan': Radar,
   'holo-dome': Globe,
   'ground-flow-path': Route,
+  'holo-beacon': MapPin,
+  'water-surface': Waves,
 } as const;
 
 export function IntroductionPage() {

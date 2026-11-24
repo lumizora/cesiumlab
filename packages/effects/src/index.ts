@@ -46,6 +46,18 @@ export {
   type GroundFlowPathOptions,
   type GroundFlowPathUpdateOptions,
 } from './ground-flow-path/index.ts';
+export {
+  createHoloBeacon,
+  type HoloBeaconHandle,
+  type HoloBeaconOptions,
+  type HoloBeaconUpdateOptions,
+} from './holo-beacon/index.ts';
+export {
+  createWaterSurface,
+  type WaterSurfaceHandle,
+  type WaterSurfaceOptions,
+  type WaterSurfaceUpdateOptions,
+} from './water-surface/index.ts';
 
 export type { EffectBaseOptions, EffectHandle } from './shared/effect.ts';
 export type { ColorInput, LngLat } from './shared/geo.ts';

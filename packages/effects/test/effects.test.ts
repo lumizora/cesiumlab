@@ -6,9 +6,11 @@ import {
   createEnergyBeam,
   createEnergyWall,
   createGroundFlowPath,
+  createHoloBeacon,
   createHoloDome,
   createPulseRing,
   createRadarScan,
+  createWaterSurface,
   type EffectHandle,
 } from '../src/index.ts';
 
@@ -252,6 +254,14 @@ describe('createEnergyBeam', () => {
       }),
       createRadarScan(mock.viewer, { position: [121.47, 31.23] }),
       createHoloDome(mock.viewer, { position: [121.47, 31.23] }),
+      createHoloBeacon(mock.viewer, { position: [121.47, 31.23] }),
+      createWaterSurface(mock.viewer, {
+        positions: [
+          [120.0, 31.3],
+          [120.4, 31.3],
+          [120.2, 31.0],
+        ],
+      }),
       createGroundFlowPath(mock.viewer, {
         positions: [
           [103.62, 30.98],
@@ -461,5 +471,113 @@ describe('createGroundFlowPath', () => {
     expect(() => createGroundFlowPath(mock.viewer, { positions: [[104.07, 30.66]] })).toThrow(
       RangeError,
     );
+  });
+});
+
+describe('createHoloBeacon', () => {
+  it('creates crystal, tether, and ground ring primitives, supports live updates, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const beacon = createHoloBeacon(mock.viewer, {
+      position: [121.47, 31.23],
+      altitude: 120_000,
+      size: 28_000,
+      show: false,
+    });
+
+    expect(mock.primitives.length).toBe(3);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(beacon.isVisible()).toBe(false);
+    expect(mock.primitives.every((p) => p.show === false)).toBe(true);
+
+    beacon.show();
+    expect(beacon.isVisible()).toBe(true);
+    expect(mock.primitives.every((p) => p.show === true)).toBe(true);
+
+    beacon.update({
+      color: '#00e5a0',
+      altitude: 160_000,
+      size: 32_000,
+      ringRadius: 72_000,
+      spinSpeed: 1.5,
+      bobSpeed: 1.2,
+      bobAmplitude: 0.4,
+      opacity: 1,
+    });
+    mock.tick();
+    beacon.restart();
+    beacon.setPaused(true);
+    expect(beacon.isPaused()).toBe(true);
+
+    beacon.destroy();
+    expect(beacon.isDestroyed()).toBe(true);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => beacon.destroy()).not.toThrow();
+  });
+});
+
+describe('createWaterSurface', () => {
+  it('creates a polygon water primitive, preserves visibility across height updates, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const water = createWaterSurface(mock.viewer, {
+      positions: [
+        [120.02, 31.34],
+        [120.38, 31.36],
+        [120.46, 31.02],
+        [120.12, 30.94],
+      ],
+      height: 60,
+    });
+
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(water.isVisible()).toBe(true);
+
+    water.hide();
+    expect(water.isVisible()).toBe(false);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    // Updating height rebuilds the water Primitive and must preserve hidden state
+    water.update({
+      color: '#0284c7',
+      specularColor: '#ffffff',
+      height: 180,
+      waveScale: 1.5,
+      amplitude: 0.75,
+      speed: 1.4,
+      flowSpeed: 0.8,
+      flowAngle: 1.2,
+      specularIntensity: 1.1,
+      opacity: 0.85,
+    });
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    water.show();
+    expect(water.isVisible()).toBe(true);
+    expect(mock.primitives[0]?.show).toBe(true);
+
+    mock.tick();
+    water.restart();
+    water.setPaused(true);
+    expect(water.isPaused()).toBe(true);
+
+    water.destroy();
+    expect(water.isDestroyed()).toBe(true);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => water.destroy()).not.toThrow();
+  });
+
+  it('rejects fewer than three polygon vertices', () => {
+    const mock = createMockViewer();
+    expect(() =>
+      createWaterSurface(mock.viewer, {
+        positions: [
+          [120.0, 31.3],
+          [120.4, 31.3],
+        ],
+      }),
+    ).toThrow(RangeError);
   });
 });

@@ -87,6 +87,28 @@ export const MODULE_CATALOG: readonly ModuleCatalogItem[] = [
       'Terrain- and 3D-Tiles-clamped flowing energy path with a glowing base track and tapered pulse streams.',
     summaryZh: '自动贴合地形与 3D Tiles 的流光路径，具备发光底路、错位脉冲与收尖渐隐拖尾。',
   },
+  {
+    id: 'holo-beacon',
+    path: '/docs/holo-beacon',
+    section: 'Visual Effects',
+    titleEn: 'Holo Beacon',
+    titleZh: '全息悬浮信标',
+    tag: '3D Crystal · GLSL',
+    summaryEn:
+      'Floating self-rotating octahedron crystal with edge glow, vertical energy tether, and rotating ground lock ring.',
+    summaryZh: '三维悬浮自转八面体晶核，带棱边高光、垂直牵引光丝与地面双层旋转锁定环。',
+  },
+  {
+    id: 'water-surface',
+    path: '/docs/water-surface',
+    section: 'Visual Effects',
+    titleEn: 'Water Surface',
+    titleZh: '程序化流动水面',
+    tag: 'Wave Normals · GLSL',
+    summaryEn:
+      'Procedural multi-octave flowing water surface with Fresnel sky reflections, solar glint, and dynamic water levels.',
+    summaryZh: '纯 GPU 程序化多频流动水面，融合菲涅尔天空反射、太阳波光闪烁与动态水位调节。',
+  },
 ];
 
 export const DEFAULT_MODULE_PATH = MODULE_CATALOG[0]?.path ?? '/docs/introduction';
