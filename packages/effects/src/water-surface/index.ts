@@ -99,6 +99,7 @@ uniform float u_specularIntensity;
 uniform float u_opacity;
 
 const mat2 OCTAVE_ROT = mat2(0.80, 0.60, -0.60, 0.80);
+const mat2 OCTAVE_ROT_T = mat2(0.80, -0.60, 0.60, 0.80);
 
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -106,52 +107,48 @@ float hash21(vec2 p) {
   return fract(p.x * p.y);
 }
 
-// Smooth non-periodic value noise (eliminates regular sinusoidal checkerboard grids).
-float valueNoise(vec2 p) {
+// Smooth non-periodic value noise with analytical gradient (dx, dy) in a single pass.
+// Eliminates 4-tap finite-difference overhead so D3D11/ANGLE compiles GroundPrimitive shaders instantly.
+vec2 valueNoiseGrad(vec2 p) {
   vec2 i = floor(p);
   vec2 f = fract(p);
-  vec2 u = f * f * (3.0 - 2.0 * f);
+  // Quintic C2-continuous Hermite curve eliminates grid-boundary specular creases at high amplitude
+  vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+  vec2 du = 30.0 * f * f * (f * (f - 2.0) + 1.0);
 
   float a = hash21(i);
   float b = hash21(i + vec2(1.0, 0.0));
   float c = hash21(i + vec2(0.0, 1.0));
   float d = hash21(i + vec2(1.0, 1.0));
-  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+
+  float k1 = b - a;
+  float k2 = c - a;
+  float k3 = a - b - c + d;
+  return du * vec2(k1 + k3 * u.y, k2 + k3 * u.x);
 }
 
-// 3-octave rotated FBM producing organic wind-driven water swells.
-float waterFbm(vec2 p) {
-  float sum = 0.0;
-  float amp = 0.52;
+// 3-octave rotated analytical FBM slope producing organic wind-driven water swells.
+vec2 waterFbmSlope(vec2 p) {
+  vec2 grad = vec2(0.0);
+  float amp = 0.56;
+  mat2 rotT = mat2(1.0);
   for (int i = 0; i < 3; i++) {
-    sum += amp * valueNoise(p);
+    grad += amp * (rotT * valueNoiseGrad(p));
     p = OCTAVE_ROT * p * 2.07 + vec2(13.1, 7.7);
-    amp *= 0.48;
+    rotT = rotT * OCTAVE_ROT_T;
+    amp *= 0.62;
   }
-  return sum;
+  return grad;
 }
 
-// Symmetrical counter-propagating ripples (zero net drift for still-water shimmer)
-// plus optional directional current drift when flowSpeed > 0.
-float sampleWaterHeight(vec2 worldMeters, float wavelength, float rippleT, float flowT, vec2 flowDir) {
+// Symmetrical counter-propagating analytical wave slopes (zero net drift when flowSpeed == 0).
+vec2 sampleWaveSlope(vec2 worldMeters, float wavelength, float rippleT, float flowT, vec2 flowDir) {
   vec2 uv = worldMeters / max(1.0, wavelength);
-  vec2 crossDir = vec2(-flowDir.y, flowDir.x);
   vec2 currentShift = flowDir * (flowT * 0.48);
 
-  float hA = waterFbm(uv - currentShift + flowDir * (rippleT * 0.28));
-  float hB = waterFbm(uv * 1.38 - currentShift - flowDir * (rippleT * 0.31) + vec2(4.3, -2.9));
-  float hC = waterFbm(uv * 1.95 - currentShift + crossDir * (rippleT * 0.22) + vec2(-3.1, 5.4));
-  return hA * 0.42 + hB * 0.38 + hC * 0.20;
-}
-
-// Compute tangent-space normal perturbation using central differences at a given wavelength.
-vec2 sampleWaveSlope(vec2 worldMeters, float wavelength, float rippleT, float flowT, vec2 flowDir) {
-  float eps = wavelength * 0.07;
-  float hL = sampleWaterHeight(worldMeters - vec2(eps, 0.0), wavelength, rippleT, flowT, flowDir);
-  float hR = sampleWaterHeight(worldMeters + vec2(eps, 0.0), wavelength, rippleT, flowT, flowDir);
-  float hD = sampleWaterHeight(worldMeters - vec2(0.0, eps), wavelength, rippleT, flowT, flowDir);
-  float hU = sampleWaterHeight(worldMeters + vec2(0.0, eps), wavelength, rippleT, flowT, flowDir);
-  return vec2(hR - hL, hU - hD) * 4.0;
+  vec2 gA = waterFbmSlope(uv - currentShift + flowDir * (rippleT * 0.28));
+  vec2 gB = waterFbmSlope(uv * 1.42 - currentShift - flowDir * (rippleT * 0.31) + vec2(4.3, -2.9));
+  return (gA * 0.54 + gB * 0.46) * 0.72;
 }
 
 czm_material czm_getMaterial(czm_materialInput materialInput) {
@@ -175,10 +172,21 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   vec2 slopeCoarse = sampleWaveSlope(worldMeters, waveCoarse, rippleT * 0.72, flowT * 0.72, flowDir);
   vec2 slope = mix(slopeFine, slopeCoarse, smoothstep(0.15, 0.85, lodFrac)) * u_amplitude;
 
-  // Transform perturbed local normal into eye coordinates.
+  // Build an analytical C-infinity ellipsoid ENU frame from eye coordinates
+  // so GroundPrimitive avoids depth-buffer neighbor normal spikes along terrain tile seams.
+  vec3 posWC = (czm_inverseView * vec4(-materialInput.positionToEyeEC, 1.0)).xyz;
+  vec3 upWC = normalize(posWC);
+  vec3 eastWC = normalize(cross(vec3(0.0, 0.0, 1.0), upWC));
+  vec3 northWC = cross(upWC, eastWC);
+  mat3 enuToEC = mat3(
+    czm_viewRotation * eastWC,
+    czm_viewRotation * northWC,
+    czm_viewRotation * upWC
+  );
+
   vec3 localNormal = normalize(vec3(-slope.x, -slope.y, 1.0));
-  vec3 normalEC = normalize(materialInput.tangentToEyeMatrix * localNormal);
-  vec3 upEC = normalize(materialInput.tangentToEyeMatrix * vec3(0.0, 0.0, 1.0));
+  vec3 normalEC = normalize(enuToEC * localNormal);
+  vec3 upEC = normalize(enuToEC[2]);
   vec3 viewDir = normalize(materialInput.positionToEyeEC);
 
   // Schlick Fresnel reflection: transparent at steep angles, mirror-like sky reflection at grazing angles.

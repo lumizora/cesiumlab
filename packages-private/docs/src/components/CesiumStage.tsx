@@ -82,6 +82,7 @@ export function CesiumStage({
   const [paramsOpen, setParamsOpen] = useState(false);
   const [isHd, setIsHd] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fps, setFps] = useState<number | null>(null);
   const isHdRef = useRef(isHd);
   isHdRef.current = isHd;
 
@@ -122,6 +123,9 @@ export function CesiumStage({
     const { signal } = controller;
     let viewer: Viewer | null = null;
     let cleanupEffect: (() => void) | void;
+    let removeFpsListener: (() => void) | undefined;
+    let fpsFrames = 0;
+    let fpsLastTime = performance.now();
 
     const resizeObserver =
       typeof ResizeObserver !== 'undefined'
@@ -144,6 +148,19 @@ export function CesiumStage({
         }
         applyHdQuality(viewer, isHdRef.current);
         viewerRef.current = viewer;
+        fpsFrames = 0;
+        fpsLastTime = performance.now();
+        removeFpsListener = viewer.scene.postRender.addEventListener(() => {
+          fpsFrames += 1;
+          const now = performance.now();
+          const elapsed = now - fpsLastTime;
+          if (elapsed >= 500) {
+            const nextFps = Math.round((fpsFrames * 1000) / elapsed);
+            fpsFrames = 0;
+            fpsLastTime = now;
+            setFps((prev) => (prev === nextFps ? prev : nextFps));
+          }
+        });
         cleanupEffect = await onMountRef.current(viewer, signal);
         if (signal.aborted) {
           cleanupEffect?.();
@@ -164,6 +181,9 @@ export function CesiumStage({
     function dispose() {
       controller.abort();
       resizeObserver?.disconnect();
+      removeFpsListener?.();
+      removeFpsListener = undefined;
+      setFps(null);
       cleanupEffect?.();
       cleanupEffect = undefined;
       if (viewer && !viewer.isDestroyed()) {
@@ -230,7 +250,7 @@ export function CesiumStage({
             )}
 
             <HStack
-              hAlign="end"
+              hAlign="between"
               vAlign="start"
               style={{
                 position: 'absolute',
@@ -241,6 +261,25 @@ export function CesiumStage({
                 zIndex: 2,
               }}
             >
+              <HStack
+                paddingInline={2}
+                paddingBlock={1}
+                vAlign="center"
+                style={{
+                  ...HUD_SURFACE_STYLE,
+                  visibility: fps !== null ? 'visible' : 'hidden',
+                }}
+              >
+                <Text
+                  type="supporting"
+                  size="xsm"
+                  weight="semibold"
+                  style={{ fontVariantNumeric: 'tabular-nums' }}
+                >
+                  {fps !== null ? `${fps} FPS` : '— FPS'}
+                </Text>
+              </HStack>
+
               <HStack padding={1} gap={0.5} vAlign="center" wrap="wrap" style={HUD_SURFACE_STYLE}>
                 {actions}
                 {actions && (
