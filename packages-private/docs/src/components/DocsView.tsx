@@ -43,6 +43,7 @@ const DOC_LABELS_ZH: Record<string, string> = {
   'Holo Beacon': '全息悬浮信标 (Holo Beacon)',
   'Water Surface': '程序化流动水面 (Water Surface)',
   'Weather Overlay': '屏幕空间气象特效 (Weather Overlay)',
+  Heatmap: '热力图 (Heatmap)',
 };
 
 interface DocsViewProps {

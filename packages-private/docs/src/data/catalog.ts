@@ -121,6 +121,18 @@ export const MODULE_CATALOG: readonly ModuleCatalogItem[] = [
       'Pure-GPU screen-space rain, swaying snow, and depth-buffer atmospheric fog driven by a single PostProcessStage.',
     summaryZh: '单 PostProcessStage 驱动的多层视差雨丝、风摆飘雪与真实深度缓冲大气距离雾。',
   },
+  {
+    id: 'heatmap',
+    path: '/docs/heatmap',
+    section: 'Visual Effects',
+    titleEn: 'Heatmap',
+    titleZh: '热力图',
+    tag: 'KDE · GroundPrimitive',
+    summaryEn:
+      'GPU-shaded Gaussian kernel-density heatmap with live palette, isoline contours, and seamless terrain clamping.',
+    summaryZh:
+      '高斯核密度 GPU 热力图，支持 O(1) 实时色带与等值线切换，以及贴合地形/悬浮平面无缝切换。',
+  },
 ];
 
 export const DEFAULT_MODULE_PATH = MODULE_CATALOG[0]?.path ?? '/docs/introduction';

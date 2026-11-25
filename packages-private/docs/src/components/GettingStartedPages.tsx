@@ -13,6 +13,7 @@ import {
   ArrowRight,
   CloudRain,
   Cpu,
+  Flame,
   Globe,
   Layers,
   MapPin,
@@ -58,6 +59,7 @@ const MODULE_ICONS = {
   'holo-beacon': MapPin,
   'water-surface': Waves,
   'weather-overlay': CloudRain,
+  heatmap: Flame,
 } as const;
 
 export function IntroductionPage() {

@@ -13,6 +13,7 @@ import {
   createEnergyBeam,
   createEnergyWall,
   createFlowPath,
+  createHeatmap,
   createHoloBeacon,
   createHoloDome,
   createPulseRing,
@@ -290,6 +291,12 @@ describe('createEnergyBeam', () => {
         ],
       }),
       createWeatherOverlay(mock.viewer, { mode: 'rain' }),
+      createHeatmap(mock.viewer, {
+        points: [
+          { position: [104.06, 30.67], weight: 1 },
+          { position: [103.85, 30.78], weight: 0.7 },
+        ],
+      }),
     ];
 
     for (const effect of effects) {
@@ -734,5 +741,62 @@ describe('GroundPrimitive terrain clamping (clampToGround)', () => {
     expect(mock.groundPrimitives.length).toBe(0);
     expect(mock.primitives.length).toBe(0);
     expect(mock.preRenderListeners.size).toBe(0);
+  });
+});
+
+describe('createHeatmap', () => {
+  it('creates a GroundPrimitive heatmap, switches clampToGround/palette/contours live, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const heatmap = createHeatmap(mock.viewer, {
+      points: [
+        { position: [104.06, 30.67], weight: 1 },
+        { position: [103.85, 30.78], weight: 0.8 },
+      ],
+      show: false,
+    });
+
+    expect(mock.groundPrimitives.length).toBe(1);
+    expect(mock.primitives.length).toBe(0);
+    expect(heatmap.isVisible()).toBe(false);
+    expect(mock.groundPrimitives[0]?.show).toBe(false);
+
+    heatmap.update({
+      palette: 'inferno',
+      intensity: 1.4,
+      opacity: 0.9,
+      minThreshold: 0.08,
+      contours: true,
+      radius: 0.09,
+      clampToGround: false,
+      height: 1_200,
+    });
+    expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    heatmap.show();
+    expect(heatmap.isVisible()).toBe(true);
+    expect(mock.primitives[0]?.show).toBe(true);
+
+    heatmap.update({
+      clampToGround: true,
+      colors: ['#0f172a', '#0284c7', '#22d3ee', '#facc15', '#f43f5e'],
+      points: [{ position: [104.0, 30.7], weight: 1.5 }],
+    });
+    expect(mock.groundPrimitives.length).toBe(1);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.groundPrimitives[0]?.show).toBe(true);
+
+    heatmap.destroy();
+    expect(heatmap.isDestroyed()).toBe(true);
+    expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => heatmap.destroy()).not.toThrow();
+  });
+
+  it('rejects empty points arrays', () => {
+    const mock = createMockViewer();
+    expect(() => createHeatmap(mock.viewer, { points: [] })).toThrow(RangeError);
   });
 });

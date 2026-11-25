@@ -66,6 +66,15 @@ export {
   type WeatherOverlayOptions,
   type WeatherOverlayUpdateOptions,
 } from './weather-overlay/index.ts';
+export {
+  createHeatmap,
+  type HeatmapBounds,
+  type HeatmapHandle,
+  type HeatmapOptions,
+  type HeatmapPalette,
+  type HeatmapPoint,
+  type HeatmapUpdateOptions,
+} from './heatmap/index.ts';
 
 export type { EffectBaseOptions, EffectHandle } from './shared/effect.ts';
 export type { ColorInput, LngLat } from './shared/geo.ts';

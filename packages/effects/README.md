@@ -14,6 +14,7 @@
 - **`createHoloBeacon`**：三维全息悬浮八面体信标，融合晶面棱边高光与菲涅尔轮廓、平滑自转与上下呼吸、垂直能量牵引光丝及地面双层旋转锁定环。
 - **`createWaterSurface`**：零外部法线贴图的纯 GPU 程序化多频流动水面，融合菲涅尔天空反射、太阳高光波光闪烁与动态水位高度调节。
 - **`createWeatherOverlay`**：单 `PostProcessStage` 驱动的纯 GPU 屏幕空间气象引擎，支持多层视差雨丝、柔和风摆飘雪与真实深度缓冲大气距离雾。
+- **`createHeatmap`**：基于高斯核密度估计（KDE）与 GPU 实时色带映射的三维地理热力图，支持 O(1) 实时色带/强度/等值线更新及 `GroundPrimitive` 贴地无缝切换。
 
 ## 快速开始
 
