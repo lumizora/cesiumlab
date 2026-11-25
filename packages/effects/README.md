@@ -15,6 +15,9 @@
 - **`createWaterSurface`**：零外部法线贴图的纯 GPU 程序化多频流动水面，融合菲涅尔天空反射、太阳高光波光闪烁与动态水位高度调节。
 - **`createWeatherOverlay`**：单 `PostProcessStage` 驱动的纯 GPU 屏幕空间气象引擎，支持多层视差雨丝、柔和风摆飘雪与真实深度缓冲大气距离雾。
 - **`createHeatmap`**：基于高斯核密度估计（KDE）与 GPU 实时色带映射的三维地理热力图，支持 O(1) 实时色带/强度/等值线更新及 `GroundPrimitive` 贴地无缝切换。
+- **`createWindField`**：基于离屏 WebGL2 拖尾累积 FBO 的万级粒子风场与洋流场引擎，支持自定义 U/V 矢量场与台风/黑潮内置预设，以及 `GroundPrimitive` 贴地/高空等压面无缝切换。
+- **`createPulseScatter`**：单 Draw Call 合批 GPU 海量脉冲散点与呼吸点阵，支持 3 万+ 独立颜色/半径/交错相位的脉冲、呼吸与双波纹涟漪点阵实时渲染。
+- **`createTerrainAnalysis`**：基于 CesiumJS 原生 `globe.material` 的纯 GPU 地形分析着色器，支持抗锯齿主/次等高线、高程分层设色、工程坡度分级与 360° 坡向分析实时切换。
 
 ## 快速开始
 

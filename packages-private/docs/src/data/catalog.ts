@@ -133,6 +133,42 @@ export const MODULE_CATALOG: readonly ModuleCatalogItem[] = [
     summaryZh:
       '高斯核密度 GPU 热力图，支持 O(1) 实时色带与等值线切换，以及贴合地形/悬浮平面无缝切换。',
   },
+  {
+    id: 'wind-field',
+    path: '/docs/wind-field',
+    section: 'Visual Effects',
+    titleEn: 'Wind Field',
+    titleZh: 'GPU 粒子风场 / 洋流场',
+    tag: 'WebGL2 · Streamlines',
+    summaryEn:
+      'GPU-accelerated particle streamline wind & ocean current visualization with speed-mapped color ramps and terrain clamping.',
+    summaryZh:
+      'WebGL2 拖尾累积粒子风场与洋流场，支持万级流线按风速 5 段色带着色及贴合地表/高空切换。',
+  },
+  {
+    id: 'pulse-scatter',
+    path: '/docs/pulse-scatter',
+    section: 'Visual Effects',
+    titleEn: 'Pulse Scatter',
+    titleZh: '海量脉冲散点 / 呼吸点阵',
+    tag: '1 Draw Call · 30K+',
+    summaryEn:
+      'Single-Draw-Call batched GPU pulsing, breathing, and multi-ripple scatter layer supporting 30,000+ points with per-point color and phase.',
+    summaryZh:
+      '单 Draw Call 合批 GPU 散点图层，支持 3 万+ 独立颜色与交错相位的脉冲、呼吸与双波纹点阵。',
+  },
+  {
+    id: 'terrain-analysis',
+    path: '/docs/terrain-analysis',
+    section: 'Visual Effects',
+    titleEn: 'Terrain Analysis',
+    titleZh: '地形等高线与坡度分析',
+    tag: 'Globe Material · GLSL',
+    summaryEn:
+      'Pure-GPU globe.material terrain analysis shader with anti-aliased major/minor contours, elevation bands, slope hazard, and 360° aspect.',
+    summaryZh:
+      '基于 Cesium 原生 globe.material 的地形分析着色器，支持抗锯齿主次等高线、高程设色、坡度与坡向实时切换。',
+  },
 ];
 
 export const DEFAULT_MODULE_PATH = MODULE_CATALOG[0]?.path ?? '/docs/introduction';

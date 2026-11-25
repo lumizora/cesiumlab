@@ -17,13 +17,16 @@ import {
   Globe,
   Layers,
   MapPin,
+  Mountain,
   Package,
   Radar,
   Radio,
   Route,
+  ScatterChart,
   Shield,
   Sparkles,
   Waves,
+  Wind,
   Zap,
 } from 'lucide-react';
 import { MODULE_CATALOG } from '../data/catalog';
@@ -60,6 +63,9 @@ const MODULE_ICONS = {
   'water-surface': Waves,
   'weather-overlay': CloudRain,
   heatmap: Flame,
+  'wind-field': Wind,
+  'pulse-scatter': ScatterChart,
+  'terrain-analysis': Mountain,
 } as const;
 
 export function IntroductionPage() {

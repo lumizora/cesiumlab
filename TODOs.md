@@ -20,3 +20,10 @@
 - **待决策落地方向**：
   - [ ] **方案 1（推荐）**：非贴地模式使用 `BatchTable` 真单 Draw Call 支持任意每线独立 `color` + `headColor` 及 O(1) 单线改色；贴地模式明确能力边界，保持统一 `color` + `headColor`。
   - [ ] **方案 2**：如贴地模式也必须支持多色，采用显式有限样式表（Style Palette，`styles` + `styleIndex`），避免粗糙的按任意 RGB 字符串隐式分桶。
+
+### PulseScatter (`createPulseScatter`) 海量散点贴合地形支持
+
+- **现状与无妥协边界**：
+  - 因 Cesium `GroundPrimitive` 不支持在单 Draw Call 内为万级独立圆形/点阵实例提供独立颜色与错峰相位动画，当前 `PulseScatter` 专注高性能单 Draw Call 合批散点（支持 `height` 统一海拔偏移，不做粗糙的 CPU 采样贴地或破洞网格）。
+- **后续方向**：
+  - [ ] 探索基于 WebGL/Cesium 未来扩展或按需地形高度批采样 + 局部贴地投影的完美无破洞方案（在未有兼顾万级点 60fps 与零穿模的方案前，不强行上线低质量贴地）。

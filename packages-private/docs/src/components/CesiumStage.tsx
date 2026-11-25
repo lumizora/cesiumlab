@@ -8,7 +8,7 @@ import { Icon } from '@astryxdesign/core/Icon';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Maximize2, Minimize2, RotateCcw, SlidersHorizontal, X } from 'lucide-react';
+import { Maximize2, Minimize2, RotateCcw, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { themes, defaultThemeSlug } from '../astryx-themes';
 import { createDocsViewer, type CreateDocsViewerOptions } from '../lib/cesium';
@@ -45,6 +45,20 @@ const HUD_SURFACE_STYLE: CSSProperties = {
   pointerEvents: 'auto',
 };
 
+function applyHdQuality(viewer: Viewer, enabled: boolean) {
+  if (enabled) {
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    viewer.useBrowserRecommendedResolution = false;
+    viewer.resolutionScale = dpr < 2 ? 2 / dpr : 1;
+    viewer.scene.globe.maximumScreenSpaceError = 1;
+  } else {
+    viewer.useBrowserRecommendedResolution = true;
+    viewer.resolutionScale = 1;
+    viewer.scene.globe.maximumScreenSpaceError = 2;
+  }
+  viewer.resize();
+}
+
 export function CesiumStage({
   label,
   onMount,
@@ -60,14 +74,25 @@ export function CesiumStage({
   const isWideStage = useMediaQuery('(min-width: 640px)');
   const stageRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
+  const viewerRef = useRef<Viewer | null>(null);
   const onMountRef = useRef(onMount);
   onMountRef.current = onMount;
 
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [paramsOpen, setParamsOpen] = useState(false);
+  const [isHd, setIsHd] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const isHdRef = useRef(isHd);
+  isHdRef.current = isHd;
 
   const hasParams = Boolean(paramGroups && paramGroups.length > 0);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (viewer && !viewer.isDestroyed()) {
+      applyHdQuality(viewer, isHd);
+    }
+  }, [isHd]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -117,11 +142,14 @@ export function CesiumStage({
           viewer = null;
           return;
         }
+        applyHdQuality(viewer, isHdRef.current);
+        viewerRef.current = viewer;
         cleanupEffect = await onMountRef.current(viewer, signal);
         if (signal.aborted) {
           cleanupEffect?.();
           if (!viewer.isDestroyed()) viewer.destroy();
           viewer = null;
+          viewerRef.current = null;
           return;
         }
         setStatus('ready');
@@ -142,6 +170,7 @@ export function CesiumStage({
         viewer.destroy();
       }
       viewer = null;
+      viewerRef.current = null;
     }
 
     function handlePageHide(event: PageTransitionEvent) {
@@ -237,6 +266,14 @@ export function CesiumStage({
                     }
                   />
                 )}
+                <Button
+                  label={isZh ? '高清' : 'HD'}
+                  variant="ghost"
+                  size="sm"
+                  icon={<Icon icon={Sparkles} />}
+                  onClick={() => setIsHd((prev) => !prev)}
+                  style={isHd ? { backgroundColor: 'rgba(255, 255, 255, 0.16)' } : undefined}
+                />
                 <IconButton
                   label={
                     isFullscreen

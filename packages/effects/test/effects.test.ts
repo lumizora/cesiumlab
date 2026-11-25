@@ -17,9 +17,12 @@ import {
   createHoloBeacon,
   createHoloDome,
   createPulseRing,
+  createPulseScatter,
   createRadarScan,
+  createTerrainAnalysis,
   createWaterSurface,
   createWeatherOverlay,
+  createWindField,
   type EffectHandle,
 } from '../src/index.ts';
 
@@ -55,13 +58,30 @@ function createMockViewer() {
   const groundPrimitives: (GroundPrimitive | GroundPolylinePrimitive)[] = [];
   const postProcessStages: PostProcessStage[] = [];
   const preRenderListeners = new Set<() => void>();
+  const terrainChangedListeners = new Set<() => void>();
   let destroyed = false;
+  let terrainProvider: unknown = { hasVertexNormals: true };
 
   const viewer = {
+    get terrainProvider() {
+      return terrainProvider;
+    },
     scene: {
       ellipsoid: Ellipsoid.WGS84,
+      get terrainProvider() {
+        return terrainProvider;
+      },
+      terrainProviderChanged: {
+        addEventListener(callback: () => void) {
+          terrainChangedListeners.add(callback);
+          return () => {
+            terrainChangedListeners.delete(callback);
+          };
+        },
+      },
       globe: {
         getHeight: () => 0,
+        material: undefined as unknown,
       },
       primitives: {
         add(primitive: Primitive) {
@@ -114,6 +134,13 @@ function createMockViewer() {
     groundPrimitives,
     postProcessStages,
     preRenderListeners,
+    terrainChangedListeners,
+    setTerrainProvider(next: unknown) {
+      terrainProvider = next;
+      for (const listener of terrainChangedListeners) {
+        listener();
+      }
+    },
     markDestroyed() {
       destroyed = true;
     },
@@ -296,6 +323,9 @@ describe('createEnergyBeam', () => {
           { position: [104.06, 30.67], weight: 1 },
           { position: [103.85, 30.78], weight: 0.7 },
         ],
+      }),
+      createWindField(mock.viewer, {
+        bounds: [112, 18, 136, 38],
       }),
     ];
 
@@ -798,5 +828,225 @@ describe('createHeatmap', () => {
   it('rejects empty points arrays', () => {
     const mock = createMockViewer();
     expect(() => createHeatmap(mock.viewer, { points: [] })).toThrow(RangeError);
+  });
+});
+
+describe('createWindField', () => {
+  it('creates a GroundPrimitive wind field, switches clampToGround/preset/palette/field live, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const wind = createWindField(mock.viewer, {
+      bounds: [112, 18, 136, 38],
+      preset: 'typhoon',
+      show: false,
+    });
+
+    expect(mock.groundPrimitives.length).toBe(1);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(wind.isVisible()).toBe(false);
+    expect(mock.groundPrimitives[0]?.show).toBe(false);
+
+    wind.update({
+      preset: 'ocean',
+      palette: 'ocean',
+      particleCount: 4_000,
+      speed: 1.5,
+      fadeOpacity: 0.95,
+      opacity: 0.85,
+      clampToGround: false,
+      height: 20_000,
+    });
+    expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    wind.show();
+    expect(wind.isVisible()).toBe(true);
+    expect(mock.primitives[0]?.show).toBe(true);
+
+    wind.update({
+      clampToGround: true,
+      field: {
+        width: 2,
+        height: 2,
+        u: new Float32Array([1, 1, 1, 1]),
+        v: new Float32Array([0, 0, 0, 0]),
+      },
+    });
+    expect(mock.groundPrimitives.length).toBe(1);
+    expect(mock.primitives.length).toBe(0);
+
+    mock.tick();
+    wind.clear();
+    wind.restart();
+    wind.setPaused(true);
+    expect(wind.isPaused()).toBe(true);
+
+    wind.destroy();
+    expect(wind.isDestroyed()).toBe(true);
+    expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => wind.destroy()).not.toThrow();
+  });
+
+  it('rejects invalid geographic bounds and mismatched custom field grids', () => {
+    const mock = createMockViewer();
+    expect(() => createWindField(mock.viewer, { bounds: [136, 18, 112, 38] })).toThrow(RangeError);
+    expect(() =>
+      createWindField(mock.viewer, {
+        bounds: [112, 18, 136, 38],
+        field: { width: 2, height: 2, u: new Float32Array(3), v: new Float32Array(4) },
+      }),
+    ).toThrow(RangeError);
+  });
+});
+
+describe('createPulseScatter', () => {
+  it('batches thousands of points into a single Primitive, updates uniforms without rebuild, and preserves visibility across geometry rebuilds', () => {
+    const mock = createMockViewer();
+    const initialPoints = Array.from({ length: 200 }, (_, i) => ({
+      position: [116.3 + (i % 20) * 0.01, 39.85 + Math.floor(i / 20) * 0.01] as const,
+      radius: 200 + (i % 5) * 50,
+      color: i % 2 === 0 ? '#00e5ff' : '#a855f7',
+      phase: (i % 10) / 10,
+    }));
+
+    const scatter = createPulseScatter(mock.viewer, {
+      points: initialPoints,
+      style: 'pulse',
+      show: false,
+    });
+
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(scatter.isVisible()).toBe(false);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    // O(1) uniform updates must keep the exact same Primitive instance
+    const initialPrimitive = mock.primitives[0];
+    scatter.update({ style: 'breath', speed: 1.6, glow: 1.5, opacity: 0.8 });
+    expect(mock.primitives[0]).toBe(initialPrimitive);
+
+    // Geometry-affecting update rebuilds the Primitive and preserves hidden state
+    scatter.update({ sizeScale: 1.5, height: 120 });
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.primitives[0]).not.toBe(initialPrimitive);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    scatter.show();
+    expect(scatter.isVisible()).toBe(true);
+    expect(mock.primitives[0]?.show).toBe(true);
+
+    // Updating to empty points removes the primitive cleanly; repopulating restores it
+    scatter.update({ points: [] });
+    expect(mock.primitives.length).toBe(0);
+    scatter.update({ points: [{ position: [116.4, 39.9] }] });
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.primitives[0]?.show).toBe(true);
+
+    mock.tick();
+    scatter.restart();
+    scatter.setPaused(true);
+    expect(scatter.isPaused()).toBe(true);
+
+    scatter.destroy();
+    expect(scatter.isDestroyed()).toBe(true);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => scatter.destroy()).not.toThrow();
+  });
+
+  it('rejects invalid point coordinates and non-positive radii', () => {
+    const mock = createMockViewer();
+    expect(() =>
+      createPulseScatter(mock.viewer, {
+        points: [{ position: [200, 39.9] }],
+      }),
+    ).toThrow(RangeError);
+    expect(() =>
+      createPulseScatter(mock.viewer, {
+        points: [{ position: [116.4, 39.9], radius: 0 }],
+      }),
+    ).toThrow(RangeError);
+  });
+});
+
+describe('createTerrainAnalysis', () => {
+  it('applies a globe.material shader, switches analysis modes live, and restores prior material on hide/destroy', () => {
+    const mock = createMockViewer();
+    const priorMaterial = { type: 'PriorMaterial' } as unknown as Cesium.Material;
+    mock.viewer.scene.globe.material = priorMaterial;
+
+    const analysis = createTerrainAnalysis(mock.viewer, {
+      mode: 'elevation',
+      contourSpacing: 150,
+      show: false,
+    });
+
+    // When show: false initially, prior material remains untouched
+    expect(analysis.isVisible()).toBe(false);
+    expect(mock.viewer.scene.globe.material).toBe(priorMaterial);
+
+    analysis.show();
+    expect(analysis.isVisible()).toBe(true);
+    const activeMaterial = mock.viewer.scene.globe.material;
+    expect(activeMaterial).toBeDefined();
+    expect(activeMaterial).not.toBe(priorMaterial);
+
+    analysis.update({
+      mode: 'slope',
+      maxSlopeDegrees: 50,
+      showContours: true,
+      contourSpacing: 100,
+      contourWidth: 2,
+      contourColor: '#ffffff',
+      opacity: 0.8,
+    });
+    expect(mock.viewer.scene.globe.material).toBe(activeMaterial);
+
+    analysis.update({ mode: 'aspect' });
+    analysis.update({ mode: 'contour', minElevation: 500, maxElevation: 5_000 });
+
+    analysis.hide();
+    expect(analysis.isVisible()).toBe(false);
+    expect(mock.viewer.scene.globe.material).toBe(priorMaterial);
+
+    analysis.show();
+    expect(mock.viewer.scene.globe.material).toBe(activeMaterial);
+
+    analysis.restart();
+    analysis.setPaused(true);
+    expect(analysis.isPaused()).toBe(true);
+
+    analysis.destroy();
+    expect(analysis.isDestroyed()).toBe(true);
+    expect(mock.viewer.scene.globe.material).toBe(priorMaterial);
+    expect(() => analysis.destroy()).not.toThrow();
+  });
+
+  it('defers applying globe.material until async terrainProvider resolves', () => {
+    const mock = createMockViewer();
+    mock.setTerrainProvider(undefined);
+
+    const analysis = createTerrainAnalysis(mock.viewer, { mode: 'slope' });
+    expect(mock.viewer.scene.globe.material).toBeUndefined();
+    expect(mock.terrainChangedListeners.size).toBe(1);
+
+    // Once Terrain.fromWorldTerrain() resolves and fires terrainProviderChanged, material applies
+    mock.setTerrainProvider({ hasVertexNormals: true });
+    expect(mock.viewer.scene.globe.material).toBeDefined();
+
+    analysis.destroy();
+    expect(mock.terrainChangedListeners.size).toBe(0);
+    expect(mock.viewer.scene.globe.material).toBeUndefined();
+  });
+
+  it('rejects invalid elevation ranges and non-positive contour spacing', () => {
+    const mock = createMockViewer();
+    expect(() =>
+      createTerrainAnalysis(mock.viewer, { minElevation: 3_000, maxElevation: 3_000 }),
+    ).toThrow(RangeError);
+    expect(() => createTerrainAnalysis(mock.viewer, { contourSpacing: 0 })).toThrow(RangeError);
   });
 });

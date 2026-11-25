@@ -75,6 +75,31 @@ export {
   type HeatmapPoint,
   type HeatmapUpdateOptions,
 } from './heatmap/index.ts';
+export {
+  createWindField,
+  type WindFieldBounds,
+  type WindFieldGrid,
+  type WindFieldHandle,
+  type WindFieldOptions,
+  type WindFieldPalette,
+  type WindFieldPreset,
+  type WindFieldUpdateOptions,
+} from './wind-field/index.ts';
+export {
+  createPulseScatter,
+  type PulseScatterHandle,
+  type PulseScatterOptions,
+  type PulseScatterPoint,
+  type PulseScatterStyle,
+  type PulseScatterUpdateOptions,
+} from './pulse-scatter/index.ts';
+export {
+  createTerrainAnalysis,
+  type TerrainAnalysisHandle,
+  type TerrainAnalysisMode,
+  type TerrainAnalysisOptions,
+  type TerrainAnalysisUpdateOptions,
+} from './terrain-analysis/index.ts';
 
 export type { EffectBaseOptions, EffectHandle } from './shared/effect.ts';
 export type { ColorInput, LngLat } from './shared/geo.ts';

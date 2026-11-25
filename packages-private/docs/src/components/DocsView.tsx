@@ -44,6 +44,9 @@ const DOC_LABELS_ZH: Record<string, string> = {
   'Water Surface': '程序化流动水面 (Water Surface)',
   'Weather Overlay': '屏幕空间气象特效 (Weather Overlay)',
   Heatmap: '热力图 (Heatmap)',
+  'Wind Field': 'GPU 粒子风场 / 洋流场 (Wind Field)',
+  'Pulse Scatter': '海量脉冲散点 / 呼吸点阵 (Pulse Scatter)',
+  'Terrain Analysis': '地形等高线与坡度分析 (Terrain Analysis)',
 };
 
 interface DocsViewProps {
