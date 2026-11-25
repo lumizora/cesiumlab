@@ -41,12 +41,12 @@ export {
   type HoloDomeUpdateOptions,
 } from './holo-dome/index.ts';
 export {
-  createGroundFlowPath,
-  type GroundFlowPathHandle,
-  type GroundFlowPathOptions,
-  type GroundFlowPathPositions,
-  type GroundFlowPathUpdateOptions,
-} from './ground-flow-path/index.ts';
+  createFlowPath,
+  type FlowPathHandle,
+  type FlowPathOptions,
+  type FlowPathPositions,
+  type FlowPathUpdateOptions,
+} from './flow-path/index.ts';
 export {
   createHoloBeacon,
   type HoloBeaconHandle,

@@ -10,7 +10,7 @@
 - **`createEnergyWall`**：单 `Primitive` 立体流光电子围栏，支持任意多边形或折线路径（自动闭合 / 开放），带上升能量扫描波与底部高光边界。
 - **`createRadarScan`**：单张 ENU 切平面极坐标雷达扫描扇面，融合锐利前锋光束、指数衰减余晖、同心测距环与十字准星刻度。
 - **`createHoloDome`**：三维无底半球能量护盾，基于自定义 GLSL 菲涅尔边缘辉光、程序化六边形蜂巢网格与纬向能量扫描光带。
-- **`createGroundFlowPath`**：基于 `GroundPolylinePrimitive` 与自定义 GLSL 的贴地流光路径，自动贴合起伏地形与 3D Tiles 表面，融合双层发光底路、错位脉冲与收尖渐隐拖尾。
+- **`createFlowPath`**：支持单路径与海量多路径自动合批（`LngLat[] | LngLat[][]`）的 GPU 流光路径，可在贴合地形 / 3D Tiles（`GroundPolylinePrimitive`）与高性能非贴地（`Primitive`）模式间无缝切换。
 - **`createHoloBeacon`**：三维全息悬浮八面体信标，融合晶面棱边高光与菲涅尔轮廓、平滑自转与上下呼吸、垂直能量牵引光丝及地面双层旋转锁定环。
 - **`createWaterSurface`**：零外部法线贴图的纯 GPU 程序化多频流动水面，融合菲涅尔天空反射、太阳高光波光闪烁与动态水位高度调节。
 - **`createWeatherOverlay`**：单 `PostProcessStage` 驱动的纯 GPU 屏幕空间气象引擎，支持多层视差雨丝、柔和风摆飘雪与真实深度缓冲大气距离雾。

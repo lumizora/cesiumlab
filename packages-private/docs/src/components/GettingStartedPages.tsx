@@ -54,7 +54,7 @@ const MODULE_ICONS = {
   'energy-wall': Shield,
   'radar-scan': Radar,
   'holo-dome': Globe,
-  'ground-flow-path': Route,
+  'flow-path': Route,
   'holo-beacon': MapPin,
   'water-surface': Waves,
   'weather-overlay': CloudRain,

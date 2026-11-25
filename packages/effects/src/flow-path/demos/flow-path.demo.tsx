@@ -20,24 +20,24 @@ import { useDocsPageMarkdown } from '@docs/lib/docsPage';
 import type { EffectDemoMeta } from '@docs/lib/effectDemos';
 import { useI18n } from '@docs/lib/i18n';
 import { formatEffectDocMarkdown } from '@docs/lib/markdown';
-import { createGroundFlowPath, type GroundFlowPathHandle } from '../index.ts';
+import { createFlowPath, type FlowPathHandle } from '../index.ts';
 
 export const meta: EffectDemoMeta = {
-  id: 'ground-flow-path',
-  title: 'Ground Flow Path',
+  id: 'flow-path',
+  title: 'Flow Path',
   section: 'Visual Effects',
   description:
-    'Terrain- and 3D-Tiles-clamped GPU flowing energy path built on GroundPolylinePrimitive with a glowing base track and tapered pulse streams.',
+    'Batched GPU flowing energy paths supporting seamless switching between terrain-clamped GroundPolylinePrimitive and lightweight Primitive.',
   isNew: true,
   order: 7,
 };
 
 const INSTALL_CMD = 'pnpm add @cesiumlab/effects cesium';
 
-const USAGE_CODE = `import { createGroundFlowPath } from '@cesiumlab/effects';
+const USAGE_CODE = `import { createFlowPath } from '@cesiumlab/effects';
 
 // Pass a single LngLat[] path OR a multi-path LngLat[][] road network (auto-batched into 1 Draw Call)
-const roadNetwork = createGroundFlowPath(viewer, {
+const roadNetwork = createFlowPath(viewer, {
   positions: [
     [
       [103.62, 30.98],
@@ -51,70 +51,106 @@ const roadNetwork = createGroundFlowPath(viewer, {
     ],
   ],
   clampToGround: true, // toggle false for ultra-fast non-clamped massive road networks
-  color: '#00e5a0',
-  width: 10,
+  color: '#1e293b',
+  headColor: '#00f5ff',
+  trailColor: '#a855f7',
+  width: 4,
   speed: 1,
-  pulseCount: 3,
+  pulseCount: 2,
+  trailLength: 0.72,
+  baseOpacity: 0.16,
 });
 
 // Seamlessly switch between clamped GroundPolylinePrimitive and lightweight Primitive
 roadNetwork.update({ clampToGround: false, height: 1500, speed: 1.6 });
 roadNetwork.destroy();`;
 
-const DEMO_PATHS: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
-  // Main northwest-to-southeast mountain-to-basin arterial corridor
-  [
-    [103.24, 31.18],
-    [103.62, 30.98],
-    [103.92, 30.78],
-    [104.07, 30.66],
-    [104.38, 30.52],
-    [104.76, 30.28],
-    [105.12, 29.94],
-  ],
-  // Southwest mountain pass branch converging into the basin hub
-  [
-    [102.86, 30.14],
-    [103.22, 30.26],
-    [103.58, 30.44],
-    [103.88, 30.56],
-    [104.07, 30.66],
-  ],
-  // Northeast highland transit route
-  [
-    [104.07, 30.66],
-    [104.34, 30.92],
-    [104.68, 31.16],
-    [105.04, 31.42],
-  ],
-];
+const BJ_BUS_DATA_URL = 'https://a.amap.com/Loca/static/loca-v2/demos/mock_data/bj_bus.json';
+
+interface GeoJsonLineFeature {
+  geometry?: {
+    type?: string;
+    coordinates?: unknown;
+  };
+}
+
+interface GeoJsonFeatureCollection {
+  features?: GeoJsonLineFeature[];
+}
+
+function sanitizeLine(raw: unknown): Array<readonly [number, number]> | null {
+  if (!Array.isArray(raw) || raw.length < 2) return null;
+  const result: Array<readonly [number, number]> = [];
+  for (const pt of raw) {
+    if (!Array.isArray(pt) || pt.length < 2) continue;
+    const lng = Number(pt[0]);
+    const lat = Number(pt[1]);
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue;
+    if (Math.abs(lng) > 180 || Math.abs(lat) > 90) continue;
+    const prev = result[result.length - 1];
+    // Skip duplicate consecutive coordinates to avoid zero-length segments in Cesium polylines
+    if (prev && Math.abs(prev[0] - lng) < 1e-6 && Math.abs(prev[1] - lat) < 1e-6) continue;
+    result.push([lng, lat]);
+  }
+  return result.length >= 2 ? result : null;
+}
+
+function extractGeoJsonPaths(
+  data: GeoJsonFeatureCollection,
+): ReadonlyArray<ReadonlyArray<readonly [number, number]>> {
+  const paths: Array<Array<readonly [number, number]>> = [];
+  if (!Array.isArray(data.features)) return paths;
+
+  for (const feature of data.features) {
+    const geom = feature.geometry;
+    if (!geom) continue;
+    if (geom.type === 'LineString') {
+      const line = sanitizeLine(geom.coordinates);
+      if (line) paths.push(line);
+    } else if (geom.type === 'MultiLineString' && Array.isArray(geom.coordinates)) {
+      for (const part of geom.coordinates) {
+        const line = sanitizeLine(part);
+        if (line) paths.push(line);
+      }
+    }
+  }
+  return paths;
+}
 
 function resetCamera(viewer: Viewer) {
   viewer.camera.lookAt(
-    Cartesian3.fromDegrees(104.05, 30.66, 0),
-    new HeadingPitchRange(CesiumMath.toRadians(18), CesiumMath.toRadians(-38), 380_000),
+    Cartesian3.fromDegrees(116.39, 39.91, 0),
+    new HeadingPitchRange(CesiumMath.toRadians(0), CesiumMath.toRadians(-48), 62_000),
   );
   viewer.camera.lookAtTransform(Matrix4.IDENTITY);
 }
 
 const DEFAULTS = {
-  color: '#00e5a0',
-  width: 10,
+  size: 200,
+  color: '#1e293b',
+  headColor: '#00f5ff',
+  trailColor: '#a855f7',
+  width: 4,
   speed: 1,
-  pulseCount: 3,
-  trailLength: 0.52,
-  baseOpacity: 0.35,
+  pulseCount: 2,
+  trailLength: 0.72,
+  baseOpacity: 0.16,
   brightness: 1,
   reverse: false,
   loop: false,
   clampToGround: true,
-  heightM: 2_500,
+  heightM: 80,
 } as const;
 
-export default function GroundFlowPathDemoPage() {
+export default function FlowPathDemoPage() {
   const { isZh } = useI18n();
   const viewerRef = useRef<Viewer | null>(null);
-  const pathRef = useRef<GroundFlowPathHandle | null>(null);
+  const pathRef = useRef<FlowPathHandle | null>(null);
+
+  const [allPaths, setAllPaths] = useState<ReadonlyArray<ReadonlyArray<readonly [number, number]>>>(
+    [],
+  );
+  const [viewerReady, setViewerReady] = useState(false);
 
   const [paused, setPaused] = useState(
     () =>
@@ -122,7 +158,10 @@ export default function GroundFlowPathDemoPage() {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [visible, setVisible] = useState(true);
+  const [size, setSize] = useState<number>(DEFAULTS.size);
   const [color, setColor] = useState<string>(DEFAULTS.color);
+  const [headColor, setHeadColor] = useState<string>(DEFAULTS.headColor);
+  const [trailColor, setTrailColor] = useState<string>(DEFAULTS.trailColor);
   const [width, setWidth] = useState<number>(DEFAULTS.width);
   const [speed, setSpeed] = useState<number>(DEFAULTS.speed);
   const [pulseCount, setPulseCount] = useState<number>(DEFAULTS.pulseCount);
@@ -134,45 +173,54 @@ export default function GroundFlowPathDemoPage() {
   const [clampToGround, setClampToGround] = useState<boolean>(DEFAULTS.clampToGround);
   const [heightM, setHeightM] = useState<number>(DEFAULTS.heightM);
 
-  const handleMount = useCallback(
-    (viewer: Viewer) => {
-      viewerRef.current = viewer;
-      pathRef.current = createGroundFlowPath(viewer, {
-        positions: DEMO_PATHS,
-        color,
-        width,
-        speed,
-        pulseCount,
-        trailLength,
-        baseOpacity,
-        brightness,
-        reverse,
-        loop,
-        clampToGround,
-        height: heightM,
-        paused,
-        show: visible,
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(BJ_BUS_DATA_URL, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json() as Promise<GeoJsonFeatureCollection>;
+      })
+      .then((json) => {
+        if (controller.signal.aborted) return;
+        const parsed = extractGeoJsonPaths(json);
+        setAllPaths(parsed);
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) {
+          console.error('Failed to load Beijing bus GeoJSON:', error);
+        }
       });
-      resetCamera(viewer);
+    return () => {
+      controller.abort();
+    };
+  }, []);
 
-      return () => {
-        pathRef.current?.destroy();
-        pathRef.current = null;
-        viewerRef.current = null;
-      };
-    },
-    // Mount once per stage lifecycle; updates are synced by effects below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  const handleMount = useCallback((viewer: Viewer) => {
+    viewerRef.current = viewer;
+    resetCamera(viewer);
+    setViewerReady(true);
+
+    return () => {
+      pathRef.current?.destroy();
+      pathRef.current = null;
+      viewerRef.current = null;
+      setViewerReady(false);
+    };
+  }, []);
 
   useEffect(() => {
     const viewer = viewerRef.current;
-    if (!viewer || viewer.isDestroyed()) return;
+    if (!viewerReady || !viewer || viewer.isDestroyed() || allPaths.length === 0) return;
+
+    const activePaths = allPaths.slice(0, Math.min(size, allPaths.length));
+    if (activePaths.length === 0) return;
+
     pathRef.current?.destroy();
-    pathRef.current = createGroundFlowPath(viewer, {
-      positions: DEMO_PATHS,
+    pathRef.current = createFlowPath(viewer, {
+      positions: activePaths,
       color,
+      headColor,
+      trailColor,
       width,
       speed,
       pulseCount,
@@ -186,13 +234,15 @@ export default function GroundFlowPathDemoPage() {
       paused,
       show: visible,
     });
-    // Rebuild only when construction-only geometry options change.
+    // Rebuild only when dataset, slice size, or construction-only geometry options change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, loop]);
+  }, [viewerReady, allPaths, size, width, loop]);
 
   useEffect(() => {
     pathRef.current?.update({
       color,
+      headColor,
+      trailColor,
       speed,
       pulseCount,
       trailLength,
@@ -204,6 +254,8 @@ export default function GroundFlowPathDemoPage() {
     });
   }, [
     color,
+    headColor,
+    trailColor,
     speed,
     pulseCount,
     trailLength,
@@ -230,7 +282,10 @@ export default function GroundFlowPathDemoPage() {
   };
 
   const hasModifiedParams =
+    size !== DEFAULTS.size ||
     color !== DEFAULTS.color ||
+    headColor !== DEFAULTS.headColor ||
+    trailColor !== DEFAULTS.trailColor ||
     width !== DEFAULTS.width ||
     speed !== DEFAULTS.speed ||
     pulseCount !== DEFAULTS.pulseCount ||
@@ -243,7 +298,10 @@ export default function GroundFlowPathDemoPage() {
     heightM !== DEFAULTS.heightM;
 
   const handleResetParams = useCallback(() => {
+    setSize(DEFAULTS.size);
     setColor(DEFAULTS.color);
+    setHeadColor(DEFAULTS.headColor);
+    setTrailColor(DEFAULTS.trailColor);
     setWidth(DEFAULTS.width);
     setSpeed(DEFAULTS.speed);
     setPulseCount(DEFAULTS.pulseCount);
@@ -265,9 +323,23 @@ export default function GroundFlowPathDemoPage() {
           {
             type: 'color',
             id: 'color',
-            label: isZh ? '路径颜色' : 'Color',
+            label: isZh ? '底路颜色' : 'Base track',
             value: color,
             onChange: setColor,
+          },
+          {
+            type: 'color',
+            id: 'headColor',
+            label: isZh ? '光头颜色' : 'Head color',
+            value: headColor,
+            onChange: setHeadColor,
+          },
+          {
+            type: 'color',
+            id: 'trailColor',
+            label: isZh ? '拖尾颜色' : 'Trail color',
+            value: trailColor,
+            onChange: setTrailColor,
           },
           {
             type: 'slider',
@@ -310,6 +382,23 @@ export default function GroundFlowPathDemoPage() {
         label: isZh ? '几何' : 'Geometry',
         controls: [
           {
+            type: 'slider',
+            id: 'size',
+            label:
+              allPaths.length > 0
+                ? isZh
+                  ? `数据量 · ${Math.min(size, allPaths.length)} / ${allPaths.length} 条`
+                  : `Size · ${Math.min(size, allPaths.length)} / ${allPaths.length}`
+                : isZh
+                  ? '数据量 · 加载中...'
+                  : 'Size · Loading...',
+            value: Math.min(size, Math.max(20, allPaths.length || DEFAULTS.size)),
+            min: 20,
+            max: Math.max(200, allPaths.length),
+            step: 20,
+            onChange: setSize,
+          },
+          {
             type: 'switch',
             id: 'clampToGround',
             label: isZh ? '贴合地形' : 'Clamp to ground',
@@ -321,13 +410,11 @@ export default function GroundFlowPathDemoPage() {
                 {
                   type: 'slider' as const,
                   id: 'height',
-                  label: isZh
-                    ? `海拔高度 · ${(heightM / 1_000).toFixed(1)}km`
-                    : `Elevation · ${(heightM / 1_000).toFixed(1)}km`,
+                  label: isZh ? `海拔高度 · ${heightM}m` : `Elevation · ${heightM}m`,
                   value: heightM,
                   min: 0,
-                  max: 10_000,
-                  step: 500,
+                  max: 1_000,
+                  step: 10,
                   onChange: setHeightM,
                 },
               ]
@@ -389,7 +476,11 @@ export default function GroundFlowPathDemoPage() {
     ],
     [
       isZh,
+      allPaths.length,
+      size,
       color,
+      headColor,
+      trailColor,
       width,
       baseOpacity,
       brightness,
@@ -403,9 +494,9 @@ export default function GroundFlowPathDemoPage() {
     ],
   );
 
-  const pageTitle = isZh ? '贴地流光路径 (Ground Flow Path)' : meta.title;
+  const pageTitle = isZh ? '流光路径 (Flow Path)' : meta.title;
   const pageDescription = isZh
-    ? '基于 GroundPolylinePrimitive 与自定义 GLSL 着色器的贴地流光路径：自动贴合起伏地形与 3D Tiles 表面，融合双层发光底路、错位脉冲流光与收尖渐隐拖尾，适用于城市路网、交通走廊与管网能源可视化。'
+    ? '支持单路径与海量多路径自动合批（1–2 Draw Call）的 GPU 流光路径：融合双层发光底路、错位脉冲流光与收尖渐隐拖尾，并可在贴合起伏地形 / 3D Tiles（GroundPolylinePrimitive）与高性能非贴地（Primitive）模式间实时无缝切换。'
     : meta.description;
 
   const apiProperties = isZh

@@ -12,7 +12,7 @@ import {
   createCometArc,
   createEnergyBeam,
   createEnergyWall,
-  createGroundFlowPath,
+  createFlowPath,
   createHoloBeacon,
   createHoloDome,
   createPulseRing,
@@ -283,7 +283,7 @@ describe('createEnergyBeam', () => {
           [120.2, 31.0],
         ],
       }),
-      createGroundFlowPath(mock.viewer, {
+      createFlowPath(mock.viewer, {
         positions: [
           [103.62, 30.98],
           [104.07, 30.66],
@@ -447,10 +447,10 @@ describe('createHoloDome', () => {
   });
 });
 
-describe('createGroundFlowPath', () => {
+describe('createFlowPath', () => {
   it('adds a GroundPolylinePrimitive to groundPrimitives, supports live updates, and cleans up idempotently', () => {
     const mock = createMockViewer();
-    const path = createGroundFlowPath(mock.viewer, {
+    const path = createFlowPath(mock.viewer, {
       positions: [
         [103.62, 30.98],
         [104.07, 30.66],
@@ -492,9 +492,7 @@ describe('createGroundFlowPath', () => {
 
   it('rejects fewer than two path positions', () => {
     const mock = createMockViewer();
-    expect(() => createGroundFlowPath(mock.viewer, { positions: [[104.07, 30.66]] })).toThrow(
-      RangeError,
-    );
+    expect(() => createFlowPath(mock.viewer, { positions: [[104.07, 30.66]] })).toThrow(RangeError);
   });
 });
 
@@ -701,7 +699,7 @@ describe('GroundPrimitive terrain clamping (clampToGround)', () => {
       [103.9 + i * 0.01, 30.9] as const,
     ]);
 
-    const paths = createGroundFlowPath(mock.viewer, {
+    const paths = createFlowPath(mock.viewer, {
       positions: roadNetwork,
       clampToGround: true,
       loop: true,
@@ -713,7 +711,12 @@ describe('GroundPrimitive terrain clamping (clampToGround)', () => {
     expect(mock.preRenderListeners.size).toBe(1);
 
     paths.hide();
-    paths.update({ clampToGround: false, height: 1_200 });
+    paths.update({
+      clampToGround: false,
+      height: 1_200,
+      headColor: '#00f5ff',
+      trailColor: '#a855f7',
+    });
     expect(mock.groundPrimitives.length).toBe(0);
     expect(mock.primitives.length).toBe(1);
     expect(mock.primitives[0]?.show).toBe(false);

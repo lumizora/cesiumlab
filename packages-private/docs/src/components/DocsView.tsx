@@ -39,7 +39,7 @@ const DOC_LABELS_ZH: Record<string, string> = {
   'Energy Wall': '流光电子围栏 (Energy Wall)',
   'Radar Scan': '雷达扫描扇面 (Radar Scan)',
   'Holo Dome': '全息能量穹顶 (Holo Dome)',
-  'Ground Flow Path': '贴地流光路径 (Ground Flow Path)',
+  'Flow Path': '流光路径 (Flow Path)',
   'Holo Beacon': '全息悬浮信标 (Holo Beacon)',
   'Water Surface': '程序化流动水面 (Water Surface)',
   'Weather Overlay': '屏幕空间气象特效 (Weather Overlay)',

@@ -77,15 +77,16 @@ export const MODULE_CATALOG: readonly ModuleCatalogItem[] = [
     summaryZh: '三维半球能量护盾，融合菲涅尔轮廓辉光、程序化六边形蜂巢网格与纬向扫描光带。',
   },
   {
-    id: 'ground-flow-path',
-    path: '/docs/ground-flow-path',
+    id: 'flow-path',
+    path: '/docs/flow-path',
     section: 'Visual Effects',
-    titleEn: 'Ground Flow Path',
-    titleZh: '贴地流光路径',
-    tag: 'Terrain Clamped · GLSL',
+    titleEn: 'Flow Path',
+    titleZh: '流光路径',
+    tag: 'Batched · GLSL',
     summaryEn:
-      'Terrain- and 3D-Tiles-clamped flowing energy path with a glowing base track and tapered pulse streams.',
-    summaryZh: '自动贴合地形与 3D Tiles 的流光路径，具备发光底路、错位脉冲与收尖渐隐拖尾。',
+      'Batched GPU flowing energy paths supporting seamless switching between terrain-clamped GroundPolylinePrimitive and lightweight Primitive.',
+    summaryZh:
+      '支持多路径自动合批的 GPU 流光路径，可在贴合地形/3D Tiles 与高性能非贴地模式间无缝切换。',
   },
   {
     id: 'holo-beacon',
