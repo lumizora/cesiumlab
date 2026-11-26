@@ -1,4 +1,4 @@
-import type { Viewer } from 'cesium';
+import type { Viewer } from '@cesiumlab/cesium';
 
 export interface AnimationClock {
   elapsed(): number;

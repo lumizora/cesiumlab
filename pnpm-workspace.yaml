@@ -1,5 +1,6 @@
 packages:
   - 'packages/*'
+  - 'packages/cesium/packages/*'
   - 'packages-private/*'
 
 catalogMode: prefer
@@ -37,3 +38,4 @@ peerDependencyRules:
 allowBuilds:
   # The package ships prebuilt CSS and JS. Its postinstall only prints a CLI setup hint.
   '@astryxdesign/core': false
+  esbuild: true

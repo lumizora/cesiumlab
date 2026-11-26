@@ -78,7 +78,7 @@ export function IntroductionPage() {
         {
           icon: Package,
           title: '模块化按需安装',
-          desc: '按领域拆分为独立 @cesiumlab/* 包，共享 cesium peer 依赖，避免引入无关代码。',
+          desc: '按领域拆分为独立 @cesiumlab/* 包，共享 @cesiumlab/cesium peer 依赖，避免引入无关代码。',
         },
         {
           icon: Cpu,
@@ -95,7 +95,7 @@ export function IntroductionPage() {
         {
           icon: Package,
           title: 'Modular & On-Demand',
-          desc: 'Published as focused @cesiumlab/* packages sharing cesium as a peer dependency.',
+          desc: 'Published as focused @cesiumlab/* packages sharing @cesiumlab/cesium as a peer dependency.',
         },
         {
           icon: Cpu,
@@ -195,15 +195,15 @@ export function IntroductionPage() {
 }
 
 const INSTALL_CMD = `# pnpm
-pnpm add @cesiumlab/effects cesium
+pnpm add @cesiumlab/effects @cesiumlab/cesium
 
 # npm
-npm install @cesiumlab/effects cesium
+npm install @cesiumlab/effects @cesiumlab/cesium
 
 # yarn
-yarn add @cesiumlab/effects cesium`;
+yarn add @cesiumlab/effects @cesiumlab/cesium`;
 
-const QUICK_START_CODE = `import { Viewer } from 'cesium';
+const QUICK_START_CODE = `import { Viewer } from '@cesiumlab/cesium';
 import { createCometArc } from '@cesiumlab/effects';
 
 const viewer = new Viewer('cesium-container');
@@ -224,7 +224,7 @@ arc.destroy();`;
 const INSTALL_MARKDOWN_EN = `# Installation
 
 ## Requirements
-- cesium ~1.147.0 (peer dependency)
+- @cesiumlab/cesium ~1.147.0 (peer dependency, Cesiumlab's customized CesiumJS build)
 - Modern ESM bundler or runtime
 
 ## Install
@@ -240,7 +240,7 @@ ${QUICK_START_CODE}
 const INSTALL_MARKDOWN_ZH = `# 安装
 
 ## 环境要求
-- cesium ~1.147.0（peer 依赖）
+- @cesiumlab/cesium ~1.147.0（peer 依赖，基于 CesiumJS 定制增强的引擎发行版）
 - 现代 ESM 构建工具或运行环境
 
 ## 安装依赖
@@ -266,15 +266,19 @@ export function InstallationPage() {
         <Text type="body" color="secondary">
           {isZh ? (
             <>
-              Cesiumlab 以独立的 <Code>@cesiumlab/*</Code> 包发布，所有包均以 <Code>cesium</Code>（
-              <Code>~1.147.0</Code>）作为 peer 依赖。按需安装对应包即可，以下以{' '}
+              Cesiumlab 以独立的 <Code>@cesiumlab/*</Code> 包发布，所有包均以{' '}
+              <Code>@cesiumlab/cesium</Code>（<Code>~1.147.0</Code>，基于 CesiumJS
+              定制增强的引擎包，支持 <Code>/core</Code>、<Code>/engine</Code>、<Code>/widgets</Code>
+              、<Code>/gltf</Code> 子路径导出）作为 peer 依赖。按需安装对应包即可，以下以{' '}
               <Code>@cesiumlab/effects</Code> 为例。
             </>
           ) : (
             <>
               Cesiumlab is distributed as scoped <Code>@cesiumlab/*</Code> packages sharing{' '}
-              <Code>cesium</Code> (<Code>~1.147.0</Code>) as a peer dependency. Install only the
-              packages you need — using <Code>@cesiumlab/effects</Code> as an example below.
+              <Code>@cesiumlab/cesium</Code> (<Code>~1.147.0</Code>, our customized CesiumJS engine
+              distribution with <Code>/core</Code>, <Code>/engine</Code>, <Code>/widgets</Code>, and{' '}
+              <Code>/gltf</Code> subpath exports) as a peer dependency. Install only the packages
+              you need — using <Code>@cesiumlab/effects</Code> as an example below.
             </>
           )}
         </Text>

@@ -43,8 +43,10 @@ export {
 export {
   createFlowPath,
   type FlowPathHandle,
+  type FlowPathItem,
   type FlowPathOptions,
   type FlowPathPositions,
+  type FlowPathStylePatch,
   type FlowPathUpdateOptions,
 } from './flow-path/index.ts';
 export {

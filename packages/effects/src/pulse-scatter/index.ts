@@ -2,19 +2,21 @@ import {
   BlendingState,
   BoundingSphere,
   Cartesian3,
+  ClassificationType,
   Color,
   ComponentDatatype,
   Geometry,
   GeometryAttribute,
   GeometryAttributes,
   GeometryInstance,
+  GroundInstancedDecalPrimitive,
   Material,
   MaterialAppearance,
   Math as CesiumMath,
   Primitive,
   PrimitiveType,
   type Viewer,
-} from 'cesium';
+} from '@cesiumlab/cesium';
 import { createAnimationClock } from '../shared/clock.ts';
 import {
   createPrimitiveEffectHandle,
@@ -62,14 +64,30 @@ export interface PulseScatterOptions extends EffectBaseOptions {
   opacity?: number;
   /** Core & halo luminance intensity multiplier (0.2 to 2.5). Defaults to 1.15. */
   glow?: number;
-  /** Default altitude above the ellipsoid in metres for points without an explicit `height`. Defaults to 20. */
+  /** Default altitude above the ellipsoid in metres when `clampToGround` is `false`. Defaults to 20. */
   height?: number;
+  /**
+   * Drape all scatter points pixel-perfectly onto terrain and 3D Tiles via `GroundInstancedDecalPrimitive`
+   * (single hardware-instanced deferred decal draw call, zero stencil overlap artifacts). Defaults to `true`.
+   */
+  clampToGround?: boolean;
+  /** Classification target when `clampToGround` is `true`. Defaults to `ClassificationType.BOTH`. */
+  classificationType?: ClassificationType;
 }
 
 export type PulseScatterUpdateOptions = Partial<
   Pick<
     PulseScatterOptions,
-    'points' | 'style' | 'radius' | 'sizeScale' | 'color' | 'speed' | 'opacity' | 'glow' | 'height'
+    | 'points'
+    | 'style'
+    | 'radius'
+    | 'sizeScale'
+    | 'color'
+    | 'speed'
+    | 'opacity'
+    | 'glow'
+    | 'height'
+    | 'clampToGround'
   >
 >;
 
@@ -373,6 +391,7 @@ export function createPulseScatter(
 ): PulseScatterHandle {
   validatePoints(options.points);
 
+  const classificationType = options.classificationType ?? ClassificationType.BOTH;
   const state = {
     points: options.points,
     style: options.style ?? ('pulse' as PulseScatterStyle),
@@ -383,6 +402,7 @@ export function createPulseScatter(
     opacity: options.opacity ?? 0.92,
     glow: options.glow ?? 1.15,
     height: options.height ?? 20,
+    clampToGround: options.clampToGround ?? true,
   };
 
   validatePositiveFinite(state.radius, 'radius');
@@ -426,7 +446,29 @@ export function createPulseScatter(
 
   const ellipsoid = viewer.scene.ellipsoid;
 
-  const buildPrimitive = (): Primitive | null => {
+  const buildInstancedDecalPrimitive = (): GroundInstancedDecalPrimitive | null => {
+    if (state.points.length === 0) return null;
+    const instances = state.points.map((pt, i) => {
+      const [lng, lat] = pt.position;
+      const phase =
+        pt.phase !== undefined && Number.isFinite(pt.phase)
+          ? ((pt.phase % 1) + 1) % 1
+          : hashPhase(i, lng, lat);
+      return {
+        position: Cartesian3.fromDegrees(lng, lat, 0, ellipsoid),
+        radius: (pt.radius ?? state.radius) * state.sizeScale,
+        color: pt.color !== undefined ? resolveColor(pt.color, state.color) : state.color,
+        phase,
+      };
+    });
+    return new GroundInstancedDecalPrimitive({
+      instances,
+      material,
+      classificationType,
+    });
+  };
+
+  const buildFlatPrimitive = (): Primitive | null => {
     const geometry = buildScatterGeometry(
       state.points,
       state.radius,
@@ -443,7 +485,10 @@ export function createPulseScatter(
     });
   };
 
-  let primitive: Primitive | null = buildPrimitive();
+  const buildPrimitive = (): Primitive | GroundInstancedDecalPrimitive | null =>
+    state.clampToGround ? buildInstancedDecalPrimitive() : buildFlatPrimitive();
+
+  let primitive: Primitive | GroundInstancedDecalPrimitive | null = buildPrimitive();
   let visible = options.show ?? true;
   if (primitive) {
     primitive.show = visible;
@@ -506,8 +551,14 @@ export function createPulseScatter(
         }
         if (next.height !== state.height) {
           state.height = next.height;
-          needsRebuild = true;
+          if (!state.clampToGround) {
+            needsRebuild = true;
+          }
         }
+      }
+      if (next.clampToGround !== undefined && next.clampToGround !== state.clampToGround) {
+        state.clampToGround = next.clampToGround;
+        needsRebuild = true;
       }
 
       // O(1) GPU uniform updates (zero geometry rebuild)

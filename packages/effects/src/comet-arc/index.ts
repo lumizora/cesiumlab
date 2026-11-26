@@ -10,7 +10,7 @@ import {
   PolylineMaterialAppearance,
   Primitive,
   type Viewer,
-} from 'cesium';
+} from '@cesiumlab/cesium';
 import { createAnimationClock } from '../shared/clock.ts';
 import {
   createPrimitiveEffectHandle,

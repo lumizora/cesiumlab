@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4, type Viewer } from 'cesium';
+import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4, type Viewer } from '@cesiumlab/cesium';
 import {
   Button,
   Card,
@@ -32,7 +32,7 @@ export const meta: EffectDemoMeta = {
   order: 10,
 };
 
-const INSTALL_CMD = 'pnpm add @cesiumlab/effects cesium';
+const INSTALL_CMD = 'pnpm add @cesiumlab/effects @cesiumlab/cesium';
 
 const USAGE_CODE = `import { createWeatherOverlay } from '@cesiumlab/effects';
 

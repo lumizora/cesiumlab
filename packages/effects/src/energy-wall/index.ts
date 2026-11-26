@@ -14,7 +14,7 @@ import {
   Primitive,
   PrimitiveType,
   type Viewer,
-} from 'cesium';
+} from '@cesiumlab/cesium';
 import { createAnimationClock } from '../shared/clock.ts';
 import {
   createPrimitiveEffectHandle,
@@ -47,11 +47,17 @@ export interface EnergyWallOptions extends EffectBaseOptions {
   opacity?: number;
   /** Number of vertical energy wave bands. Defaults to 3. */
   repeat?: number;
+  /**
+   * Extrude a ground-hugging skirt and use screen-space `czm_globeDepthTexture` depth-intersection
+   * shading so the glowing base rim traces mountains, valleys, and 3D Tiles buildings seamlessly.
+   * Defaults to `true`.
+   */
+  clampToGround?: boolean;
 }
 
 export type EnergyWallUpdateOptions = Pick<
   EnergyWallOptions,
-  'color' | 'height' | 'speed' | 'opacity' | 'repeat'
+  'color' | 'height' | 'speed' | 'opacity' | 'repeat' | 'clampToGround'
 >;
 
 export type EnergyWallHandle = EffectHandle<EnergyWallUpdateOptions>;
@@ -64,13 +70,37 @@ uniform float u_time;
 uniform float u_speed;
 uniform float u_opacity;
 uniform float u_repeat;
+uniform float u_clampToGround;
+uniform float u_wallHeight;
 
 czm_material czm_getMaterial(czm_materialInput materialInput) {
   czm_material material = czm_getDefaultMaterial(materialInput);
   vec2 st = materialInput.st;
 
-  // Fine, crisp glowing footprint line along the bottom edge without obscuring the terrain.
   float baseLine = exp(-pow(st.t / 0.018, 2.0));
+
+  if (u_clampToGround > 0.5) {
+    float sceneLogDepth = czm_unpackDepth(
+      texture(czm_globeDepthTexture, gl_FragCoord.xy / czm_viewport.zw)
+    );
+    if (sceneLogDepth > 0.0) {
+      vec4 sceneEye = czm_windowToEyeCoordinates(gl_FragCoord.xy, sceneLogDepth);
+      float sceneDist = length(sceneEye.xyz / sceneEye.w);
+      float fragDist = length(materialInput.positionToEyeEC);
+      // Clip any wall portion buried beneath terrain or 3D Tiles buildings
+      if (fragDist > sceneDist + 1.5) {
+        material.diffuse = vec3(0.0);
+        material.emission = vec3(0.0);
+        material.alpha = 0.0;
+        return material;
+      }
+      // Crisp glowing contact rim tracing the exact terrain & 3D Tiles intersection contour
+      float contactGap = max(0.0, sceneDist - fragDist);
+      float contactBand = max(12.0, u_wallHeight * 0.035);
+      float contactGlow = exp(-pow(contactGap / contactBand, 2.0));
+      baseLine = max(baseLine, contactGlow);
+    }
+  }
 
   // Smooth exponential vertical attenuation vanishing cleanly at the top edge.
   float bodyFade = pow(clamp(1.0 - st.t, 0.0, 1.0), 1.65) * smoothstep(1.0, 0.86, st.t);
@@ -224,6 +254,7 @@ export function createEnergyWall(viewer: Viewer, options: EnergyWallOptions): En
     speed: options.speed ?? 1,
     opacity: options.opacity ?? 0.85,
     repeat: options.repeat ?? 3,
+    clampToGround: options.clampToGround ?? true,
   };
 
   validatePositiveFinite(state.height, 'height');
@@ -240,19 +271,23 @@ export function createEnergyWall(viewer: Viewer, options: EnergyWallOptions): En
         u_speed: state.speed,
         u_opacity: state.opacity,
         u_repeat: state.repeat,
+        u_clampToGround: state.clampToGround ? 1 : 0,
+        u_wallHeight: state.height,
       },
       source: ENERGY_WALL_SHADER_SOURCE,
     },
     translucent: true,
   });
 
-  const createWallPrimitive = (height: number): Primitive =>
-    new Primitive({
+  const createWallPrimitive = (height: number, clamped: boolean): Primitive => {
+    const skirtBottom = clamped ? Math.min(baseHeight, -200) : baseHeight;
+    const totalHeight = baseHeight + height - skirtBottom;
+    return new Primitive({
       geometryInstances: new GeometryInstance({
         geometry: buildWallGeometry(
           options.positions,
-          baseHeight,
-          height,
+          skirtBottom,
+          totalHeight,
           closed,
           viewer.scene.ellipsoid,
         ),
@@ -271,8 +306,9 @@ export function createEnergyWall(viewer: Viewer, options: EnergyWallOptions): En
       }),
       asynchronous: false,
     });
+  };
 
-  let primitive = createWallPrimitive(state.height);
+  let primitive = createWallPrimitive(state.height, state.clampToGround);
   viewer.scene.primitives.add(primitive);
 
   const clock = createAnimationClock(viewer, options.paused ?? false, (elapsedSeconds) => {
@@ -304,14 +340,24 @@ export function createEnergyWall(viewer: Viewer, options: EnergyWallOptions): En
         state.repeat = next.repeat;
         material.uniforms.u_repeat = state.repeat;
       }
+      let needsRebuild = false;
       if (next.height !== undefined && next.height !== state.height) {
         validatePositiveFinite(next.height, 'height');
         state.height = next.height;
-        if (!viewer.isDestroyed()) {
-          viewer.scene.primitives.remove(primitive);
-          primitive = createWallPrimitive(state.height);
-          viewer.scene.primitives.add(primitive);
-        }
+        material.uniforms.u_wallHeight = state.height;
+        needsRebuild = true;
+      }
+      if (next.clampToGround !== undefined && next.clampToGround !== state.clampToGround) {
+        state.clampToGround = next.clampToGround;
+        material.uniforms.u_clampToGround = state.clampToGround ? 1 : 0;
+        needsRebuild = true;
+      }
+      if (needsRebuild && !viewer.isDestroyed()) {
+        const wasVisible = primitive.show;
+        viewer.scene.primitives.remove(primitive);
+        primitive = createWallPrimitive(state.height, state.clampToGround);
+        primitive.show = wasVisible;
+        viewer.scene.primitives.add(primitive);
       }
     },
     onRestart() {

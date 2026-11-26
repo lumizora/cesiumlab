@@ -1,10 +1,11 @@
 import type {
+  GroundInstancedDecalPrimitive,
   GroundPolylinePrimitive,
   GroundPrimitive,
   Primitive,
   PrimitiveCollection,
   Viewer,
-} from 'cesium';
+} from '@cesiumlab/cesium';
 import type { AnimationClock } from './clock.ts';
 
 export interface EffectBaseOptions {
@@ -37,7 +38,11 @@ export interface EffectHandle<TUpdateOptions = Record<string, never>> {
   destroy(): void;
 }
 
-type ManagedPrimitive = Primitive | GroundPrimitive | GroundPolylinePrimitive;
+type ManagedPrimitive =
+  | Primitive
+  | GroundPrimitive
+  | GroundPolylinePrimitive
+  | GroundInstancedDecalPrimitive;
 
 interface PrimitiveEffectLifecycleConfig<TUpdateOptions> {
   viewer: Viewer;

@@ -1,4 +1,4 @@
-import 'cesium/Build/Cesium/Widgets/widgets.css';
+import '@cesiumlab/cesium/Source/Widgets/widgets.css';
 
 import {
   buildModuleUrl,
@@ -8,7 +8,7 @@ import {
   Terrain,
   TileMapServiceImageryProvider,
   Viewer,
-} from 'cesium';
+} from '@cesiumlab/cesium';
 
 export interface CreateDocsViewerOptions {
   shouldAnimate?: boolean;

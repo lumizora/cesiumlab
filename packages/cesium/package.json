@@ -1,0 +1,87 @@
+{
+  "name": "@cesiumlab/cesium",
+  "version": "1.147.0",
+  "description": "Customized CesiumJS distribution for @cesiumlab/*.",
+  "license": "Apache-2.0",
+  "keywords": [
+    "3D",
+    "webgl",
+    "geospatial",
+    "map",
+    "globe",
+    "cesium"
+  ],
+  "main": "index.cjs",
+  "module": "./Source/Cesium.js",
+  "types": "./Source/Cesium.d.ts",
+  "exports": {
+    ".": {
+      "types": "./Source/Cesium.d.ts",
+      "require": "./index.cjs",
+      "import": "./Source/Cesium.js"
+    },
+    "./core": {
+      "types": "./packages/core/index.d.ts",
+      "import": "./packages/core/index.js"
+    },
+    "./gltf": {
+      "types": "./packages/gltf/index.d.ts",
+      "import": "./packages/gltf/index.js"
+    },
+    "./engine": {
+      "types": "./packages/engine/index.d.ts",
+      "import": "./packages/engine/index.js"
+    },
+    "./widgets": {
+      "types": "./packages/widgets/index.d.ts",
+      "import": "./packages/widgets/index.js"
+    },
+    "./package.json": "./package.json",
+    "./Source/*": "./Source/*",
+    "./Source/*.js": null,
+    "./Build/*": "./Build/*",
+    "./Build/*.js": null
+  },
+  "type": "module",
+  "sideEffects": [
+    "./Source/ThirdParty/**/*",
+    "./Source/Widgets/**/*.css",
+    "./Source/Workers/*"
+  ],
+  "dependencies": {
+    "@cesium/core": "workspace:*",
+    "@cesium/gltf": "workspace:*",
+    "@cesium/engine": "workspace:*",
+    "@cesium/widgets": "workspace:*",
+    "protobufjs": "^8.8.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "glsl-strip-comments": "^1.0.0",
+    "gulp": "^5.0.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-tap": "^2.0.0",
+    "jsdoc": "^3.6.7",
+    "tsd-jsdoc": "^2.5.0",
+    "typescript": "catalog:",
+    "yargs": "^18.1.0"
+  },
+  "scripts": {
+    "prepare": "gulp prepare",
+    "build": "gulp build",
+    "build-release": "gulp buildRelease",
+    "build-watch": "gulp buildWatch",
+    "build-ts": "gulp buildTs",
+    "clean": "gulp clean",
+    "tsc": "gulp tsc"
+  },
+  "engines": {
+    "node": ">=22.17.0"
+  },
+  "workspaces": [
+    "packages/core",
+    "packages/gltf",
+    "packages/engine",
+    "packages/widgets"
+  ]
+}

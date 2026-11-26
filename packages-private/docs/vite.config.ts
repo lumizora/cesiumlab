@@ -1,4 +1,4 @@
-import { globSync } from 'node:fs';
+import { existsSync, globSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,9 +22,10 @@ const MIME_TYPES: Record<string, string> = {
 };
 
 function cesiumAssets(): Plugin {
-  const directory = fileURLToPath(
-    new URL('./Build/Cesium/', import.meta.resolve('cesium/package.json')),
-  );
+  const pkgUrl = import.meta.resolve('@cesiumlab/cesium/package.json');
+  const releaseDir = fileURLToPath(new URL('./Build/Cesium/', pkgUrl));
+  const devDir = fileURLToPath(new URL('./Build/CesiumUnminified/', pkgUrl));
+  const directory = existsSync(releaseDir) ? releaseDir : devDir;
   const files = ASSET_FOLDERS.flatMap((folder) =>
     globSync('**/*', { cwd: join(directory, folder), withFileTypes: true })
       .filter((entry) => entry.isFile())

@@ -1,4 +1,4 @@
-import { Color, Material, type Viewer } from 'cesium';
+import { Color, Material, type Viewer } from '@cesiumlab/cesium';
 import type { EffectBaseOptions, EffectHandle } from '../shared/effect.ts';
 import {
   resolveColor,

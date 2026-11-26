@@ -1,4 +1,4 @@
-import * as Cesium from 'cesium';
+import * as Cesium from '@cesiumlab/cesium';
 import {
   Ellipsoid,
   type GroundPolylinePrimitive,
@@ -6,7 +6,7 @@ import {
   type PostProcessStage,
   type Primitive,
   type Viewer,
-} from 'cesium';
+} from '@cesiumlab/cesium';
 import { describe, expect, it } from 'vite-plus/test';
 import {
   createCometArc,
@@ -772,6 +772,46 @@ describe('GroundPrimitive terrain clamping (clampToGround)', () => {
     expect(mock.primitives.length).toBe(0);
     expect(mock.preRenderListeners.size).toBe(0);
   });
+
+  it('supports per-path FlowPathItem batch colors in clamped and non-clamped modes', () => {
+    const mock = createMockViewer();
+    const batched = createFlowPath(mock.viewer, {
+      positions: [
+        {
+          id: 'line-a',
+          positions: [
+            [116.3, 39.9],
+            [116.4, 39.95],
+          ],
+          color: '#00f5ff',
+          headColor: '#ffffff',
+          trailColor: '#a855f7',
+          phase: 0.25,
+        },
+        {
+          id: 'line-b',
+          positions: [
+            [116.35, 39.88],
+            [116.45, 39.92],
+          ],
+          color: '#f59e0b',
+        },
+      ],
+      clampToGround: true,
+    });
+
+    expect(mock.groundPrimitives.length).toBe(1);
+    expect(() =>
+      batched.setPathStyle('line-a', { color: '#ef4444', headColor: '#fef08a' }),
+    ).not.toThrow();
+
+    batched.update({ clampToGround: false, height: 100 });
+    expect(mock.groundPrimitives.length).toBe(0);
+    expect(mock.primitives.length).toBe(1);
+
+    batched.destroy();
+    expect(mock.primitives.length).toBe(0);
+  });
 });
 
 describe('createHeatmap', () => {
@@ -915,6 +955,7 @@ describe('createPulseScatter', () => {
     const scatter = createPulseScatter(mock.viewer, {
       points: initialPoints,
       style: 'pulse',
+      clampToGround: false,
       show: false,
     });
 
@@ -936,6 +977,11 @@ describe('createPulseScatter', () => {
 
     scatter.show();
     expect(scatter.isVisible()).toBe(true);
+    expect(mock.primitives[0]?.show).toBe(true);
+
+    // Toggle to GPU GroundInstancedDecalPrimitive clamping and back
+    scatter.update({ clampToGround: true });
+    expect(mock.primitives.length).toBe(1);
     expect(mock.primitives[0]?.show).toBe(true);
 
     // Updating to empty points removes the primitive cleanly; repopulating restores it

@@ -1,5 +1,11 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4, type Viewer } from 'cesium';
+import {
+  Cartesian3,
+  HeadingPitchRange,
+  Math as CesiumMath,
+  Matrix4,
+  type Viewer,
+} from '@cesiumlab/cesium';
 import {
   Button,
   Card,
@@ -37,7 +43,7 @@ export const meta: EffectDemoMeta = {
   order: 13,
 };
 
-const INSTALL_CMD = 'pnpm add @cesiumlab/effects cesium';
+const INSTALL_CMD = 'pnpm add @cesiumlab/effects @cesiumlab/cesium';
 
 const USAGE_CODE = `import { createPulseScatter } from '@cesiumlab/effects';
 
@@ -167,6 +173,7 @@ const DEFAULTS = {
   speed: 1,
   glow: 1.15,
   opacity: 0.92,
+  clampToGround: true,
   height: 85,
 } as const;
 
@@ -187,6 +194,7 @@ export default function PulseScatterDemoPage() {
   const [speed, setSpeed] = useState<number>(DEFAULTS.speed);
   const [glow, setGlow] = useState<number>(DEFAULTS.glow);
   const [opacity, setOpacity] = useState<number>(DEFAULTS.opacity);
+  const [clampToGround, setClampToGround] = useState<boolean>(DEFAULTS.clampToGround);
   const [height, setHeight] = useState<number>(DEFAULTS.height);
 
   const points = useMemo(() => generateUrbanScatter(pointCount), [pointCount]);
@@ -201,6 +209,7 @@ export default function PulseScatterDemoPage() {
         speed,
         glow,
         opacity,
+        clampToGround,
         height,
         paused,
         show: visible,
@@ -218,10 +227,10 @@ export default function PulseScatterDemoPage() {
     [],
   );
 
-  // Geometry-affecting updates (points, sizeScale, height)
+  // Geometry-affecting updates (points, sizeScale, clampToGround, height)
   useEffect(() => {
-    scatterRef.current?.update({ points, sizeScale, height });
-  }, [points, sizeScale, height]);
+    scatterRef.current?.update({ points, sizeScale, clampToGround, height });
+  }, [points, sizeScale, clampToGround, height]);
 
   // O(1) GPU uniform updates
   useEffect(() => {
@@ -250,6 +259,7 @@ export default function PulseScatterDemoPage() {
     speed !== DEFAULTS.speed ||
     glow !== DEFAULTS.glow ||
     opacity !== DEFAULTS.opacity ||
+    clampToGround !== DEFAULTS.clampToGround ||
     height !== DEFAULTS.height;
 
   const handleResetParams = useCallback(() => {
@@ -259,6 +269,7 @@ export default function PulseScatterDemoPage() {
     setSpeed(DEFAULTS.speed);
     setGlow(DEFAULTS.glow);
     setOpacity(DEFAULTS.opacity);
+    setClampToGround(DEFAULTS.clampToGround);
     setHeight(DEFAULTS.height);
   }, []);
 
@@ -345,19 +356,30 @@ export default function PulseScatterDemoPage() {
             onChange: setOpacity,
           },
           {
-            type: 'slider',
-            id: 'height',
-            label: isZh ? `海拔高度 · ${height}m` : `Altitude · ${height}m`,
-            value: height,
-            min: 0,
-            max: 500,
-            step: 5,
-            onChange: setHeight,
+            type: 'switch',
+            id: 'clampToGround',
+            label: isZh ? '贴合地形 / 3D Tiles' : 'Clamp to ground',
+            value: clampToGround,
+            onChange: setClampToGround,
           },
+          ...(!clampToGround
+            ? [
+                {
+                  type: 'slider' as const,
+                  id: 'height',
+                  label: isZh ? `海拔高度 · ${height}m` : `Altitude · ${height}m`,
+                  value: height,
+                  min: 0,
+                  max: 500,
+                  step: 5,
+                  onChange: setHeight,
+                },
+              ]
+            : []),
         ],
       },
     ],
-    [isZh, style, pointCount, sizeScale, speed, glow, opacity, height],
+    [isZh, style, pointCount, sizeScale, speed, glow, opacity, clampToGround, height],
   );
 
   const pageTitle = isZh ? '海量脉冲散点 / 呼吸点阵 (Pulse Scatter)' : meta.title;

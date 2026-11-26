@@ -24,7 +24,7 @@ interface HomeViewProps {
   onOpenSearch: () => void;
 }
 
-const INSTALL_CMD = 'pnpm add @cesiumlab/effects cesium';
+const INSTALL_CMD = 'pnpm add @cesiumlab/effects @cesiumlab/cesium';
 
 export function HomeView({ isDark, onToggleTheme, onOpenSearch }: HomeViewProps) {
   const { isZh } = useI18n();

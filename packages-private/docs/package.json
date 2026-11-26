@@ -10,9 +10,9 @@
   "dependencies": {
     "@astryxdesign/core": "catalog:",
     "@astryxdesign/theme-neutral": "catalog:",
+    "@cesiumlab/cesium": "workspace:*",
     "@cesiumlab/effects": "workspace:*",
     "@stylexjs/stylex": "catalog:",
-    "cesium": "catalog:",
     "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

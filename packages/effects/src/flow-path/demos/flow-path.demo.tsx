@@ -1,5 +1,11 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4, type Viewer } from 'cesium';
+import {
+  Cartesian3,
+  HeadingPitchRange,
+  Math as CesiumMath,
+  Matrix4,
+  type Viewer,
+} from '@cesiumlab/cesium';
 import {
   Button,
   Card,
@@ -20,7 +26,7 @@ import { useDocsPageMarkdown } from '@docs/lib/docsPage';
 import type { EffectDemoMeta } from '@docs/lib/effectDemos';
 import { useI18n } from '@docs/lib/i18n';
 import { formatEffectDocMarkdown } from '@docs/lib/markdown';
-import { createFlowPath, type FlowPathHandle } from '../index.ts';
+import { createFlowPath, type FlowPathHandle, type FlowPathItem } from '../index.ts';
 
 export const meta: EffectDemoMeta = {
   id: 'flow-path',
@@ -32,7 +38,7 @@ export const meta: EffectDemoMeta = {
   order: 7,
 };
 
-const INSTALL_CMD = 'pnpm add @cesiumlab/effects cesium';
+const INSTALL_CMD = 'pnpm add @cesiumlab/effects @cesiumlab/cesium';
 
 const USAGE_CODE = `import { createFlowPath } from '@cesiumlab/effects';
 
@@ -125,8 +131,22 @@ function resetCamera(viewer: Viewer) {
   viewer.camera.lookAtTransform(Matrix4.IDENTITY);
 }
 
+const ROUTE_PALETTE: ReadonlyArray<{
+  color: string;
+  headColor: string;
+  trailColor: string;
+}> = [
+  { color: '#164e63', headColor: '#00f5ff', trailColor: '#a855f7' },
+  { color: '#78350f', headColor: '#fde047', trailColor: '#f97316' },
+  { color: '#064e3b', headColor: '#34d399', trailColor: '#06b6d4' },
+  { color: '#4c1d95', headColor: '#f472b6', trailColor: '#8b5cf6' },
+  { color: '#7f1d1d', headColor: '#fb7185', trailColor: '#f59e0b' },
+  { color: '#1e3a8a', headColor: '#38bdf8', trailColor: '#6366f1' },
+];
+
 const DEFAULTS = {
   size: 200,
+  multiColor: true,
   color: '#1e293b',
   headColor: '#00f5ff',
   trailColor: '#a855f7',
@@ -159,6 +179,7 @@ export default function FlowPathDemoPage() {
   );
   const [visible, setVisible] = useState(true);
   const [size, setSize] = useState<number>(DEFAULTS.size);
+  const [multiColor, setMultiColor] = useState<boolean>(DEFAULTS.multiColor);
   const [color, setColor] = useState<string>(DEFAULTS.color);
   const [headColor, setHeadColor] = useState<string>(DEFAULTS.headColor);
   const [trailColor, setTrailColor] = useState<string>(DEFAULTS.trailColor);
@@ -215,9 +236,24 @@ export default function FlowPathDemoPage() {
     const activePaths = allPaths.slice(0, Math.min(size, allPaths.length));
     if (activePaths.length === 0) return;
 
+    const positionsInput: ReadonlyArray<ReadonlyArray<readonly [number, number]>> | FlowPathItem[] =
+      multiColor
+        ? activePaths.map((line, index) => {
+            const swatch = ROUTE_PALETTE[index % ROUTE_PALETTE.length]!;
+            return {
+              id: `bj-bus-${index}`,
+              positions: line,
+              color: swatch.color,
+              headColor: swatch.headColor,
+              trailColor: swatch.trailColor,
+              phase: (index * 0.6180339887) % 1,
+            };
+          })
+        : activePaths;
+
     pathRef.current?.destroy();
     pathRef.current = createFlowPath(viewer, {
-      positions: activePaths,
+      positions: positionsInput,
       color,
       headColor,
       trailColor,
@@ -234,9 +270,9 @@ export default function FlowPathDemoPage() {
       paused,
       show: visible,
     });
-    // Rebuild only when dataset, slice size, or construction-only geometry options change.
+    // Rebuild only when dataset, slice size, batching mode, or construction-only geometry options change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewerReady, allPaths, size, width, loop]);
+  }, [viewerReady, allPaths, size, multiColor, width, loop]);
 
   useEffect(() => {
     pathRef.current?.update({
@@ -283,6 +319,7 @@ export default function FlowPathDemoPage() {
 
   const hasModifiedParams =
     size !== DEFAULTS.size ||
+    multiColor !== DEFAULTS.multiColor ||
     color !== DEFAULTS.color ||
     headColor !== DEFAULTS.headColor ||
     trailColor !== DEFAULTS.trailColor ||
@@ -299,6 +336,7 @@ export default function FlowPathDemoPage() {
 
   const handleResetParams = useCallback(() => {
     setSize(DEFAULTS.size);
+    setMultiColor(DEFAULTS.multiColor);
     setColor(DEFAULTS.color);
     setHeadColor(DEFAULTS.headColor);
     setTrailColor(DEFAULTS.trailColor);
@@ -321,26 +359,37 @@ export default function FlowPathDemoPage() {
         label: isZh ? '外观' : 'Appearance',
         controls: [
           {
-            type: 'color',
-            id: 'color',
-            label: isZh ? '底路颜色' : 'Base track',
-            value: color,
-            onChange: setColor,
+            type: 'switch',
+            id: 'multiColor',
+            label: isZh ? '每线独立多色' : 'Per-path colors',
+            value: multiColor,
+            onChange: setMultiColor,
           },
-          {
-            type: 'color',
-            id: 'headColor',
-            label: isZh ? '光头颜色' : 'Head color',
-            value: headColor,
-            onChange: setHeadColor,
-          },
-          {
-            type: 'color',
-            id: 'trailColor',
-            label: isZh ? '拖尾颜色' : 'Trail color',
-            value: trailColor,
-            onChange: setTrailColor,
-          },
+          ...(!multiColor
+            ? [
+                {
+                  type: 'color' as const,
+                  id: 'color',
+                  label: isZh ? '底路颜色' : 'Base track',
+                  value: color,
+                  onChange: setColor,
+                },
+                {
+                  type: 'color' as const,
+                  id: 'headColor',
+                  label: isZh ? '光头颜色' : 'Head color',
+                  value: headColor,
+                  onChange: setHeadColor,
+                },
+                {
+                  type: 'color' as const,
+                  id: 'trailColor',
+                  label: isZh ? '拖尾颜色' : 'Trail color',
+                  value: trailColor,
+                  onChange: setTrailColor,
+                },
+              ]
+            : []),
           {
             type: 'slider',
             id: 'width',
@@ -478,6 +527,7 @@ export default function FlowPathDemoPage() {
       isZh,
       allPaths.length,
       size,
+      multiColor,
       color,
       headColor,
       trailColor,

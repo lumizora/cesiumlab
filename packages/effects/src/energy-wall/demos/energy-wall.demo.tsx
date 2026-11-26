@@ -1,5 +1,11 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4, type Viewer } from 'cesium';
+import {
+  Cartesian3,
+  HeadingPitchRange,
+  Math as CesiumMath,
+  Matrix4,
+  type Viewer,
+} from '@cesiumlab/cesium';
 import {
   Button,
   Card,
@@ -32,7 +38,7 @@ export const meta: EffectDemoMeta = {
   order: 4,
 };
 
-const INSTALL_CMD = 'pnpm add @cesiumlab/effects cesium';
+const INSTALL_CMD = 'pnpm add @cesiumlab/effects @cesiumlab/cesium';
 
 const USAGE_CODE = `import { createEnergyWall } from '@cesiumlab/effects';
 
@@ -77,6 +83,7 @@ const DEFAULTS = {
   heightKm: 36,
   baseHeightKm: 0,
   closed: true,
+  clampToGround: true,
   speed: 1,
   opacity: 0.85,
   repeat: 3,
@@ -97,6 +104,7 @@ export default function EnergyWallDemoPage() {
   const [heightKm, setHeightKm] = useState<number>(DEFAULTS.heightKm);
   const [baseHeightKm, setBaseHeightKm] = useState<number>(DEFAULTS.baseHeightKm);
   const [closed, setClosed] = useState<boolean>(DEFAULTS.closed);
+  const [clampToGround, setClampToGround] = useState<boolean>(DEFAULTS.clampToGround);
   const [speed, setSpeed] = useState<number>(DEFAULTS.speed);
   const [opacity, setOpacity] = useState<number>(DEFAULTS.opacity);
   const [repeat, setRepeat] = useState<number>(DEFAULTS.repeat);
@@ -110,6 +118,7 @@ export default function EnergyWallDemoPage() {
         height: heightKm * 1_000,
         baseHeight: baseHeightKm * 1_000,
         closed,
+        clampToGround,
         speed,
         opacity,
         repeat,
@@ -139,6 +148,7 @@ export default function EnergyWallDemoPage() {
       height: heightKm * 1_000,
       baseHeight: baseHeightKm * 1_000,
       closed,
+      clampToGround,
       speed,
       opacity,
       repeat,
@@ -153,17 +163,19 @@ export default function EnergyWallDemoPage() {
     wallRef.current?.update({
       color,
       height: heightKm * 1_000,
+      clampToGround,
       speed,
       opacity,
       repeat,
     });
-  }, [color, heightKm, speed, opacity, repeat]);
+  }, [color, heightKm, clampToGround, speed, opacity, repeat]);
 
   const hasModifiedParams =
     color !== DEFAULTS.color ||
     heightKm !== DEFAULTS.heightKm ||
     baseHeightKm !== DEFAULTS.baseHeightKm ||
     closed !== DEFAULTS.closed ||
+    clampToGround !== DEFAULTS.clampToGround ||
     speed !== DEFAULTS.speed ||
     opacity !== DEFAULTS.opacity ||
     repeat !== DEFAULTS.repeat;
@@ -173,6 +185,7 @@ export default function EnergyWallDemoPage() {
     setHeightKm(DEFAULTS.heightKm);
     setBaseHeightKm(DEFAULTS.baseHeightKm);
     setClosed(DEFAULTS.closed);
+    setClampToGround(DEFAULTS.clampToGround);
     setSpeed(DEFAULTS.speed);
     setOpacity(DEFAULTS.opacity);
     setRepeat(DEFAULTS.repeat);
@@ -241,6 +254,13 @@ export default function EnergyWallDemoPage() {
           },
           {
             type: 'switch',
+            id: 'clampToGround',
+            label: isZh ? '深度交界贴地' : 'Clamp to ground',
+            value: clampToGround,
+            onChange: setClampToGround,
+          },
+          {
+            type: 'switch',
             id: 'closed',
             label: isZh ? '闭合围栏' : 'Closed loop',
             value: closed,
@@ -265,7 +285,7 @@ export default function EnergyWallDemoPage() {
         ],
       },
     ],
-    [isZh, color, opacity, repeat, heightKm, baseHeightKm, closed, speed],
+    [isZh, color, opacity, repeat, heightKm, baseHeightKm, clampToGround, closed, speed],
   );
 
   useEffect(() => {

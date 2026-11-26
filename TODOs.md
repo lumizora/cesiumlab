@@ -17,13 +17,10 @@
      - Cesium 1.147 的 `GroundPolylinePrimitive` 会忽略 `appearance.vertexShaderSource` / `fragmentShaderSource`，硬编码使用 `PolylineShadowVolumeVS/FS`，且将 `materialShaderSource` 拼接在 `PolylineShadowVolumeFS` 声明 `v_endPlaneNormalEcAndBatchId` 之前，`czm_materialInput` 中也不包含 `batchId` 或自定义 attribute。
      - 因此在零 Cesium 私有 API 约束下，`GroundPolylinePrimitive` 无法在单 Draw Call 内让自定义 `Material` 读取每条线独立的 `BatchTable` 颜色。
 
-- **待决策落地方向**：
-  - [ ] **方案 1（推荐）**：非贴地模式使用 `BatchTable` 真单 Draw Call 支持任意每线独立 `color` + `headColor` 及 O(1) 单线改色；贴地模式明确能力边界，保持统一 `color` + `headColor`。
-  - [ ] **方案 2**：如贴地模式也必须支持多色，采用显式有限样式表（Style Palette，`styles` + `styleIndex`），避免粗糙的按任意 RGB 字符串隐式分桶。
+- **已落地实现（基于自研定制 `@cesiumlab/cesium`）**：
+  - [x] 已在 `@cesiumlab/cesium` 引擎层为 `czm_materialInput` 增加 `batchId` 通道并在 `GroundPolylinePrimitive` / `Primitive` 中前置注入 `BatchTable` 函数；`createFlowPath` 现已支持 `FlowPathItem[]`（单线独立 `color` / `headColor` / `trailColor` / `phase`）与 `setPathStyle(id, style)` O(1) 动态改色，贴地与非贴地模式均为 1 Draw Call。
 
 ### PulseScatter (`createPulseScatter`) 海量散点贴合地形支持
 
-- **现状与无妥协边界**：
-  - 因 Cesium `GroundPrimitive` 不支持在单 Draw Call 内为万级独立圆形/点阵实例提供独立颜色与错峰相位动画，当前 `PulseScatter` 专注高性能单 Draw Call 合批散点（支持 `height` 统一海拔偏移，不做粗糙的 CPU 采样贴地或破洞网格）。
-- **后续方向**：
-  - [ ] 探索基于 WebGL/Cesium 未来扩展或按需地形高度批采样 + 局部贴地投影的完美无破洞方案（在未有兼顾万级点 60fps 与零穿模的方案前，不强行上线低质量贴地）。
+- **已落地实现（基于自研定制 `@cesiumlab/cesium`）**：
+  - [x] 已在 `@cesiumlab/cesium` 引擎层新增 `GroundInstancedDecalPrimitive`（单次 `gl.drawElementsInstanced` 硬件实例化屏幕空间延迟贴花，直接读取 `czm_globeDepthTexture`），`createPulseScatter` 现已默认开启 `clampToGround: true`，支持 3 万+ 散点 60fps 像素级贴合地形与 3D Tiles、零 Stencil 重叠穿帮、任意缩放矢量锐利。

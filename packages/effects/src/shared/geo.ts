@@ -1,4 +1,4 @@
-import { Cartographic, Color, type Viewer } from 'cesium';
+import { Cartographic, Color, type Viewer } from '@cesiumlab/cesium';
 
 export type LngLat = readonly [longitude: number, latitude: number];
 export type ColorInput = Color | string;

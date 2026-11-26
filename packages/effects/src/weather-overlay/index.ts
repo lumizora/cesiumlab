@@ -1,4 +1,4 @@
-import { Color, PostProcessStage, type Viewer } from 'cesium';
+import { Color, PostProcessStage, type Viewer } from '@cesiumlab/cesium';
 import { createAnimationClock } from '../shared/clock.ts';
 import type { EffectBaseOptions, EffectHandle } from '../shared/effect.ts';
 import {
