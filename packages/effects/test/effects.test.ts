@@ -9,20 +9,24 @@ import {
 } from '@cesiumlab/cesium';
 import { describe, expect, it } from 'vite-plus/test';
 import {
+  createBuildingStyle,
   createCometArc,
   createEnergyBeam,
   createEnergyWall,
   createFlowPath,
   createHeatmap,
+  createHexPrism,
   createHoloBeacon,
   createHoloDome,
   createPulseRing,
   createPulseScatter,
   createRadarScan,
   createTerrainAnalysis,
+  createViewshed,
   createWaterSurface,
   createWeatherOverlay,
   createWindField,
+  createWorldScan,
   type EffectHandle,
 } from '../src/index.ts';
 
@@ -1094,5 +1098,260 @@ describe('createTerrainAnalysis', () => {
       createTerrainAnalysis(mock.viewer, { minElevation: 3_000, maxElevation: 3_000 }),
     ).toThrow(RangeError);
     expect(() => createTerrainAnalysis(mock.viewer, { contourSpacing: 0 })).toThrow(RangeError);
+  });
+});
+
+describe('createWorldScan', () => {
+  it('mounts a PostProcessStage, supports radial/linear/trigger updates, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const scan = createWorldScan(mock.viewer, {
+      center: [102.9, 31.1],
+      height: 3_600,
+      radius: 18_000,
+      show: false,
+    });
+
+    expect(mock.postProcessStages.length).toBe(1);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(scan.isVisible()).toBe(false);
+    expect(mock.postProcessStages[0]?.enabled).toBe(false);
+
+    scan.show();
+    expect(scan.isVisible()).toBe(true);
+    expect(mock.postProcessStages[0]?.enabled).toBe(true);
+
+    scan.update({
+      center: [121.5, 31.23],
+      height: 0,
+      mode: 'linear',
+      radius: 12_000,
+      color: '#a855f7',
+      bandWidth: 0.3,
+      duration: 3.5,
+      speed: 1.5,
+      intensity: 1.2,
+      direction: 90,
+      gridEnabled: false,
+      gridSize: 250,
+      loop: false,
+    });
+    scan.trigger();
+    mock.tick();
+    scan.restart();
+    scan.setPaused(true);
+    expect(scan.isPaused()).toBe(true);
+
+    scan.destroy();
+    expect(scan.isDestroyed()).toBe(true);
+    expect(mock.postProcessStages.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => scan.destroy()).not.toThrow();
+  });
+
+  it('rejects invalid center coordinates or non-positive radius', () => {
+    const mock = createMockViewer();
+    expect(() => createWorldScan(mock.viewer, { center: [200, 31] })).toThrow(RangeError);
+    expect(() => createWorldScan(mock.viewer, { center: [102.9, 31.1], radius: 0 })).toThrow(
+      RangeError,
+    );
+  });
+});
+
+describe('createHexPrism', () => {
+  it('batches 3D hexagonal/square prisms in one primitive, supports live O(1) and geometry updates, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const prisms = createHexPrism(mock.viewer, {
+      points: [
+        { position: [121.499, 31.239], value: 80 },
+        { position: [121.495, 31.236], value: 50 },
+        { position: [121.473, 31.23], value: 95 },
+      ],
+      shape: 'hex',
+      cellRadius: 280,
+      show: false,
+    });
+
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(prisms.isVisible()).toBe(false);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    prisms.show();
+    expect(prisms.isVisible()).toBe(true);
+    expect(mock.primitives[0]?.show).toBe(true);
+
+    // O(1) uniform & modelMatrix updates
+    prisms.update({
+      palette: 'thermal',
+      elevationScale: 1.8,
+      pulseSpeed: 1.4,
+      opacity: 0.85,
+    });
+    expect(mock.primitives.length).toBe(1);
+
+    // Geometry-rebuilding updates preserve visibility
+    prisms.hide();
+    prisms.update({
+      shape: 'square',
+      aggregate: false,
+      cellRadius: 200,
+      coverage: 0.75,
+    });
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    mock.tick();
+    prisms.restart();
+    prisms.setPaused(true);
+    expect(prisms.isPaused()).toBe(true);
+
+    prisms.destroy();
+    expect(prisms.isDestroyed()).toBe(true);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => prisms.destroy()).not.toThrow();
+  });
+
+  it('rejects empty points or invalid cellRadius', () => {
+    const mock = createMockViewer();
+    expect(() => createHexPrism(mock.viewer, { points: [] })).toThrow(RangeError);
+    expect(() =>
+      createHexPrism(mock.viewer, {
+        points: [{ position: [121.49, 31.23], value: 10 }],
+        cellRadius: 0,
+      }),
+    ).toThrow(RangeError);
+  });
+});
+
+describe('createBuildingStyle', () => {
+  it('attaches a CustomShader to a tileset/model, supports O(1) preset updates, and restores prior shader on hide/destroy', () => {
+    const mock = createMockViewer();
+    const priorShader = { marker: 'prior' } as unknown as Cesium.CustomShader;
+    const fakeTileset = {
+      customShader: priorShader,
+      isDestroyed: () => false,
+    } as unknown as Cesium.Cesium3DTileset;
+
+    const style = createBuildingStyle(mock.viewer, {
+      tileset: fakeTileset,
+      referencePosition: [121.5016, 31.2397],
+      preset: 'cyber',
+      show: false,
+    });
+
+    expect(style.isVisible()).toBe(false);
+    expect(fakeTileset.customShader).toBe(priorShader);
+    expect(mock.preRenderListeners.size).toBe(1);
+
+    style.show();
+    expect(style.isVisible()).toBe(true);
+    const activeShader = fakeTileset.customShader;
+    expect(activeShader).toBeDefined();
+    expect(activeShader).not.toBe(priorShader);
+
+    style.update({
+      preset: 'night-glow',
+      maxHeight: 320,
+      scanSpeed: 1.5,
+      scanWidth: 24,
+      windowGlow: 1.1,
+      roofHighlight: 0.7,
+      opacity: 0.9,
+    });
+    mock.tick();
+    style.restart();
+    style.setPaused(true);
+    expect(style.isPaused()).toBe(true);
+
+    style.hide();
+    expect(style.isVisible()).toBe(false);
+    expect(fakeTileset.customShader).toBe(priorShader);
+
+    style.show();
+    expect(fakeTileset.customShader).toBe(activeShader);
+
+    style.destroy();
+    expect(style.isDestroyed()).toBe(true);
+    expect(fakeTileset.customShader).toBe(priorShader);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => style.destroy()).not.toThrow();
+  });
+
+  it('rejects non-positive maxHeight or scanWidth', () => {
+    const mock = createMockViewer();
+    const fakeTileset = {
+      customShader: undefined,
+      isDestroyed: () => false,
+    } as unknown as Cesium.Cesium3DTileset;
+    expect(() => createBuildingStyle(mock.viewer, { tileset: fakeTileset, maxHeight: 0 })).toThrow(
+      RangeError,
+    );
+    expect(() => createBuildingStyle(mock.viewer, { tileset: fakeTileset, scanWidth: -5 })).toThrow(
+      RangeError,
+    );
+  });
+});
+
+describe('createViewshed', () => {
+  it('mounts PostProcessStage and 3D frustum wireframe, supports live updates, and cleans up idempotently', () => {
+    const mock = createMockViewer();
+    const viewshed = createViewshed(mock.viewer, {
+      observer: [102.91, 31.11],
+      observerHeight: 4_350,
+      heading: 225,
+      pitch: -18,
+      distance: 9_000,
+      show: false,
+    });
+
+    expect(mock.postProcessStages.length).toBe(1);
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.preRenderListeners.size).toBe(1);
+    expect(viewshed.isVisible()).toBe(false);
+    expect(mock.postProcessStages[0]?.enabled).toBe(false);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    viewshed.show();
+    expect(viewshed.isVisible()).toBe(true);
+    expect(mock.postProcessStages[0]?.enabled).toBe(true);
+    expect(mock.primitives[0]?.show).toBe(true);
+
+    viewshed.update({
+      heading: 180,
+      pitch: -24,
+      horizontalFov: 90,
+      verticalFov: 55,
+      distance: 12_000,
+      visibleColor: '#22c55e',
+      hiddenColor: '#ef4444',
+      opacity: 0.7,
+      showFrustum: false,
+      autoSweep: true,
+      sweepRange: 40,
+      sweepSpeed: 0.8,
+    });
+    expect(mock.primitives.length).toBe(1);
+    expect(mock.primitives[0]?.show).toBe(false);
+
+    mock.tick();
+    viewshed.restart();
+    viewshed.setPaused(true);
+    expect(viewshed.isPaused()).toBe(true);
+
+    viewshed.destroy();
+    expect(viewshed.isDestroyed()).toBe(true);
+    expect(mock.postProcessStages.length).toBe(0);
+    expect(mock.primitives.length).toBe(0);
+    expect(mock.preRenderListeners.size).toBe(0);
+    expect(() => viewshed.destroy()).not.toThrow();
+  });
+
+  it('rejects invalid observer coordinates or non-positive distance', () => {
+    const mock = createMockViewer();
+    expect(() => createViewshed(mock.viewer, { observer: [200, 31] })).toThrow(RangeError);
+    expect(() => createViewshed(mock.viewer, { observer: [102.91, 31.11], distance: 0 })).toThrow(
+      RangeError,
+    );
   });
 });

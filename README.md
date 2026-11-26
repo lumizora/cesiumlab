@@ -5,7 +5,7 @@
 ## 工作区包
 
 - **`packages/cesium`（`@cesiumlab/cesium`）**：基于 CesiumJS `1.147.0` 精简与引擎级增强的自定义发行版，统一提供 `@cesiumlab/cesium` 主包及 `/core`、`/gltf`、`/engine`、`/widgets` 子路径导出。
-- **`packages/effects`（`@cesiumlab/effects`）**：基于 `@cesiumlab/cesium` 的纯 GPU GLSL 三维视觉特效库（14 个内置特效）。
+- **`packages/effects`（`@cesiumlab/effects`）**：基于 `@cesiumlab/cesium` 的纯 GPU GLSL 三维视觉特效库（18 个内置特效）。
 - **`packages-private/docs`（`@cesiumlab/docs`）**：基于 React 19 与 [Astryx](https://astryx.atmeta.com/) 构建的双语 API 文档与实时交互演示站。
 
 ## 运行

@@ -18,6 +18,10 @@
 - **`createWindField`**：基于离屏 WebGL2 拖尾累积 FBO 的万级粒子风场与洋流场引擎，支持自定义 U/V 矢量场与台风/黑潮内置预设，以及 `GroundPrimitive` 贴地/高空等压面无缝切换。
 - **`createPulseScatter`**：单 Draw Call 硬件实例化 GPU 海量脉冲散点与呼吸点阵，支持 3 万+ 独立颜色/半径/交错相位的脉冲、呼吸与双波纹涟漪点阵，并通过 `GroundInstancedDecalPrimitive` 实现 60fps 实时贴合地形与 3D Tiles（`clampToGround`）。
 - **`createTerrainAnalysis`**：基于 CesiumJS 原生 `globe.material` 的纯 GPU 地形分析着色器，支持抗锯齿主/次等高线、高程分层设色、工程坡度分级与 360° 坡向分析实时切换。
+- **`createWorldScan`**：基于 `PostProcessStage` 深度缓冲世界坐标反算的全地形/全建筑立体扫描波，0 几何体像素级扫过山脊与 3D Tiles 建筑立面，支持环形扩散与线性推进双模式、抗锯齿全息网格及 `trigger()` 触发。
+- **`createHexPrism`**：单 Draw Call 合批 3D 蜂窝六棱柱与方柱统计矩阵，支持原始点自动空间蜂窝聚合、4 套 5 段 GPU 色带、O(1) 实时高度倍率缩放及平滑生长入场动画。
+- **`createBuildingStyle`**：基于 Cesium 原生 `CustomShader` 的零贴图城市建筑赛博流光着色器，支持任意 `Cesium3DTileset` / `Model`，提供 4 套风格预设、高度渐变、全息扫描光环与程序化夜间窗格矩阵，销毁时无损还原原有着色器。
+- **`createViewshed`**：基于观察点虚拟相机 + 离屏 `ShadowMap` 深度贴图与 `PostProcessStage` 投射着色器的纯 GPU 三维通视分析，实时区分地形与 3D 建筑可见区（绿）/盲区（红），支持 3D 视锥线框与自动巡航扫描。
 
 ## 安装
 

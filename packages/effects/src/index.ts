@@ -102,6 +102,36 @@ export {
   type TerrainAnalysisOptions,
   type TerrainAnalysisUpdateOptions,
 } from './terrain-analysis/index.ts';
+export {
+  createWorldScan,
+  type WorldScanHandle,
+  type WorldScanMode,
+  type WorldScanOptions,
+  type WorldScanUpdateOptions,
+} from './world-scan/index.ts';
+export {
+  createHexPrism,
+  type HexPrismHandle,
+  type HexPrismOptions,
+  type HexPrismPalette,
+  type HexPrismPoint,
+  type HexPrismShape,
+  type HexPrismUpdateOptions,
+} from './hex-prism/index.ts';
+export {
+  createBuildingStyle,
+  type BuildingStyleHandle,
+  type BuildingStyleOptions,
+  type BuildingStylePreset,
+  type BuildingStyleTarget,
+  type BuildingStyleUpdateOptions,
+} from './building-style/index.ts';
+export {
+  createViewshed,
+  type ViewshedHandle,
+  type ViewshedOptions,
+  type ViewshedUpdateOptions,
+} from './viewshed/index.ts';
 
 export type { EffectBaseOptions, EffectHandle } from './shared/effect.ts';
 export type { ColorInput, LngLat } from './shared/geo.ts';

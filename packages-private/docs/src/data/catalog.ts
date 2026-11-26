@@ -169,6 +169,54 @@ export const MODULE_CATALOG: readonly ModuleCatalogItem[] = [
     summaryZh:
       '基于 Cesium 原生 globe.material 的地形分析着色器，支持抗锯齿主次等高线、高程设色、坡度与坡向实时切换。',
   },
+  {
+    id: 'world-scan',
+    path: '/docs/world-scan',
+    section: 'Visual Effects',
+    titleEn: 'World Scan',
+    titleZh: '全地形立体扫描波',
+    tag: 'PostProcess · 3D Depth',
+    summaryEn:
+      'Depth-reconstructed 3D holographic scan wave sweeping across real mountain ridges and 3D Tiles building facades in radial or linear modes.',
+    summaryZh:
+      '基于深度缓冲反算三维坐标的全息扫描波，0 几何体像素级扫过山体地形与 3D 建筑立面，支持环形与线性双模式。',
+  },
+  {
+    id: 'hex-prism',
+    path: '/docs/hex-prism',
+    section: 'Visual Effects',
+    titleEn: '3D Hex Prism',
+    titleZh: '3D 蜂窝柱阵',
+    tag: '1 Draw Call · 3D Grid',
+    summaryEn:
+      'Single-Draw-Call 3D hexagonal honeycomb & square column matrix with automatic spatial binning, 5-stop GPU color ramps, and rising growth animation.',
+    summaryZh:
+      '单 Draw Call 合批三维六棱柱与方柱统计矩阵，支持原始点自动蜂窝聚合、5 段 GPU 色带与 O(1) 实时高度拉伸。',
+  },
+  {
+    id: 'building-style',
+    path: '/docs/building-style',
+    section: 'Visual Effects',
+    titleEn: '3D Building Style',
+    titleZh: '3D 建筑赛博流光',
+    tag: 'CustomShader · 3D Tiles',
+    summaryEn:
+      'Zero-texture CustomShader for 3D Tilesets & Models with height gradients, rising holographic scan halos, procedural night windows, and roof rim glow.',
+    summaryZh:
+      '基于 Cesium CustomShader 的零贴图城市建筑着色器，支持高度渐变、全息扫描光环、程序化夜间窗格与屋顶高光。',
+  },
+  {
+    id: 'viewshed',
+    path: '/docs/viewshed',
+    section: 'Visual Effects',
+    titleEn: '3D Viewshed',
+    titleZh: '三维通视分析',
+    tag: 'ShadowMap · LOS',
+    summaryEn:
+      'Real-time GPU 3D viewshed & line-of-sight analysis projecting visible (green) and occluded (red) zones onto terrain and 3D buildings with 3D frustum wireframe.',
+    summaryZh:
+      '基于离屏 ShadowMap 与深度投射的纯 GPU 三维通视分析，实时区分地形与建筑可见区/盲区，支持 3D 视锥与自动巡航扫描。',
+  },
 ];
 
 export const DEFAULT_MODULE_PATH = MODULE_CATALOG[0]?.path ?? '/docs/introduction';

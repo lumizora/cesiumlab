@@ -11,10 +11,13 @@ import { CodeBlock } from '@astryxdesign/core/CodeBlock';
 import { Code } from '@astryxdesign/core/Code';
 import {
   ArrowRight,
+  Building2,
   CloudRain,
   Cpu,
+  Eye,
   Flame,
   Globe,
+  Hexagon,
   Layers,
   MapPin,
   Mountain,
@@ -22,6 +25,7 @@ import {
   Radar,
   Radio,
   Route,
+  Scan,
   ScatterChart,
   Shield,
   Sparkles,
@@ -66,6 +70,10 @@ const MODULE_ICONS = {
   'wind-field': Wind,
   'pulse-scatter': ScatterChart,
   'terrain-analysis': Mountain,
+  'world-scan': Scan,
+  'hex-prism': Hexagon,
+  'building-style': Building2,
+  viewshed: Eye,
 } as const;
 
 export function IntroductionPage() {
