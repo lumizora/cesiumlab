@@ -46,13 +46,11 @@ const HUD_SURFACE_STYLE: CSSProperties = {
 };
 
 function applyHdQuality(viewer: Viewer, enabled: boolean) {
+  viewer.useBrowserRecommendedResolution = true;
   if (enabled) {
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    viewer.useBrowserRecommendedResolution = false;
-    viewer.resolutionScale = dpr < 2 ? 2 / dpr : 1;
+    viewer.resolutionScale = 1.5;
     viewer.scene.globe.maximumScreenSpaceError = 1;
   } else {
-    viewer.useBrowserRecommendedResolution = true;
     viewer.resolutionScale = 1;
     viewer.scene.globe.maximumScreenSpaceError = 2;
   }
